@@ -1,27 +1,4 @@
 #encoding UTF-8
-#set $now = $current.dateTime.raw
-#set $yesterday = $now - 24*3600
-#set $today_dayluminosity = $almanac.sun.set.raw -  $almanac.sun.rise.raw                                                                                   
-#set $yesterday_dayluminosity = $almanac($almanac_time=$yesterday).sun.set.raw - $almanac($almanac_time=$yesterday).sun.rise.raw                            
-#set $difference_pre = $today_dayluminosity - $yesterday_dayluminosity
-#set $difference = $difference_pre//60
-#set $seconds = $almanac.sun.set.raw - $almanac.sun.rise.raw
-#set $hours = $seconds //3600
-#set $seconds %= 3600
-#set $minutes = $seconds//60
-#set $seconds %= 60
-#set $dayluminosity_str = "%d hours, %d minutes, %d seconds" % ($hours, $minutes, $seconds)                                                                 
-#set $difference = $today_dayluminosity - $yesterday_dayluminosity
-#if $difference
-    #set $delta = abs($difference)
-    #set $amt_str = "%s%d seconds" % (str(int($delta) // 60) + ' minutes, ' if ($delta // 60) > 0 else '', $delta % 60 if ($delta // 60) > 0 else $delta)
-    #if $difference > 0
-        #set $delta_str = "%s more than yesterday" % $amt_str
-    #else
-        #set $delta_str = "%s less than yesterday" % $amt_str
-    #end if
-    #set $dayluminosity_str = "%s" % ($dayluminosity_str)
-#end if
 ## +-------------------------------------------------------------------------+
 ## |    almanac.html.tmpl                Template file for "almanac" page    |
 ## +-------------------------------------------------------------------------+
@@ -35,6 +12,18 @@
 
 #attr $active_nav = 'almanac'
 #include "header.inc"
+
+## If extended almanac information is available, do extra calculations.
+#if $almanac.hasExtras
+  ## For the change in daylight, pick a string to indicate whether it is more or
+  ## less than yesterday:
+  #set $sun_visible_change = $almanac.sun.visible_change
+  #if $sun_visible_change.raw < 0
+    #set $change_str = $Extras.Translations[$Extras.language].less_than_yesterday
+  #else
+    #set $change_str = $Extras.Translations[$Extras.language].less_than_yesterday
+  #end if
+#end if
 
 <main>
 
@@ -59,7 +48,7 @@
                                     $Extras.Translations[$Extras.language].rise</h6>
                                 $almanac.sun.rise
                                 <span class="d-block text-muted" data-toggle="tooltip"
-                                      title="Start civil twilight">$almanac(horizon=-6).sun(use_center=1).rise</span>
+                                      title=$Extras.Translations[$Extras.language].start_civil_twilight>$almanac(horizon=-6).sun(use_center=1).rise</span>
                             </div>
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-day-sunny"></i>
@@ -71,13 +60,14 @@
                                     $Extras.Translations[$Extras.language].set</h6>
                                 $almanac.sun.set
                                 <span class="d-block text-muted" data-toggle="tooltip"
-                                      title="End civil twilight">$almanac(horizon=-6).sun(use_center=1).set</span>
+                                      title=$Extras.Translations[$Extras.language].end_civil_twilight>$almanac(horizon=-6).sun(use_center=1).set</span>
                             </div>
                         </div>
-                        <h6 class="h6-responsive $Extras.color-text"> Today's Total Luminosity</h6>
                         <div class="row">
                             <div class="col">
-                                $dayluminosity_str ($delta_str)
+                                <h6 class="$Extras.color-text"><i class="wi wi-day-sunny"></i>
+                                    $Extras.Translations[$Extras.language].daylight</h6>
+                                $almanac.sun.visible.long_form<br/>($sun_visible_change.long_form $change_str)
                             </div>
                         </div>
                     </div>
