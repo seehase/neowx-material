@@ -79,7 +79,16 @@
 
 ## Ordinals conversion for W0CHP's custom WindDir Charts:
 function getOrdinalDirection(degrees) {
-    var sectors = ['North', 'NE', 'East', 'SE', 'South', 'SW', 'West', 'NW'];
+    var sectors = [
+      '$Extras.Translations[$Extras.language]["hemispheres"][0]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][1]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][2]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][3]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][4]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][5]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][6]',
+      '$Extras.Translations[$Extras.language]["hemispheres"][7]'
+    ];
     var index = Math.round(degrees / (360 / sectors.length));
     return sectors[index % sectors.length];
 }
