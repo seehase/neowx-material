@@ -89,14 +89,14 @@
                                     $getVar('obs.label.outTemp')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest</td>
-                                <td style="font-size:18px;">$alltime.outTemp.max</td>
-                                <td style="font-size:18px;">$alltime.outTemp.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$alltime.outTemp.max</td>
+                                <td style="font-size:16px;">$alltime.outTemp.maxtime</td>
                                 </tr>
                                 <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].lowest</td>
-                                <td style="font-size:18px;">$alltime.outTemp.min</td>
-                                <td style="font-size:18px;">$alltime.outTemp.mintime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$alltime.outTemp.min</td>
+                                <td style="font-size:16px;">$alltime.outTemp.mintime</td>
                             </tr>
                         #end if    
                         #if $alltime.appTemp.has_data
@@ -105,14 +105,14 @@
                                     $getVar('obs.label.appTemp')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest</td>
-                                <td style="font-size:18px;">$alltime.appTemp.max</td>
-                                <td style="font-size:18px;">$alltime.appTemp.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$alltime.appTemp.max</td>
+                                <td style="font-size:16px;">$alltime.appTemp.maxtime</td>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].lowest</td>
-                                <td style="font-size:18px;">$alltime.appTemp.min</td>
-                                <td style="font-size:18px;">$alltime.appTemp.mintime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$alltime.appTemp.min</td>
+                                <td style="font-size:16px;">$alltime.appTemp.mintime</td>
                             </tr>
                         #end if
                         #if $alltime.outHumidity.has_data
@@ -121,14 +121,14 @@
                                     $getVar('obs.label.outHumidity')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest</td>
-                                <td style="font-size:18px;">$alltime.outHumidity.max</td>
-                                <td style="font-size:18px;">$alltime.outHumidity.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$alltime.outHumidity.max</td>
+                                <td style="font-size:16px;">$alltime.outHumidity.maxtime</td>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].lowest</td>
-                                <td style="font-size:18px;">$alltime.outHumidity.min</td>
-                                <td style="font-size:18px;">$alltime.outHumidity.mintime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$alltime.outHumidity.min</td>
+                                <td style="font-size:16px;">$alltime.outHumidity.mintime</td>
                             </tr>
                         #end if    
                         #if $alltime.barometer.has_data
@@ -137,14 +137,14 @@
                                     $getVar('obs.label.barometer')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest</td>
-                                <td style="font-size:18px;">$alltime.barometer.max</td>
-                                <td style="font-size:18px;">$alltime.barometer.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$alltime.barometer.max</td>
+                                <td style="font-size:16px;">$alltime.barometer.maxtime</td>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].lowest</td>
-                                <td style="font-size:18px;">$alltime.barometer.min</td>
-                                <td style="font-size:18px;">$alltime.barometer.mintime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$alltime.barometer.min</td>
+                                <td style="font-size:16px;">$alltime.barometer.mintime</td>
                             </tr>
                         #end if    
                         #if $alltime.windSpeed.has_data or $alltime.windGust.has_data or $alltime.windrun.has_data
@@ -154,23 +154,23 @@
                             </tr>
                             #if $alltime.windSpeed.has_data
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.windSpeed')</td>
-                                <td style="font-size:18px;">$alltime.windSpeed.max.format('%.0f')</td>
-                                <td style="font-size:18px;">$alltime.windSpeed.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.windSpeed')</td>
+                                <td style="font-size:16px;">$alltime.windSpeed.max.format('%.0f')</td>
+                                <td style="font-size:16px;">$alltime.windSpeed.maxtime</td>
                             </tr>
                             #end if
                             #if $alltime.windGust.has_data
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.windGust')</td>
-                                <td style="font-size:18px;">$alltime.windGust.max.format('%.0f')</td>
-                                <td style="font-size:18px;">$alltime.windGust.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.windGust')</td>
+                                <td style="font-size:16px;">$alltime.windGust.max.format('%.0f')</td>
+                                <td style="font-size:16px;">$alltime.windGust.maxtime</td>
                             </tr>
                             #end if
                             #if $alltime.windrun.has_data    
                                 <tr>
-                                    <td style="font-size:18px;">$Extras.Translations[$Extras.language].longest $getVar('obs.label.windrun')</td>
-                                    <td style="font-size:18px;">$alltime.windrun.max</td>
-                                    <td style="font-size:18px;">$alltime.windrun.maxtime</td>
+                                    <td style="font-size:16px;">$Extras.Translations[$Extras.language].longest $getVar('obs.label.windrun')</td>
+                                    <td style="font-size:16px;">$alltime.windrun.max</td>
+                                    <td style="font-size:16px;">$alltime.windrun.maxtime</td>
                                 </tr>
                             #end if  
                         #end if
@@ -181,16 +181,16 @@
                             </tr>
                             #if $alltime.rain.has_data
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].most $getVar('obs.label.rain')</td>
-                                <td style="font-size:18px;">$alltime.rain.maxsum</td>
-                                <td style="font-size:18px;">$alltime.rain.maxsumtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].most $getVar('obs.label.rain')</td>
+                                <td style="font-size:16px;">$alltime.rain.maxsum</td>
+                                <td style="font-size:16px;">$alltime.rain.maxsumtime</td>
                             </tr>
                             #end if
                             #if $alltime.rainRate.has_data
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.rainRate')</td>
-                                <td style="font-size:18px;">$alltime.rainRate.max</td>
-                                <td style="font-size:18px;">$alltime.rainRate.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.rainRate')</td>
+                                <td style="font-size:16px;">$alltime.rainRate.max</td>
+                                <td style="font-size:16px;">$alltime.rainRate.maxtime</td>
                             </tr>
                             #end if
                         #end if    
@@ -200,9 +200,9 @@
                                     $getVar('obs.label.UV')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest</td>
-                                <td style="font-size:18px;">$alltime.UV.max</td>
-                                <td style="font-size:18px;">$alltime.UV.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$alltime.UV.max</td>
+                                <td style="font-size:16px;">$alltime.UV.maxtime</td>
                             </tr>
                         #end if    
                         #if $alltime.radiation.has_data  
@@ -211,9 +211,9 @@
                                     $getVar('obs.label.radiation')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:18px;">$Extras.Translations[$Extras.language].highest</td>
-                                <td style="font-size:18px;">$alltime.radiation.max</td>
-                                <td style="font-size:18px;">$alltime.radiation.maxtime</td>
+                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$alltime.radiation.max</td>
+                                <td style="font-size:16px;">$alltime.radiation.maxtime</td>
                             </tr>
                         #end if    
                         </table>
