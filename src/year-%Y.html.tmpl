@@ -29,7 +29,7 @@
         <div class="row">
           <div class="col-3 text-muted font-small">
             $year.wind.avg <br>
-            $Extras.Translations[$Extras.language].avg
+            $gettext("avg")
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">
@@ -113,10 +113,10 @@
 ## +-------------------------------------------------------------------------+
 
 <!DOCTYPE html>
-<html lang="$Extras.language">
+<html lang="$lang">
 <head>
   <title>
-      $Extras.Translations[$Extras.language].year $year_name | $station.location
+      $gettext("year") $year_name | $station.location
   </title>
   #include "head.inc"
 </head>
@@ -130,7 +130,7 @@
     <div class="row my-4 temprow align-content-start">
 
       <div class="col-12 mb-4 text-center">
-        <h2 class="h2-responsive text-dark">$Extras.Translations[$Extras.language].year $year_name</h2>
+        <h2 class="h2-responsive text-dark">$gettext("year") $year_name</h2>
       </div>
 
       #for $month in $year.months
@@ -160,13 +160,13 @@
                 <div class="col-6">
                   <a href="month-${year_name}-${month.dateTime.format('%m')}.html"
                      class="btn btn-$Extras.color btn-block">
-                     $Extras.Translations[$Extras.language].more
+                     $gettext("more")
                   </a>
                 </div>
                 <div class="col-6">
                   <a href="archive/NOAA-${year_name}-${month.dateTime.format('%m')}.txt"
                      class="btn btn-primary btn-block">
-                     $Extras.Translations[$Extras.language].noaa_export
+                     $gettext("noaa_export")
                   </a>
                 </div>
               </div>
@@ -272,11 +272,11 @@ new ApexCharts(document.querySelector('#$id'), {
   },
   series: [
     {
-      name: "$getVar('obs.label.' + series1) $Extras.Translations[$Extras.language].min",
+      name: "$getVar('obs.label.' + series1) $gettext("min")",
       data: [ $getChartData(series1, 'min') ]
     },
     {
-      name: "$getVar('obs.label.' + series1) $Extras.Translations[$Extras.language].max",
+      name: "$getVar('obs.label.' + series1) $gettext("max")",
       data: [ $getChartData(series1, 'max') ]
     }
     #if $series2 != "" and $getVar('year.' + series2 + '.has_data')

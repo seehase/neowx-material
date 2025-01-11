@@ -29,7 +29,7 @@
         <div class="row">
           <div class="col-3 text-muted font-small">
             $year.wind.avg <br>
-            $Extras.Translations[$Extras.language].avg
+            $gettext("avg")
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">
@@ -113,10 +113,10 @@
 ## +-------------------------------------------------------------------------+
 
 <!DOCTYPE html>
-<html lang="$Extras.language">
+<html lang="$lang">
 <head>
   <title>
-    $Extras.Translations[$Extras.language][$active_nav] | $station.location
+    $gettext("$active_nav") | $station.location
   </title>
   #include "head.inc"
 </head>
@@ -224,11 +224,11 @@ new ApexCharts(document.querySelector('#$id'), {
   },
   series: [
     {
-      name: "$getVar('obs.label.' + series1) $Extras.Translations[$Extras.language].min",
+      name: "$getVar('obs.label.' + series1) $gettext("min")",
       data: [ $getChartData(series1, 'min') ]
     },
     {
-      name: "$getVar('obs.label.' + series1) $Extras.Translations[$Extras.language].max",
+      name: "$getVar('obs.label.' + series1) $gettext("max")",
       data: [ $getChartData(series1, 'max') ]
     }
     #if $series2 != "" and $getVar('year.' + series2 + '.has_data')

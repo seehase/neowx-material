@@ -43,9 +43,9 @@
 ## +-------------------------------------------------------------------------+
 
 <!DOCTYPE html>
-<html lang="$Extras.language">
+<html lang="$lang">
 <head>
-  <title>$Extras.Translations[$Extras.language].telemetry | $station.location</title>
+  <title>$gettext("telemetry") | $station.location</title>
   #include "head.inc"
 </head>
 <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
@@ -60,7 +60,7 @@
     <div class="row my-4 align-content-start">
 
       <div class="col-12 mb-4 text-center">
-        <h2 class="h2-responsive text-dark">$Extras.Translations[$Extras.language].telemetry</h2>
+        <h2 class="h2-responsive text-dark">$gettext("telemetry")</h2>
       </div>
 
       #for $x in $Extras.Appearance.telemetry_order

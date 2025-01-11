@@ -15,30 +15,30 @@
             <div class="col-md-6 mt-md-0 mt-3">
 
                 ## Content
-                <h5 class="text-uppercase">$Extras.Translations[$Extras.language].about</h5>
+                <h5 class="text-uppercase">$gettext("about")</h5>
 
                 <table class="d-inline">
                     <tr>
-                        <td>$Extras.Translations[$Extras.language].hardware:</td>
+                        <td>$gettext("hardware"):</td>
                         <td>$station.hardware</td>
                         <td>&nbsp</td>
                         <td>&nbsp</td>
-                        <td>$Extras.Translations[$Extras.language].station_uptime:</td>
+                        <td>$gettext("station_uptime"):</td>
                         <td>$station.uptime.long_form</td>
                     </tr>
                     <tr>
-                        <td>$Extras.Translations[$Extras.language].altitude:</td>
+                        <td>$gettext("altitude"):</td>
                         <td>$station.altitude</td>
                         <td>&nbsp</td>
                         <td>&nbsp</td>
-                        <td>$Extras.Translations[$Extras.language].server_uptime:</td>
+                        <td>$gettext("server_uptime"):</td>
                         <td>$station.os_uptime.long_form</td>
                     </tr>
                     #if $Extras.Footer.show_telemetry == "yes"
                     <tr>
                         <td>
                             <a href="telemetry.html">
-                                $Extras.Translations[$Extras.language].telemetry
+                                $gettext("telemetry")
                             </a>
                         </td>
                         <td></td>
@@ -72,7 +72,7 @@
             <div class="col-md-3 mb-md-0 mb-3">
 
                 ## Links
-                <h5 class="text-uppercase">$Extras.Translations[$Extras.language].links</h5>
+                <h5 class="text-uppercase">$gettext("links")</h5>
 
                 <ul class="list-unstyled">
                     #if $Extras.Footer.link1_url != ""
@@ -120,8 +120,9 @@
 
         #if $Extras.Footer.support_skin == "yes"
           <span class="mx-2">&bull;</span>
-          <a href="https://neoground.com/projects/neowx-material" target="_blank">NeoWX Material</a> skin
-          #if $Extras.Footer.show_version == "yes"
+          <a href="https://github.com/seehase/neowx-material" target="_blank">Fork of NeoWX Material</a> skin
+
+        #if $Extras.Footer.show_version == "yes"
           v$Extras.version
           #end if
         #end if

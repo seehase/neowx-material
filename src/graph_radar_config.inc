@@ -11,14 +11,14 @@ fill: {
 },
 xaxis: {
     categories: [
-      '$Extras.Translations[$Extras.language]["hemispheres"][0]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][1]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][2]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][3]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][4]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][5]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][6]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][7]'
+      '$Extras.hemispheres[0]',
+      '$Extras.hemispheres[1]',
+      '$Extras.hemispheres[2]',
+      '$Extras.hemispheres[3]',
+      '$Extras.hemispheres[4]',
+      '$Extras.hemispheres[5]',
+      '$Extras.hemispheres[6]',
+      '$Extras.hemispheres[7]'
     ]
 },
 tooltip: {

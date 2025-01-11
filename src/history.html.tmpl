@@ -3,9 +3,9 @@
 ## |    history.html.tmpl                Template file for "history" page    |
 ## +-------------------------------------------------------------------------+
 <!DOCTYPE html>
-<html lang="$Extras.language">
+<html lang="$lang">
 <head>
-    <title>$Extras.Translations[$Extras.language].history | $station.location</title>
+    <title>$gettext("history") | $station.location</title>
     #include "head.inc"
 </head>
 <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
@@ -20,63 +20,63 @@
         <div class="row my-4 align-content-start">
 
             <div class="col-12 mb-4 text-center">
-                <h2 class="h2-responsive text-dark">$Extras.Translations[$Extras.language].weather_statistics</h2>
+                <h2 class="h2-responsive text-dark">$gettext("weather_statistics")</h2>
             </div>
 
             <div class="col-sm mb-4 text-center">
                 <div class="card">
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
-                            $Extras.Translations[$Extras.language].min_temp</h4>
+                            $gettext("min_temp")</h4>
                         $min_temp_table
                     </div>
         
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
-                            $Extras.Translations[$Extras.language].avg_temp</h4>
+                            $gettext("avg_temp")</h4>
                         $avg_temp_table
                     </div>
 
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
-                            $Extras.Translations[$Extras.language].max_temp</h4>
+                            $gettext("max_temp")</h4>
                         $max_temp_table
                     </div>
 
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-showers"></i>
-                            $Extras.Translations[$Extras.language].rain</h4>
+                            $gettext("rain")</h4>
                         $rain_table
                     </div>
 
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-showers"></i>
-                            $Extras.Translations[$Extras.language].rain_days (> 0.2mm)</h4>
+                            $gettext("rain_days") (> 0.2mm)</h4>
                         $rain_days_table
                     </div>
 
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-strong-wind"></i>
-                            $Extras.Translations[$Extras.language].max_wind</h4>
+                            $gettext("max_wind")</h4>
                         $max_wind_table
                     </div>
 
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-strong-wind"></i>
-                            $Extras.Translations[$Extras.language].avg_wind</h4>
+                            $gettext("avg_wind")</h4>
                         $avg_wind_table
                     </div>
 
                     <div class="card card-body">
                         <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-day-sunny"></i>
-                            $Extras.Translations[$Extras.language].uv_max</h4>
+                            $gettext("uv_max")</h4>
                         $uv_max_table
                     </div>
                 </div>
             </div>
 
             <div class="col-12 mb-4 text-center">
-                <h2 class="h2-responsive text-dark">$Extras.Translations[$Extras.language].all_time_records</h2>
+                <h2 class="h2-responsive text-dark">$gettext("all_time_records")</h2>
             </div>
 
             <div class="col-sm mb-4 text-center">
@@ -89,12 +89,12 @@
                                     $getVar('obs.label.outTemp')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$gettext("highest")</td>
                                 <td style="font-size:16px;">$alltime.outTemp.max</td>
                                 <td style="font-size:16px;">$alltime.outTemp.maxtime</td>
                                 </tr>
                                 <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
                                 <td style="font-size:16px;">$alltime.outTemp.min</td>
                                 <td style="font-size:16px;">$alltime.outTemp.mintime</td>
                             </tr>
@@ -105,12 +105,12 @@
                                     $getVar('obs.label.appTemp')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$gettext("highest")</td>
                                 <td style="font-size:16px;">$alltime.appTemp.max</td>
                                 <td style="font-size:16px;">$alltime.appTemp.maxtime</td>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
                                 <td style="font-size:16px;">$alltime.appTemp.min</td>
                                 <td style="font-size:16px;">$alltime.appTemp.mintime</td>
                             </tr>
@@ -121,12 +121,12 @@
                                     $getVar('obs.label.outHumidity')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$gettext("highest")</td>
                                 <td style="font-size:16px;">$alltime.outHumidity.max</td>
                                 <td style="font-size:16px;">$alltime.outHumidity.maxtime</td>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
                                 <td style="font-size:16px;">$alltime.outHumidity.min</td>
                                 <td style="font-size:16px;">$alltime.outHumidity.mintime</td>
                             </tr>
@@ -137,12 +137,12 @@
                                     $getVar('obs.label.barometer')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$gettext("highest")</td>
                                 <td style="font-size:16px;">$alltime.barometer.max</td>
                                 <td style="font-size:16px;">$alltime.barometer.maxtime</td>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].lowest</td>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
                                 <td style="font-size:16px;">$alltime.barometer.min</td>
                                 <td style="font-size:16px;">$alltime.barometer.mintime</td>
                             </tr>
@@ -154,21 +154,21 @@
                             </tr>
                             #if $alltime.windSpeed.has_data
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.windSpeed')</td>
+                                <td style="font-size:16px;">$gettext("highest") $getVar('obs.label.windSpeed')</td>
                                 <td style="font-size:16px;">$alltime.windSpeed.max.format('%.0f')</td>
                                 <td style="font-size:16px;">$alltime.windSpeed.maxtime</td>
                             </tr>
                             #end if
                             #if $alltime.windGust.has_data
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.windGust')</td>
+                                <td style="font-size:16px;">$gettext("highest") $getVar('obs.label.windGust')</td>
                                 <td style="font-size:16px;">$alltime.windGust.max.format('%.0f')</td>
                                 <td style="font-size:16px;">$alltime.windGust.maxtime</td>
                             </tr>
                             #end if
                             #if $alltime.windrun.has_data    
                                 <tr>
-                                    <td style="font-size:16px;">$Extras.Translations[$Extras.language].longest $getVar('obs.label.windrun')</td>
+                                    <td style="font-size:16px;">$gettext("longest") $getVar('obs.label.windrun')</td>
                                     <td style="font-size:16px;">$alltime.windrun.max</td>
                                     <td style="font-size:16px;">$alltime.windrun.maxtime</td>
                                 </tr>
@@ -181,14 +181,14 @@
                             </tr>
                             #if $alltime.rain.has_data
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].most $getVar('obs.label.rain')</td>
+                                <td style="font-size:16px;">$gettext("most") $getVar('obs.label.rain')</td>
                                 <td style="font-size:16px;">$alltime.rain.maxsum</td>
                                 <td style="font-size:16px;">$alltime.rain.maxsumtime</td>
                             </tr>
                             #end if
                             #if $alltime.rainRate.has_data
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest $getVar('obs.label.rainRate')</td>
+                                <td style="font-size:16px;">$gettext("highest") $getVar('obs.label.rainRate')</td>
                                 <td style="font-size:16px;">$alltime.rainRate.max</td>
                                 <td style="font-size:16px;">$alltime.rainRate.maxtime</td>
                             </tr>
@@ -200,7 +200,7 @@
                                     $getVar('obs.label.UV')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$gettext("highest")</td>
                                 <td style="font-size:16px;">$alltime.UV.max</td>
                                 <td style="font-size:16px;">$alltime.UV.maxtime</td>
                             </tr>
@@ -211,7 +211,7 @@
                                     $getVar('obs.label.radiation')</th>
                             </tr>
                             <tr>
-                                <td style="font-size:16px;">$Extras.Translations[$Extras.language].highest</td>
+                                <td style="font-size:16px;">$gettext("highest")</td>
                                 <td style="font-size:16px;">$alltime.radiation.max</td>
                                 <td style="font-size:16px;">$alltime.radiation.maxtime</td>
                             </tr>

@@ -11,11 +11,11 @@
 ## MDB core JavaScript
 <script type="text/javascript" src="js/mdb.min.js"></script>
 ## Vendor JS
-#if $Extras.language == "en"
+#if $lang == "en"
 <script src="js/vendor/moment.min.js"></script>
 #else
 <script src="js/vendor/moment-with-locales.min.js"></script>
-<script type="text/javascript">moment.locale('$Extras.language')</script>
+<script type="text/javascript">moment.locale('$lang')</script>
 #end if
 <script src="js/vendor/apexcharts/apexcharts.min.js"></script>
 ## NeoWX Material App
@@ -68,9 +68,9 @@
                 }
             },
             locales: [
-                #include raw "js/vendor/apexcharts/locales/" + $Extras.language + ".json"
+                #include raw "js/vendor/apexcharts/locales/" + $lang + ".json"
             ],
-            defaultLocale: '$Extras.language',
+            defaultLocale: '$lang',
             animations: {
                 enabled: false
             },
@@ -80,14 +80,14 @@
 ## Ordinals conversion for W0CHP's custom WindDir Charts:
 function getOrdinalDirection(degrees) {
     var sectors = [
-      '$Extras.Translations[$Extras.language]["hemispheres"][0]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][1]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][2]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][3]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][4]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][5]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][6]',
-      '$Extras.Translations[$Extras.language]["hemispheres"][7]'
+      '$Extras.hemispheres[0]',
+      '$Extras.hemispheres[1]',
+      '$Extras.hemispheres[2]',
+      '$Extras.hemispheres[3]',
+      '$Extras.hemispheres[4]',
+      '$Extras.hemispheres[5]',
+      '$Extras.hemispheres[6]',
+      '$Extras.hemispheres[7]'
     ];
     var index = Math.round(degrees / (360 / sectors.length));
     return sectors[index % sectors.length];

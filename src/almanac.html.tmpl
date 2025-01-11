@@ -3,9 +3,9 @@
 ## |    almanac.html.tmpl                Template file for "almanac" page    |
 ## +-------------------------------------------------------------------------+
 <!DOCTYPE html>
-<html lang="$Extras.language">
+<html lang="$lang">
 <head>
-    <title>$Extras.Translations[$Extras.language].almanac | $station.location</title>
+    <title>$gettext("almanac") | $station.location</title>
     #include "head.inc"
 </head>
 <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
@@ -19,9 +19,9 @@
   ## less than yesterday:
   #set $sun_visible_change = $almanac.sun.visible_change
   #if $sun_visible_change.raw < 0
-    #set $change_str = $Extras.Translations[$Extras.language].less_than_yesterday
+    #set $change_str = $gettext("less_than_yesterday")
   #else
-    #set $change_str = $Extras.Translations[$Extras.language].more_than_yesterday
+    #set $change_str = $gettext("more_than_yesterday")
   #end if
 #end if
 
@@ -32,7 +32,7 @@
         <div class="row my-4 align-content-start">
 
             <div class="col-12 mb-4 text-center">
-                <h2 class="h2-responsive text-dark">$Extras.Translations[$Extras.language].almanac</h2>
+                <h2 class="h2-responsive text-dark">$gettext("almanac")</h2>
             </div>
 
             #if $almanac.hasExtras
@@ -40,33 +40,33 @@
             <div class="col-12 col-lg-6 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].sun</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("sun")</h5>
 
                         <div class="row">
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-sunrise"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.sun.rise
                                 <span class="d-block text-muted" data-toggle="tooltip"
-                                      title="$Extras.Translations[$Extras.language].start_civil_twilight">$almanac(horizon=-6).sun(use_center=1).rise</span>
+                                      title="$gettext("start_civil_twilight")">$almanac(horizon=-6).sun(use_center=1).rise</span>
                             </div>
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-day-sunny"></i>
-                                    $Extras.Translations[$Extras.language].transit</h6>
+                                    $gettext("transit")</h6>
                                 $almanac.sun.transit
                             </div>
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-sunset"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.sun.set
                                 <span class="d-block text-muted" data-toggle="tooltip"
-                                      title="$Extras.Translations[$Extras.language].end_civil_twilight">$almanac(horizon=-6).sun(use_center=1).set</span>
+                                      title="$gettext("end_civil_twilight")">$almanac(horizon=-6).sun(use_center=1).set</span>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col">
                                 <h6 class="$Extras.color-text"><i class="wi wi-day-sunny"></i>
-                                    $Extras.Translations[$Extras.language].daylight</h6>
+                                    $gettext("daylight")</h6>
                                 $almanac.sun.visible.long_form<br/>($sun_visible_change.long_form $change_str)
                             </div>
                         </div>
@@ -77,22 +77,22 @@
             <div class="col-12 col-lg-6 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].moon</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("moon")</h5>
 
                         <div class="row">
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-moonrise"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.moon.rise
                             </div>
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-night-clear"></i>
-                                    $Extras.Translations[$Extras.language].transit</h6>
+                                    $gettext("transit")</h6>
                                 $almanac.moon.transit
                             </div>
                             <div class="col-4">
                                 <h6 class="$Extras.color-text"><i class="wi wi-moonset"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.moon.set
                             </div>
                         </div>
@@ -104,22 +104,22 @@
             <div class="col-12 col-lg-6 col-xl-3 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].venus</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("venus")</h5>
 
                         <div class="row">
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-up"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.venus.rise
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-moon-alt-full"></i>
-                                    $Extras.Translations[$Extras.language].transit</h6>
+                                    $gettext("transit")</h6>
                                 $almanac.venus.transit
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-down"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.venus.set
                             </div>
                         </div>
@@ -131,22 +131,22 @@
             <div class="col-12 col-lg-6 col-xl-3 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].mars</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("mars")</h5>
 
                         <div class="row">
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-up"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.mars.rise
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-moon-alt-full"></i>
-                                    $Extras.Translations[$Extras.language].transit</h6>
+                                    $gettext("transit")</h6>
                                 $almanac.mars.transit
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-down"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.mars.set
                             </div>
                         </div>
@@ -158,22 +158,22 @@
             <div class="col-12 col-lg-6 col-xl-3 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].jupiter</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("jupiter")</h5>
 
                         <div class="row">
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-up"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.jupiter.rise
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-moon-alt-full"></i>
-                                    $Extras.Translations[$Extras.language].transit</h6>
+                                    $gettext("transit")</h6>
                                 $almanac.jupiter.transit
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-down"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.jupiter.set
                             </div>
                         </div>
@@ -185,22 +185,22 @@
             <div class="col-12 col-lg-6 col-xl-3 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].saturn</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("saturn")</h5>
 
                         <div class="row">
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-up"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.saturn.rise
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-moon-alt-full"></i>
-                                    $Extras.Translations[$Extras.language].transit</h6>
+                                    $gettext("transit")</h6>
                                 $almanac.saturn.transit
                             </div>
                             <div class="col-4 col-xl-12">
                                 <h6 class="$Extras.color-text d-xl-inline mr-xl-2"><i class="wi wi-direction-down"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.saturn.set
                             </div>
                         </div>
@@ -213,25 +213,25 @@
                 <div class="card">
                     <div class="card-body text-center">
                         <h5 class="h5-responsive $Extras.color-text">
-                            $Extras.Translations[$Extras.language].equinox
-                            & $Extras.Translations[$Extras.language].solstice
+                            $gettext("equinox")
+                            & $gettext("solstice")
                         </h5>
 
                         <table class="table table-striped text-left">
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].vernal_equinox:</td>
+                                <td>$gettext("vernal_equinox"):</td>
                                 <td>$almanac.next_vernal_equinox</td>
                             </tr>
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].summer_solstice:</td>
+                                <td>$gettext("summer_solstice"):</td>
                                 <td>$almanac.next_summer_solstice</td>
                             </tr>
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].autumnal_equinox:</td>
+                                <td>$gettext("autumnal_equinox"):</td>
                                 <td>$almanac.next_autumnal_equinox</td>
                             </tr>
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].winter_solstice:</td>
+                                <td>$gettext("winter_solstice"):</td>
                                 <td>$almanac.next_winter_solstice</td>
                             </tr>
                         </table>
@@ -244,12 +244,12 @@
                 <div class="card">
                     <div class="card-body text-center">
                         <h5 class="h5-responsive $Extras.color-text">
-                            $Extras.Translations[$Extras.language].moonphases
+                            $gettext("moonphases")
                         </h5>
 
                         <table class="table table-striped text-left">
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].currently:</td>
+                                <td>$gettext("currently"):</td>
                                 <td>
                                     #if $almanac.moon_phase == $almanac.moon_phases[0]
                                     <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
@@ -275,20 +275,20 @@
                             </tr>
                             #if $almanac.next_full_moon.raw < $almanac.next_new_moon.raw
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].next_full_moon:</td>
+                                <td>$gettext("next_full_moon"):</td>
                                 <td>$almanac.next_full_moon</td>
                             </tr>
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].next_new_moon:</td>
+                                <td>$gettext("next_new_moon"):</td>
                                 <td>$almanac.next_new_moon</td>
                             </tr>
                             #else
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].next_new_moon:</td>
+                                <td>$gettext("next_new_moon"):</td>
                                 <td>$almanac.next_new_moon</td>
                             </tr>
                             <tr>
-                                <td>$Extras.Translations[$Extras.language].next_full_moon:</td>
+                                <td>$gettext("next_full_moon"):</td>
                                 <td>$almanac.next_full_moon</td>
                             </tr>
                             #end if
@@ -303,17 +303,17 @@
             <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-body text-center">
-                        <h5 class="h5-responsive $Extras.color-text">$Extras.Translations[$Extras.language].sun</h5>
+                        <h5 class="h5-responsive $Extras.color-text">$gettext("sun")</h5>
 
                         <div class="row">
                             <div class="col-6">
                                 <h6 class="$Extras.color-text"><i class="wi wi-sunrise"></i>
-                                    $Extras.Translations[$Extras.language].rise</h6>
+                                    $gettext("rise")</h6>
                                 $almanac.sunrise
                             </div>
                             <div class="col-6">
                                 <h6 class="$Extras.color-text"><i class="wi wi-sunset"></i>
-                                    $Extras.Translations[$Extras.language].set</h6>
+                                    $gettext("set")</h6>
                                 $almanac.sunset
                             </div>
                         </div>
