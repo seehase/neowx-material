@@ -34,11 +34,11 @@
                 #if $Extras.Header.current_nav_link == "yes"
                     #if $active_nav == 'current'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="index.html">$Extras.Translations[$Extras.language].current</a>
+                        <a class="nav-link" href="index.html">$gettext("current")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="index.html">$Extras.Translations[$Extras.language].current</a>
+                        <a class="nav-link" href="index.html">$gettext("current")</a>
                     </li>
                     #end if
                 #end if
@@ -46,11 +46,11 @@
                 #if $Extras.Header.yesterday_nav_link == "yes"
                     #if $active_nav == 'yesterday'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="yesterday.html">$Extras.Translations[$Extras.language].yesterday</a>
+                        <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="yesterday.html">$Extras.Translations[$Extras.language].yesterday</a>
+                        <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
                     </li>
                     #end if
                 #end if
@@ -58,11 +58,11 @@
                 #if $Extras.Header.week_nav_link == "yes"
                     #if $active_nav == 'week'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="week.html">$Extras.Translations[$Extras.language].week</a>
+                        <a class="nav-link" href="week.html">$gettext("week")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="week.html">$Extras.Translations[$Extras.language].week</a>
+                        <a class="nav-link" href="week.html">$gettext("week")</a>
                     </li>
                     #end if
                 #end if
@@ -70,11 +70,11 @@
                 #if $Extras.Header.month_nav_link == "yes"
                     #if $active_nav == 'month'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="month.html">$Extras.Translations[$Extras.language].month</a>
+                        <a class="nav-link" href="month.html">$gettext("month")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="month.html">$Extras.Translations[$Extras.language].month</a>
+                        <a class="nav-link" href="month.html">$gettext("month")</a>
                     </li>
                     #end if
                 #end if
@@ -82,11 +82,11 @@
                 #if $Extras.Header.year_nav_link == "yes"
                     #if $active_nav == 'year'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="year.html">$Extras.Translations[$Extras.language].year</a>
+                        <a class="nav-link" href="year.html">$gettext("year")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="year.html">$Extras.Translations[$Extras.language].year</a>
+                        <a class="nav-link" href="year.html">$gettext("year")</a>
                     </li>
                     #end if
                 #end if
@@ -94,31 +94,31 @@
                 #if $Extras.Header.archive_nav_link == "yes"
                     #if $active_nav == 'archive'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="archive.html">$Extras.Translations[$Extras.language].archive</a>
+                        <a class="nav-link" href="archive.html">$gettext("archive")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="archive.html">$Extras.Translations[$Extras.language].archive</a>
+                        <a class="nav-link" href="archive.html">$gettext("archive")</a>
                     </li>
                     #end if
                 #end if
                 #if $active_nav == 'history'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="history.html">$Extras.Translations[$Extras.language].history</a>
+                        <a class="nav-link" href="history.html">$gettext("history")</a>
                     </li>
                 #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="history.html">$Extras.Translations[$Extras.language].history</a>
+                        <a class="nav-link" href="history.html">$gettext("history")</a>
                     </li>
                 #end if
                 #if $Extras.Header.almanac_nav_link == "yes"
                     #if $active_nav == 'almanac'
                     <li class="nav-item active mr-3">
-                        <a class="nav-link" href="almanac.html">$Extras.Translations[$Extras.language].almanac</a>
+                        <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
                     </li>
                     #else
                     <li class="nav-item mr-3">
-                        <a class="nav-link" href="almanac.html">$Extras.Translations[$Extras.language].almanac</a>
+                        <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
                     </li>
                     #end if
                 #end if
@@ -173,7 +173,7 @@
                         $almanac.moon_fullness%
                     </span><br>
                     <a href="almanac.html" class="text-white" style="opacity: .6">
-                        $Extras.Translations[$Extras.language].more
+                        $gettext("more")
                     </a>
                 </li>
             </ul>

@@ -3,9 +3,9 @@
 ## |    archive.html.tmpl         Template file for archive overview page    |
 ## +-------------------------------------------------------------------------+
 <!DOCTYPE html>
-<html lang="$Extras.language">
+<html lang="$lang">
 <head>
-    <title>$Extras.Translations[$Extras.language].archive | $station.location</title>
+    <title>$gettext("archive") | $station.location</title>
     #include "head.inc"
 </head>
 <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
@@ -27,12 +27,12 @@
                         <div class="row d-flex align-items-center">
                             <div class="col-6">
                                 <a href="year-${yr}.html" class="btn btn-$Extras.color btn-block">
-                                    $Extras.Translations[$Extras.language].more
+                                    $gettext("more")
                                 </a>
                             </div>
                             <div class="col-6">
                                 <a href="archive/NOAA-${yr}.txt" class="btn btn-primary btn-block">
-                                    $Extras.Translations[$Extras.language].noaa_export
+                                    $gettext("noaa_export")
                                 </a>
                             </div>
                         </div>

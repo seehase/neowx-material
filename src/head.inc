@@ -11,13 +11,13 @@
 
 ## Web App
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="$Extras.Translations[$Extras.language].weather">
+<meta name="apple-mobile-web-app-title" content="$gettext("weather")">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="application-name" content="$Extras.Translations[$Extras.language].weather | $station.location">
+<meta name="application-name" content="$gettext("weather") | $station.location">
 
 ## Pinned Sites
-<meta name="application-name" content="$Extras.Translations[$Extras.language].weather | $station.location">
+<meta name="application-name" content="$gettext("weather") | $station.location">
 <meta name="msapplication-tooltip" content="$station.location">
 <meta name="msapplication-starturl" content="/">
 

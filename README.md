@@ -1,3 +1,9 @@
+# Fork of NeoWX Material
+As the original repository (https://github.com/neoground/neowx-material) is
+no longer maintained, this fork contains latest changes, improvements and bugfixs
+
+If you have any comments, just create an github issue
+
 # NeoWX Material
 
 **The most versatile and modern weewx skin**
