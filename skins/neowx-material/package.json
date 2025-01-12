@@ -1,0 +1,22 @@
+{
+  "name": "neowx-material",
+  "version": "1.35.0",
+  "description": "The most versatile and modern weewx skin",
+  "main": "index.js",
+  "repository": "https://github.com/neoground/neowx-material",
+  "author": "Neoground GmbH",
+  "license": "MIT",
+  "dependencies": {
+    "sass": "^1.83.1"
+  },
+  "scripts": {
+    "build-css": "sass --load-path scss scss/style.scss css/style.css",
+    "build-minify-css": "sass --style compressed --load-path scss scss/style.scss css/style.min.css",
+    "copy-directories": "rsync -avh archive css fonts img js weather-icons ../../dist/skins/neowx-material/",
+    "copy-files": "rsync -avh *.tmpl *.inc manifest.json skin.conf ../../dist/skins/neowx-material/",
+    "delete-build": "rm -Rf ../../dist/skins/neowx-material/",
+    "cleanup-build": "rm -Rf ../../dist/skins/neowx-material/img/*.psd ../../dist/skins/neowx-material/css/*.map ../../dist/skins/neowx-material/css/style.css",
+    "build": "yarn run build-minify-css && yarn run delete-build && yarn run copy-directories && yarn run copy-files && yarn run cleanup-build",
+    "create-zip": "cd ../.. && zip -r neowx-material-latest.zip dist && cd skins/neowx-material\n"
+  }
+}

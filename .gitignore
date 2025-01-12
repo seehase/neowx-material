@@ -1,4 +1,10 @@
 .idea
-/src/node_modules/
 /dist/skins/neowx-material/
 /dist/*.zip
+/yarn.lock
+/skins/neowx-material/node_modules/
+/skins/neowx-material/package-lock.json
+/skins/neowx-material/yarn.lock
+/skins/neowx-material/css/style.css.map
+/skins/neowx-material/css/style.min.css.map
+/neowx-material-latest.zip

@@ -1,6 +1,6 @@
 # Fork of NeoWX Material
 As the original repository (https://github.com/neoground/neowx-material) is
-no longer maintained, this fork contains latest changes, improvements and bugfixs
+no longer maintained, this fork contains latest changes, improvements and bugfixes
 
 If you have any comments, just create an github issue
 
@@ -40,11 +40,14 @@ Learn more about all features on our project page:
 
 ## Installation
 
-See the [official documentation](https://neoground.com/docs/neowx-material/index) for more information.
-
-1. [Download](https://neoground.com/projects/neowx-material) the latest version
-2. Install the extension: `wee_extension --install=path/to/neowx-material.zip`
-3. restart weewx: `sudo service weewx restart`
+1. install latest version via extension       
+```bash
+    weectl extension install https://github.com/seehase/neowx-material/archive/refs/heads/master.zip
+```
+2. restart weewx: 
+```bash
+    sudo service weewx restart
+```
 
 If your skin doesn't change edit the `weewx.conf` and set `skin = neowx-material`
 in the `[StdReport]` section, after that reload weewx: `sudo service weewx reload`.
@@ -62,7 +65,10 @@ We hope that this skin will do the same. Please consider translating our skin
 in your language.
 
 If you want to provide any improvements, feel free to create a pull request.
-We use [Gitmoji](https://gitmoji.dev/) commit messages.
+As the main repository is no longer maintained please create a pull request in
+
+`https://github.com/seehase/neowx-material`
+
 
 ## Development
 
@@ -71,7 +77,7 @@ Setting up the development environment is easy:
 - clone / download repository
 - install npm packages (`yarn install` / `npm install`)
 - for easy testing create a symlink from your `WEEWX_HOME/skins/neowx-material`
-  to the `src` directory
+  to the `skins` directory
   
 For basic tasks npm / yarn scripts are available.
 
@@ -94,10 +100,6 @@ Styling is done via SCSS, compile it to `css/style.css` by: `yarn run build-css`
 
 To create a dist package run `yarn run build`. This will clean up the dist environment
 and copy all files, directories and create the minified CSS.
-
-You find the final skin at `dist/skins/neowx-material`. 
-Create a zip-file of the `dist` directory to create the final package
-which you can easily install with `wee_extension`.
 
 You may need to adjust the values if you add / change file names. In this case you
 may also need to adjust the dist/install.py script which contains a list of all
