@@ -4,6 +4,8 @@ no longer maintained, this fork contains latest changes, improvements and bugfix
 
 If you have any comments, just create an github issue
 
+Live: https://weewx.seehausen.org/
+
 # NeoWX Material
 
 **The most versatile and modern weewx skin**

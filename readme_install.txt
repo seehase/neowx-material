@@ -19,7 +19,7 @@
 |                              current fork                                                                |
 |               https://github.com/seehase/neowx-material                                                  |
 |                                                                                                          |
-|                                 V 1.3x                                                                   |
+|                                 V 1.35.x                                                                   |
 |                                                                                                          |
 |                              R E A D   M E                                                               |
 |                                                                                                          |
