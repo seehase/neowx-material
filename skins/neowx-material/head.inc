@@ -68,7 +68,7 @@
 #if $Extras.Appearance.lo_value_color != ""
 <style>
     .lo-text {
-        color: $Extras.Appearance.lo_value_color !important;
+        color: #$Extras.Appearance.lo_value_color !important;
     }
 </style>
 #end if
@@ -76,7 +76,7 @@
 #if $Extras.Appearance.hi_value_color != ""
 <style>
     .hi-text {
-        color: $Extras.Appearance.hi_value_color !important;
+        color: #$Extras.Appearance.hi_value_color !important;
     }
 </style>
 #end if
