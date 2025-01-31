@@ -28,8 +28,8 @@ and many more new features.
 - interactive and zoomable charts
 - wind direction + speed visualization as a wind rose
 - accessible HTML + NOAA TXT file archive for all years and months
-- easy translation - provides many languages out of the box! 
-  (or add your own translation)
+- Skin is internationalized so supports template based translation to many languages out of the box (catalan, german, english, spanish, finnish, french, italian, dutch, swedish)
+   - If your language is not available, it's easy to add it! How-to guide can be found [here](https://weewx.com/docs/5.1/custom/localization/#internationalized-your-language-is-available)
 - auto dark mode - works great on mobile and desktop
 - responsive design - optimized for modern tablets and smartphones
 - support for all available sensors
@@ -57,6 +57,42 @@ in the `[StdReport]` section, after that reload weewx: `sudo service weewx reloa
 This skin works best with the python ephem module installed 
 (needed for the almanac). Install `pyephem` via pip, or the 
 `python3-ephem` package via package manager.
+
+## Localization
+
+### Language translation
+To have WeeWx to use the language you want, follow the guide from [this](https://weewx.com/docs/5.1/custom/localization/) page.
+
+Built-in language packs are installed under /lang folder within the skin folder, eg. ```/etc/weewx/skins/neowx-material/lang/```
+
+Language packs are identified with standardized two-letter identifier for each language. 
+
+### Time & date localization
+To have the reports with your local time and date format, the needed locale needs to be installed and passed to WeeWx at startup.
+
+1. Query which locales are installed:
+```bash
+    sudo locale -a
+```
+2. If your own locale is missing, install it.
+
+   In debian-based machines:
+    ```bash
+    sudo dpkg-reconfigure locales
+    ```
+   In RHEL-based machines:
+    ```bash
+    sudo locale-gen <locale_name>
+    ```
+3.  Edit the WeeWx startup service to pass LANG-variable to WeeWx
+
+    In systemd-based machines the variable is added under the ```[Service]``` section
+    ```bash
+    [Service]
+    # set LANG to display time/date in local language & format
+    Environment="LANG=<locale_name>"
+    ...
+    ``` 
 
 ## Contribution
 
