@@ -24,6 +24,11 @@
 ## Tap highlighting
 <meta name="msapplication-tap-highlight" content="no">
 
+## Auto refresh
+#if $Extras.Header.auto_refresh_enable == "yes"
+<meta http-equiv="refresh" content="$Extras.Header.auto_refresh_seconds">
+#end if
+
 ## Google Analytics
 #if $Extras.Header.google_analytics_enable == "yes"
 <!-- Google tag (gtag.js) -->
