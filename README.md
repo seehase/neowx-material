@@ -123,28 +123,16 @@ Styling is done via SCSS, compile it to `css/style.css` by: `yarn run build-css`
 
 ### Available scripts
 
-| Script           | Description                                                           |
-| ---------------- | --------------------------------------------------------------------- |
-| build-css        | Create css/style.css from SCSS files                                  |
-| build-minify-css | Create minified css/style.min.css from SCSS files                     |
-| cleanup-build    | Remove development files from dist directory                          |
-| copy-directories | Copy directories from src to dist (for building)                      |
-| copy-files       | Copy files from src to dist (for building)                            |
-| delete-build     | Remove files inside dist/skins/neowx-material                         |
-| build            | Build job: delete-build, build-minify-css, copy files + dirs, cleanup |
-| create-zip       | Creates a zip file of the dist directory. Use this after `build`      |
+| Script           | Description                                         |
+| ---------------- |-----------------------------------------------------|
+| build-css        | Create css/style.css from SCSS files                |
+| build-minify-css | Create minified css/style.min.css from SCSS files   |
+| build            | Build job: build-css and build-minify-css           |
+
 
 ### Building
 
-To create a dist package run `yarn run build`. This will clean up the dist environment
-and copy all files, directories and create the minified CSS.
-
-You may need to adjust the values if you add / change file names. In this case you
-may also need to adjust the dist/install.py script which contains a list of all
-files which should be copied to the weewx skin directory on installation.
-
-Building is currently only supported on linux systems due to system commands used
-in the npm scripts. On other systems this needs to be adjusted or done manually.
+Run `yarn run build` to create the CSS and minified CSS.
 
 ## Thank You!
 
