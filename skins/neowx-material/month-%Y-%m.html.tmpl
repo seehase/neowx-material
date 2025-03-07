@@ -349,6 +349,11 @@ new ApexCharts(document.querySelector('#$id'), {
     #include "graph_line_archive_config.inc"
   }
 
+  // altimeter
+  #if $month.altimeter.has_data
+  $getChartJsCode("altimeter", "altimeterchart", "area", "altimeter")
+  #end if
+
   // outTemp + Dewpoint
   $getChartJsCode("outTemp", "outTempchart", "area", "outTemp", "dewpoint")
 

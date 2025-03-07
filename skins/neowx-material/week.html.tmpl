@@ -300,6 +300,11 @@ new ApexCharts(document.querySelector('#$id'), {
     #include "graph_line_config.inc"
   }
 
+  // altimeter
+  #if $week.altimeter.has_data
+  $getChartJsCode("altimeter", "altimeterchart", "area", "altimeter")
+  #end if
+
   // outTemp + Dewpoint
   $getChartJsCode("outTemp", "outTempchart", "area", "outTemp", "dewpoint")
 
