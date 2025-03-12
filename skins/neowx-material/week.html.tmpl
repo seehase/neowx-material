@@ -550,6 +550,27 @@ new ApexCharts(document.querySelector('#$id'), {
   $getChartJsCode("extraHumid8", "extraHumid8chart", "area", "extraHumid8")
   #end if
 
+  // Lightning
+  #if $week.lightning_strike_count.has_data
+  $getChartJsCode("lightning_strike_count", "lightning_strike_countchart", "bar", "lightning_strike_count")
+  #end if
+
+  #if $week.lightning_noise_count.has_data
+  $getChartJsCode("lightning_noise_count", "lightning_noise_countchart", "bar", "lightning_noise_count")
+  #end if
+
+  #if $week.lightning_disturber_count.has_data
+  $getChartJsCode("lightning_disturber_count", "lightning_disturber_countchart", "bar", "lightning_disturber_count")
+  #end if
+
+  #if $week.lightning_distance.has_data
+  $getChartJsCode("lightning_distance", "lightning_distancechart", "area", "lightning_distance")
+  #end if
+
+  #if $week.lightning_energy.has_data
+  $getChartJsCode("lightning_energy", "lightning_energychart", "area", "lightning_energy")
+  #end if
+
 </script>
 
 </body>
