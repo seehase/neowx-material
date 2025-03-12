@@ -29,17 +29,28 @@
 <meta http-equiv="refresh" content="$Extras.Header.auto_refresh_seconds">
 #end if
 
-## Google Analytics
-#if $Extras.Header.google_analytics_enable == "yes"
-<!-- Google tag (gtag.js) -->
+## Google Tag Manager or Google Analytics but not both at the same time
+
+#if $Extras.Header.google_tagmanager_enable == "yes"
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','$Extras.Header.google_tagmanager_id');
+</script>
+<!-- End Google Tag Manager -->
+#else if $Extras.Header.google_analytics_enable == "yes"
+<!-- Google analytics tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=$Extras.Header.google_analytics_id"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-  gtag('config', '$Extras.Header.google_analytics_id');
+    gtag('config', '$Extras.Header.google_analytics_id');
 </script>
+<!-- End Google analytics tag -->
 #end if
 
 ## Favicons / mobile icons

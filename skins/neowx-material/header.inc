@@ -2,6 +2,15 @@
 ## +-------------------------------------------------------------------------+
 ## |    header.inc                 Header section (nav) for all templates    |
 ## +-------------------------------------------------------------------------+
+
+## Add google tag manager if enabled
+#if $Extras.Header.google_tagmanager_enable == "yes"
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=$Extras.Header.google_tagmanager_id"
+                  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+#end if
+
 <header>
 
     <nav class="navbar navbar-expand-lg navbar-dark $Extras.color">
