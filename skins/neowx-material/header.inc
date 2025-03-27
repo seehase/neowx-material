@@ -31,6 +31,7 @@
                 #else 
                 <span class="font-small">$current.dateTime</span>
                 #end if
+                <span id="status-label" class="font-small red"><strong></strong></span>
             </span>
         </span>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"

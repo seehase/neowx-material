@@ -21,6 +21,23 @@
 ## NeoWX Material App
 <script type="text/javascript" src="js/app.js"></script>
 
+<script type="text/javascript">
+    // Show/update status label only if configured threshold > 0 in skin.conf
+    if ($Extras.Header.offline_threshold_minutes > 0) {
+        const lastUpdateTimestamp = $current.dateTime.raw;  // in seconds
+        const nowTimestamp = new Date() / 1000;             // now in seconds
+        const diffMinutes = (nowTimestamp - lastUpdateTimestamp) / 60; // Difference in minutes
+
+        const statusLabel = document.getElementById("status-label");
+        if (statusLabel && diffMinutes > $Extras.Header.offline_threshold_minutes) {
+            statusLabel.textContent = "$gettext('OFFLINE')";
+        } else {
+            // enable if you want to show also ONLINE (which should always be the excepted state)
+            // statusLabel.textContent = "$gettext('ONLINE')";
+        }
+    }
+</script>
+
 ## Global apexcharts config
 <script type="text/javascript">
     var config_mode = '${Extras.Appearance.mode}';
