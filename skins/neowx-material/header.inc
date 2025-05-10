@@ -160,7 +160,7 @@
                     <i class="wi wi-moonset mr-1" style="opacity: .75"></i> $almanac.moon.set
                 </li>
                 <li class="nav-item mr-4 text-white text-center" style="line-height: 1.75" >
-                    <span title="$almanac.moon_phase" data-toggle="tooltip">
+                    <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
                         #if $almanac.moon_phase == $almanac.moon_phases[0]
                         <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
                         #else if $almanac.moon_phase == $almanac.moon_phases[1]
