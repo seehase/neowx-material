@@ -47,7 +47,7 @@
                                 <h6 class="$Extras.color-text"><i class="wi wi-sunrise"></i>
                                     $gettext("rise")</h6>
                                 $almanac.sun.rise
-                                <span class="d-block text-muted" data-toggle="tooltip"
+                                <span class="d-block text-muted" data-toggle="tooltip" data-html="true"
                                       title="$gettext("start_civil_twilight")">$almanac(horizon=-6).sun(use_center=1).rise</span>
                             </div>
                             <div class="col-4">
@@ -59,7 +59,7 @@
                                 <h6 class="$Extras.color-text"><i class="wi wi-sunset"></i>
                                     $gettext("set")</h6>
                                 $almanac.sun.set
-                                <span class="d-block text-muted" data-toggle="tooltip"
+                                <span class="d-block text-muted" data-toggle="tooltip" data-html="true"
                                       title="$gettext("end_civil_twilight")">$almanac(horizon=-6).sun(use_center=1).set</span>
                             </div>
                         </div>

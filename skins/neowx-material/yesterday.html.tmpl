@@ -17,7 +17,7 @@
           #if $name == 'windSpeed'
 
             <i class="wi wi-wind from-$yesterday.windDir.avg.formatted-deg"
-               title="$yesterday.windDir.avg.formatted°" data-toggle="tooltip"></i>
+               title="$yesterday.windDir.avg.formatted°" data-toggle="tooltip" data-html="true"></i>
 
           #end if
         </h3>
@@ -37,7 +37,7 @@
           <div class="col-3 text-muted font-small hi-text">
             $yesterday.wind.max $yesterday.wind.gustdir.ordinal_compass <br>
             <i class="wi wi-wind from-$yesterday.wind.gustdir.formatted-deg mr-2"
-               title="$yesterday.wind.gustdir.formatted°" data-toggle="tooltip"></i>
+               title="$yesterday.wind.gustdir.formatted°" data-toggle="tooltip" data-html="true"></i>
             ($yesterday.wind.maxtime.format($Extras.Formatting.datetime_today))
           </div>
         </div>
