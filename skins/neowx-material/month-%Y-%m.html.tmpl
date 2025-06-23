@@ -18,8 +18,8 @@
           $getVar('obs.label.' + name)
           #if $name == 'windSpeed'
 
-            <i class="wi wi-wind from-$month.windDir.avg.formatted-deg"
-               title="$month.windDir.avg.formatted°" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-wind from-$month.wind.vecdir.formatted-deg"
+               title="$month.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
 
           #end if
         </h3>
@@ -33,7 +33,7 @@
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">
-              $month.windSpeed.max $month.windDir.avg.ordinal_compass
+              $month.windSpeed.max $month.wind.vecdir.ordinal_compass
             </h4>
           </div>
           <div class="col-3 text-muted font-small hi-text">
@@ -406,7 +406,7 @@ new ApexCharts(document.querySelector('#$id'), {
   #if $month.radiation.has_data
   $getChartJsCode("radiation", "radiationchart", "area", "radiation", "", "max")
   #end if
-  
+
   #if $month.luminosity.has_data
   $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
   #end if
@@ -414,7 +414,7 @@ new ApexCharts(document.querySelector('#$id'), {
   // inTemp + inHumidity
   $getChartJsCode("inTemp", "inTempchart", "area", "inTemp")
   $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
-  
+
   // Other sensors
   #if $month.snowDepth.has_data
   $getChartJsCode("snowDepth", "snowDepthchart", "bar", "snowDepth", "", "sum")
@@ -459,7 +459,7 @@ new ApexCharts(document.querySelector('#$id'), {
   var raw_data = [
   #for $record in $month.days
   {
-    'dir': "$record.windDir.avg.raw",
+    'dir': "$record.wind.vecdir.raw",
     'speed': "$record.windSpeed.avg.raw",
     'max': "$record.windGust.max.raw"
   },

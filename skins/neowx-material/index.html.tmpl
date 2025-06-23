@@ -380,7 +380,7 @@ new ApexCharts(document.querySelector('#$id'), {
   #if $day.luminosity.has_data
   $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
   #end if
-  
+
   // inTemp + inHumidity
   $getChartJsCode("inTemp", "inTempchart", "area", "inTemp")
   $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
@@ -421,7 +421,7 @@ new ApexCharts(document.querySelector('#$id'), {
   var raw_data = [
   #for $record in $span($day_delta=1).spans(interval=int($Extras.Charts.current_timespan))
   {
-    'dir': "$record.windDir.avg.raw",
+    'dir': "$record.wind.vecdir.raw",
     'speed': "$record.windSpeed.avg.raw",
     'max': "$record.windGust.max.raw"
   },

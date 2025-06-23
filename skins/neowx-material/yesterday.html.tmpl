@@ -16,8 +16,8 @@
           $getVar('obs.label.' + name)
           #if $name == 'windSpeed'
 
-            <i class="wi wi-wind from-$yesterday.windDir.avg.formatted-deg"
-               title="$yesterday.windDir.avg.formatted°" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-wind from-$yesterday.wind.vecdir.formatted-deg"
+               title="$yesterday.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
 
           #end if
         </h3>
@@ -31,7 +31,7 @@
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">
-              $yesterday.windSpeed.max $yesterday.windDir.avg.ordinal_compass
+              $yesterday.windSpeed.max $yesterday.wind.vecdir.ordinal_compass
             </h4>
           </div>
           <div class="col-3 text-muted font-small hi-text">
@@ -46,7 +46,7 @@
 
         <div class="row">
           <div class="col-3 text-muted font-small">
-            
+
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">$yesterday.rain.sum</h4>
@@ -384,7 +384,7 @@ new ApexCharts(document.querySelector('#$id'), {
   #if $yesterday.luminosity.has_data
   $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
   #end if
-  
+
   // inTemp + inHumidity
   $getChartJsCode("inTemp", "inTempchart", "area", "inTemp")
   $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
@@ -433,7 +433,7 @@ new ApexCharts(document.querySelector('#$id'), {
   var raw_data = [
   #for $record in $span($hour_delta=48).spans(interval=int($Extras.Charts.current_timespan))
   {
-    'dir': "$record.windDir.avg.raw",
+    'dir': "$record.wind.vecdir.raw",
     'speed': "$record.windSpeed.avg.raw",
     'max': "$record.windGust.max.raw"
   },

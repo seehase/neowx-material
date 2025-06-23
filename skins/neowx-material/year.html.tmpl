@@ -18,8 +18,8 @@
           $getVar('obs.label.' + name)
           #if $name == 'windSpeed'
 
-            <i class="wi wi-wind from-$year.windDir.avg.formatted-deg"
-               title="$year.windDir.avg.formatted°" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-wind from-$year.wind.vecdir.formatted-deg"
+               title="$year.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
 
           #end if
         </h3>
@@ -33,7 +33,7 @@
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">
-              $year.windSpeed.max $year.windDir.avg.ordinal_compass
+              $year.windSpeed.max $year.wind.vecdir.ordinal_compass
             </h4>
           </div>
           <div class="col-3 text-muted font-small hi-text">
@@ -48,7 +48,7 @@
 
         <div class="row">
           <div class="col-3 text-muted font-small">
-            
+
           </div>
           <div class="col-6">
             <h4 class="h2-responsive">$year.rain.sum</h4>
@@ -232,7 +232,7 @@ new ApexCharts(document.querySelector('#$id'), {
   yaxis: {
         labels: {
             formatter: function (val) {
-                return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)"; 
+                return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
             }
         },
   },
@@ -404,7 +404,7 @@ new ApexCharts(document.querySelector('#$id'), {
   #if $year.radiation.has_data
   $getChartJsCode("radiation", "radiationchart", "area", "radiation", "", "max")
   #end if
-  
+
   #if $year.luminosity.has_data
   $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
   #end if
@@ -412,7 +412,7 @@ new ApexCharts(document.querySelector('#$id'), {
   // inTemp + inHumidity
   $getChartJsCode("inTemp", "inTempchart", "area", "inTemp")
   $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
-  
+
   // Other sensors
   #if $year.snowDepth.has_data
   $getChartJsCode("snowDepth", "snowDepthchart", "bar", "snowDepth", "", "sum")
@@ -457,7 +457,7 @@ new ApexCharts(document.querySelector('#$id'), {
   var raw_data = [
   #for $record in $span($year_delta=1).spans(interval=int($Extras.Charts.year_timespan))
   {
-    'dir': "$record.windDir.avg.raw",
+    'dir': "$record.wind.vecdir.raw",
     'speed': "$record.windSpeed.avg.raw",
     'max': "$record.windGust.max.raw"
   },
