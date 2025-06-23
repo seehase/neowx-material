@@ -59,6 +59,20 @@
           </div>
         </div>
 
+        #else if $name == 'ET'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small">
+
+          </div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$year.ET.sum</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text">
+            
+          </div>
+        </div>
+
         #else
 
         <div class="row">
@@ -427,7 +441,7 @@ new ApexCharts(document.querySelector('#$id'), {
   #end if
 
   #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
-  $getChartJsCode("ET", "ETchart", "area", "ET", "", "max")
+  $getChartJsCode("ET", "ETchart", "bar", "ET", "", "sum")
   #end if
 
   #if $year.radiation.has_data
