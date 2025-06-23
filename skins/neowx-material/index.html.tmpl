@@ -76,6 +76,20 @@
           </div>
         </div>
 
+        #else if $name == 'ET'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small">
+            
+          </div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$day.ET.sum</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text">
+            
+          </div>
+        </div>
+
         #else
 
         <div class="row">
@@ -194,7 +208,7 @@
 
 #def getChartData($name, $column)
   #set current_interval = int($Extras.Charts.current_timespan)
-  #if $name == "rain"
+  #if $name == "rain" or $name == "ET"
     #set current_interval = int($Extras.Charts.current_rain_timespan)
   #end if
 
@@ -356,7 +370,7 @@ new ApexCharts(document.querySelector('#$id'), {
   #end if
 
   #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
-  $getChartJsCode("ET", "ETchart", "area", "ET", "", "max")
+  $getChartJsCode("ET", "ETchart", "bar", "ET", "", "sum")
   #end if
 
   #if $day.radiation.has_data
