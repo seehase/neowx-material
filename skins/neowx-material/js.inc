@@ -23,8 +23,13 @@
 
 <script type="text/javascript">
     // Show/update status label only if configured threshold > 0 in skin.conf
-    if ($Extras.Header.offline_threshold_minutes > 0) {
-        const lastUpdateTimestamp = $current.dateTime.raw;  // in seconds
+    const isArchivePage = "$active_nav" === "archive"; // do not show status on archive page
+    if (!isArchivePage && $Extras.Header.offline_threshold_minutes > 0) {
+        let lastUpdateTimestampString = '$current.dateTime.raw';
+        if (lastUpdateTimestampString === "" ) {
+            lastUpdateTimestampString = "4891363200"; // Fallback to 2125 if not available
+        }
+        const lastUpdateTimestamp =  Number(lastUpdateTimestampString) ;  // in seconds
         const nowTimestamp = new Date() / 1000;             // now in seconds
         const diffMinutes = (nowTimestamp - lastUpdateTimestamp) / 60; // Difference in minutes
 
