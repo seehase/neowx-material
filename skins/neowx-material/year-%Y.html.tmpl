@@ -452,8 +452,10 @@ new ApexCharts(document.querySelector('#$id'), {
   $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
   #end if
 
-  // inTemp + inHumidity
-  $getChartJsCode("inTemp", "inTempchart", "area", "inTemp")
+  // inTemp
+  $getChartJsCode("inTemp", "inTempchart", "area", "inTemp", "inDewpoint")
+
+  // inHumidity
   $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
 
   // Other sensors
