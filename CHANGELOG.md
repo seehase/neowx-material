@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.46.1] - 2025-08-22
+
+### CHANGED
+
+- updated install.py script, removed non necessary files and added new languages missing in script
+
 ## [1.35] - 2025-01-12
 
 ### CHANGED
