@@ -76,18 +76,50 @@
           </div>
         </div>
 
+        #else if $name == 'lightning_strike_count'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small"></div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$day.lightning_strike_count.sum</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text"></div>
+        </div>
+
+        #else if $name == 'lightning_distance'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small lo-text">
+            $getVar('day.' + name + '.min') <br>
+            ($getVar('day.' + name + '.mintime').format($Extras.Formatting.datetime_today))
+          </div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$day.lightning_distance.avg</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text">
+            $getVar('day.' + name + '.max') <br>
+            ($getVar('day.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
+          </div>
+        </div>
+
+        #else if $name == 'windrun'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small"></div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$day.windrun.sum</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text"></div>
+        </div>
+
         #else if $name == 'ET'
 
         <div class="row">
-          <div class="col-3 text-muted font-small">
-            
-          </div>
+          <div class="col-3 text-muted font-small"></div>
           <div class="col-6">
             <h4 class="h2-responsive">$day.ET.sum</h4>
           </div>
-          <div class="col-3 text-muted font-small hi-text">
-            
-          </div>
+          <div class="col-3 text-muted font-small hi-text"></div>
         </div>
 
         #else
@@ -120,7 +152,7 @@
 ## +-------------------------------------------------------------------------+
 
 #def chartCard($name, $id, $name2 = "XX")
-  #if ($getVar('day.' + name + '.has_data') or $name == "windvec") and $name != "appTemp"
+  #if ($getVar('day.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "ET" and $name != "windrun"
     <div class="col-12 col-xl-6 mb-4">
       <div class="card">
         <div class="card-body text-center">
@@ -367,6 +399,16 @@ if (chartElement) {
   // outHumidity
   $getChartJsCode("outHumidity", "outHumiditychart", "area", "outHumidity")
 
+  // PM2.5
+  #if $day.pm2_5.has_data
+  $getChartJsCode("pm2_5", "pm2_5chart", "area", "pm2_5", "avg")
+  #end if
+
+  // CO2
+  #if $day.co2.has_data
+  $getChartJsCode("co2", "co2chart", "area", "co2")
+  #end if
+
   // UV / ET / Radiation
   #if $day.UV.has_data
   $getChartJsCode("UV", "UVchart", "area", "UV", "", "max")
@@ -600,7 +642,7 @@ if (chartElement) {
   #end if
 
   #if $day.lightning_distance.has_data
-  $getChartJsCode("lightning_distance", "lightning_distancechart", "area", "lightning_distance")
+  $getChartJsCode("lightning_distance", "lightning_distancechart", "bar", "lightning_distance")
   #end if
 
   #if $day.lightning_energy.has_data

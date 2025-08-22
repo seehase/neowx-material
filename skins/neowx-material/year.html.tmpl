@@ -71,18 +71,34 @@
           </div>
         </div>
 
+        #else if $name == 'lightning_strike_count'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small"></div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$year.lightning_strike_count.sum</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text"></div>
+        </div>
+
+        #else if $name == 'windrun'
+
+        <div class="row">
+          <div class="col-3 text-muted font-small"></div>
+          <div class="col-6">
+            <h4 class="h2-responsive">$year.windrun.sum</h4>
+          </div>
+          <div class="col-3 text-muted font-small hi-text"></div>
+        </div>
+
         #else if $name == 'ET'
 
         <div class="row">
-          <div class="col-3 text-muted font-small">
-            
-          </div>
+          <div class="col-3 text-muted font-small"></div>
           <div class="col-6">
             <h4 class="h2-responsive">$year.ET.sum</h4>
           </div>
-          <div class="col-3 text-muted font-small hi-text">
-            
-          </div>
+          <div class="col-3 text-muted font-small hi-text"></div>
         </div>
 
         #else
@@ -275,8 +291,14 @@
 
 #def getChartData($name, $column)
   #set current_interval = int($Extras.Charts.year_timespan)
-  #if $name == "rain" or $name == "ET"
+  #if $name == "rain"
     #set current_interval = int($Extras.Charts.year_rain_timespan)
+  #end if
+  #if $name == "ET"
+    #set current_interval = int($Extras.Charts.year_ET_timespan)
+  #end if
+  #if $name == "windrun"
+    #set current_interval = int($Extras.Charts.year_windrun_timespan)
   #end if
 
   #for $record in $span($year_delta=1).spans(interval=current_interval)
@@ -480,8 +502,21 @@ if (chartElement) {
   $getChartJsCode("windSpeed", "windSpeedchart", "area", "windSpeed", "windGust", "max")
   $getChartJsCode("windDir", "windDirchart", "line", "windDir", "", "vecdir")
 
+  // WindRun
+  $getChartJsCode("windrun", "windrunchart", "bar", "windrun", "", "sum")
+
   // outHumidity
   $getChartJsCode("outHumidity", "outHumiditychart", "area", "outHumidity")
+
+  // PM2.5
+  #if $year.pm2_5.has_data
+  $getChartJsCode("pm2_5", "pm2_5chart", "area", "pm2_5", "avg")
+  #end if
+
+  // CO2
+  #if $year.co2.has_data
+  $getChartJsCode("co2", "co2chart", "area", "co2")
+  #end if
 
   // UV / ET / Radiation
   #if $year.UV.has_data
@@ -724,7 +759,7 @@ if (chartElement) {
   #end if
 
   #if $year.lightning_distance.has_data
-  $getChartJsCode("lightning_distance", "lightning_distancechart", "area", "lightning_distance")
+  $getChartJsCode("lightning_distance", "lightning_distancechart", "bar", "lightning_distance")
   #end if
 
   #if $year.lightning_energy.has_data

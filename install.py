@@ -140,7 +140,7 @@ class BasicInstaller(ExtensionInstaller):
                      'skins/neowx-material/lang/pl.conf',
                      'skins/neowx-material/lang/se.conf',
                      'skins/neowx-material/lang/sk.conf',
-                     'skins/neowx-material/manifest.json',
+                     'skins/neowx-material/manifest.json.tmpl',
                      'skins/neowx-material/month-%Y-%m.html.tmpl',
                      'skins/neowx-material/month.html.tmpl',
                      'skins/neowx-material/skin.conf',
