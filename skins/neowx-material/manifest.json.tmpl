@@ -1,6 +1,11 @@
+#encoding UTF-8
+## +-------------------------------------------------------------------------+
+## |    manifest.json.tmpl            Template file for "manifest" file      |
+## +-------------------------------------------------------------------------+
+
 {
-  "name": "Weewx weather",
-  "short_name": "Weather",
+  "name": "${station.location}",
+  "short_name": "${station.location}",
   "icons": [{
     "src": "img/icon-48.png",
     "sizes": "48x48",
@@ -45,6 +50,6 @@
   "scope": "/",
   "orientation": "any",
   "display": "standalone",
-  "theme_color": "#2196f3",
-  "background_color": "#f5f5f5"
+  "theme_color": "${Extras.theme_color}",
+  "background_color": "${Extras.background_color}"
 }
