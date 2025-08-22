@@ -314,113 +314,119 @@
 
 ## Special diagram for outside temp
 
-new ApexCharts(document.querySelector('#$id'), {
-  ...graph_${type}_config,
-  yaxis: {
+var chartElement = document.querySelector('#$id');
+if (chartElement) {
+  new ApexCharts(chartElement, {
+    ...graph_${type}_config,
+    yaxis: {
+          labels: {
+              formatter: function (val) {
+                  return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
+              }
+          },
+    },
+    series: [
+      {
+        name: "$getVar('obs.label.' + series1) Min",
+        data: [ $getChartData(series1, 'min') ]
+      },
+      {
+        name: "$getVar('obs.label.' + series1) Max",
+        data: [ $getChartData(series1, 'max') ]
+      }
+      #if $series2 != "" and $getVar('month.' + series2 + '.has_data')
+      ,{
+        name: "$getVar('obs.label.' + series2)",
+        data: [ $getChartData(series2, column) ]
+      }
+      #end if
+      #if $series3 != "" and $getVar('month.' + series3 + '.has_data')
+      ,{
+        name: "$getVar('obs.label.' + series3)",
+        data: [ $getChartData(series3, column) ]
+      }
+      #end if
+      #if $series4 != "" and $getVar('month.' + series4 + '.has_data')
+      ,{
+        name: "$getVar('obs.label.' + series4)",
+        data: [ $getChartData(series4, column) ]
+      }
+      #end if
+    ]
+  }).render()
+}
+
+#else
+
+var chartElement = document.querySelector('#$id');
+if (chartElement) {
+  new ApexCharts(chartElement, {
+    ...graph_${type}_config,
+    #if $name == "windDir"
+      yaxis: {
+          max: 360,
+          min: 0,
+          type: 'datetime',
+          tickAmount: 8,
+          trim: false,
+          labels: {
+              tickAmount: 8,
+              rotateAlways: false,
+              hideOverlappingLabels: true,
+              showDuplicates: false,
+              trim: false,
+              formatter: function(val, timestamp) {
+                  var degrees = Number(val);
+                  var direction = getOrdinalDirection(degrees);
+                  return direction;
+              }
+          },
+      },
+      tooltip: {
+          enabled: true,
+          y: {
+              formatter: function (val) {
+                var degrees = Number(val);
+                var direction = getOrdinalDirection(degrees);
+                return direction + ' (' + degrees.toFixed(0) + '°)';
+              }
+           },
+      },
+    #else
+      yaxis: {
         labels: {
             formatter: function (val) {
                 return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
             }
         },
-  },
-  series: [
-    {
-      name: "$getVar('obs.label.' + series1) Min",
-      data: [ $getChartData(series1, 'min') ]
-    },
-    {
-      name: "$getVar('obs.label.' + series1) Max",
-      data: [ $getChartData(series1, 'max') ]
-    }
-    #if $series2 != "" and $getVar('month.' + series2 + '.has_data')
-    ,{
-      name: "$getVar('obs.label.' + series2)",
-      data: [ $getChartData(series2, column) ]
-    }
-    #end if
-    #if $series3 != "" and $getVar('month.' + series3 + '.has_data')
-    ,{
-      name: "$getVar('obs.label.' + series3)",
-      data: [ $getChartData(series3, column) ]
-    }
-    #end if
-    #if $series4 != "" and $getVar('month.' + series4 + '.has_data')
-    ,{
-      name: "$getVar('obs.label.' + series4)",
-      data: [ $getChartData(series4, column) ]
-    }
-    #end if
-  ]
-}).render()
-
-#else
-
-new ApexCharts(document.querySelector('#$id'), {
-  ...graph_${type}_config,
-  #if $name == "windDir"
-    yaxis: {
-        max: 360,
-        min: 0,
-        type: 'datetime',
-        tickAmount: 8,
-        trim: false,
-        labels: {
-            tickAmount: 8,
-            rotateAlways: false,
-            hideOverlappingLabels: true,
-            showDuplicates: false,
-            trim: false,
-            formatter: function(val, timestamp) {
-                var degrees = Number(val);
-                var direction = getOrdinalDirection(degrees);
-                return direction;
-            }
-        },
-    },
-    tooltip: {
-        enabled: true,
-        y: {
-            formatter: function (val) {
-              var degrees = Number(val);
-              var direction = getOrdinalDirection(degrees);
-              return direction + ' (' + degrees.toFixed(0) + '°)';
-            }
-         },
-    },
-  #else
-    yaxis: {
-      labels: {
-          formatter: function (val) {
-              return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
-          }
       },
-    },
-  #end if
-  series: [
-    {
-      name: "$getVar('obs.label.' + series1)",
-      data: [ $getChartData(series1, column) ]
-    }
-    #if $series2 != "" and $getVar('month.' + series2 + '.has_data')
-    ,{
-      name: "$getVar('obs.label.' + series2)",
-      data: [ $getChartData(series2, column) ]
-    }
     #end if
-    #if $series3 != "" and $getVar('month.' + series3 + '.has_data')
-    ,{
-      name: "$getVar('obs.label.' + series3)",
-      data: [ $getChartData(series3, column) ]
-    }
-    #end if
-    #if $series4 != "" and $getVar('month.' + series4 + '.has_data')
-    ,{
-      name: "$getVar('obs.label.' + series4)",
-      data: [ $getChartData(series4, column) ]
-    }
-    #end if
-  ]
-}).render()
+    series: [
+      {
+        name: "$getVar('obs.label.' + series1)",
+        data: [ $getChartData(series1, column) ]
+      }
+      #if $series2 != "" and $getVar('month.' + series2 + '.has_data')
+      ,{
+        name: "$getVar('obs.label.' + series2)",
+        data: [ $getChartData(series2, column) ]
+      }
+      #end if
+      #if $series3 != "" and $getVar('month.' + series3 + '.has_data')
+      ,{
+        name: "$getVar('obs.label.' + series3)",
+        data: [ $getChartData(series3, column) ]
+      }
+      #end if
+      #if $series4 != "" and $getVar('month.' + series4 + '.has_data')
+      ,{
+        name: "$getVar('obs.label.' + series4)",
+        data: [ $getChartData(series4, column) ]
+      }
+      #end if
+    ]
+  }).render()
+}  
 
 #end if
 
@@ -614,26 +620,29 @@ new ApexCharts(document.querySelector('#$id'), {
 
   // Display wind vector chart
 
-  new ApexCharts(document.querySelector('#windvecchart'), {
-    ...graph_radar_config,
-    yaxis: {
-      labels: {
-        formatter: function (val) {
-          return formatNumber(val, "$unit.format.windSpeed") + "$unit.label.windSpeed";
+  var windvecchart = document.querySelector('#windvecchart');
+  if (windvecchart) {
+    new ApexCharts(windvecchart, {
+      ...graph_radar_config,
+      yaxis: {
+        labels: {
+          formatter: function (val) {
+            return formatNumber(val, "$unit.format.windSpeed") + "$unit.label.windSpeed";
+          }
         }
-      }
-    },
-    series: [
-      {
-        name: "$obs.label.windSpeed",
-        data: avg_values
       },
-      {
-        name: "$obs.label.windGust",
-        data: max_values
-      },
-    ]
-  }).render()
+      series: [
+        {
+          name: "$obs.label.windSpeed",
+          data: avg_values
+        },
+        {
+          name: "$obs.label.windGust",
+          data: max_values
+        },
+      ]
+    }).render()
+}
 
   // extraTemp 1-8
 
