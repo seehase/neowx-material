@@ -9,6 +9,18 @@
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
+#if $unit.unit_type_dict.group_temperature == "degree_F"
+#set $TropicDay =(86.0,"degree_F")
+#set $SummerDat =(77.0,"degree_F")
+#set $TropicNight =(68.0,"degree_F")
+#set $ArkticDay =(14.0,"degree_F")
+#else
+#set $TropicDay =(30.0,"degree_C")
+#set $SummerDay =(25.0,"degree_C")
+#set $TropicNight =(20.0,"degree_C")
+#set $ArkticDay =(-10.0,"degree_C")
+#end if
+
 #def valuesCard($name)
   #if $getVar('month.' + name + '.has_data')
   <div class="col-12 col-lg-6 mb-4">
@@ -153,6 +165,79 @@
         #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
           $valuesCard('ET')
         #end if
+      #else if $x == "temperatureThresholdDays"
+        <div class="col-12 col-lg-6 mb-4">
+          <div class="card">
+            <div class="card-body text-center">
+              <h3 class="h5-responsive $Extras.color-text">
+                $gettext("arctic_days")
+              </h3>
+              <div class="row">
+                <div class="col-3 text-muted font-small"></div>
+                <div class="col-6">
+                  <h4 class="h2-responsive">
+                    $month.outTemp.max_le($ArkticDay).nolabel("%6d", " N/A")
+                  </h4>
+                </div>
+                <div class="col-3 text-muted font-small hi-text"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6 mb-4">
+          <div class="card">
+            <div class="card-body text-center">
+              <h3 class="h5-responsive $Extras.color-text">
+                $gettext("tropical_days")
+              </h3>
+              <div class="row">
+                <div class="col-3 text-muted font-small"></div>
+                <div class="col-6">
+                  <h4 class="h2-responsive">
+                    $month.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")
+                  </h4>
+                </div>
+                <div class="col-3 text-muted font-small hi-text"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6 mb-4">
+          <div class="card">
+            <div class="card-body text-center">
+              <h3 class="h5-responsive $Extras.color-text">
+                $gettext("tropical_nights")
+              </h3>
+              <div class="row">
+                <div class="col-3 text-muted font-small"></div>
+                <div class="col-6">
+                  <h4 class="h2-responsive">
+                    $month.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")
+                  </h4>
+                </div>
+                <div class="col-3 text-muted font-small hi-text"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6 mb-4">
+          <div class="card">
+            <div class="card-body text-center">
+              <h3 class="h5-responsive $Extras.color-text">
+                $gettext("summer_days")
+              </h3>
+              <div class="row">
+                <div class="col-3 text-muted font-small"></div>
+                <div class="col-6">
+                  <h4 class="h2-responsive">
+                    $month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
+                  </h4>
+                </div>
+                <div class="col-3 text-muted font-small hi-text"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       #else
         $valuesCard($x)
       #end if

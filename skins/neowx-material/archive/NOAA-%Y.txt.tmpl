@@ -15,13 +15,15 @@
 #set $Count="%6d"
 #set $NONE="   N/A"
 #if $unit.unit_type_dict.group_temperature == "degree_F"
-#set $Hot     =(90.0,"degree_F")
-#set $Cold    =(32.0,"degree_F")
-#set $VeryCold=(0.0, "degree_F")
+#set $TropicDay =(86.0,"degree_F")
+#set $SummerDay =(77.0,"degree_F")
+#set $TropicNight =(68.0,"degree_F")
+#set $ArkticDay =(14.0,"degree_F")
 #else
-#set $Hot     =(30.0,"degree_C")
-#set $Cold    =(0.0,"degree_C")
-#set $VeryCold=(-20.0,"degree_C")
+#set $TropicDay =(30.0,"degree_C")
+#set $SummerDay =(25.0,"degree_C")
+#set $TropicNight =(20.0,"degree_C")
+#set $ArkticDay =(-10.0,"degree_C")
 #end if
 #if $unit.unit_type_dict.group_rain == "inch"
 #set $Trace    =(0.01,"inch")
@@ -58,19 +60,19 @@ ELEV: $station.altitude
 
                                        TEMPERATURE ($unit.label.outTemp.strip())
 
-                              HEAT    COOL                              MAX    MAX    MIN    MIN
-          MEAN   MEAN         DEG     DEG                                >=     <=     <=     <=
- YR  MO   MAX    MIN    MEAN  DAYS    DAYS      HI  DAY     LOW  DAY $ShowInt($Hot) $ShowInt($Cold) $ShowInt($Cold) $ShowInt($VeryCold)
+                              HEAT    COOL                              TROP.  SUM.   TROP.  ARKT.
+          MEAN   MEAN         DEG     DEG                               DAYS   DAYS   NIGHT  DAYS
+ YR  MO   MAX    MIN    MEAN  DAYS    DAYS      HI  DAY     LOW  DAY $ShowInt($TropicDay) $ShowInt($SummerDay) $ShowInt($TropicNight) $ShowInt($ArkticDay)
 ------------------------------------------------------------------------------------------------
 #for $month in $year.months
 #if $month.barometer.count.raw
-$month.dateTime.format($YM) $month.outTemp.meanmax.nolabel($Temp,$NONE) $month.outTemp.meanmin.nolabel($Temp,$NONE) $month.outTemp.avg.nolabel($Temp,$NONE) $month.heatdeg.sum.nolabel($Temp,$NONE) $month.cooldeg.sum.nolabel($Temp,$NONE)  $month.outTemp.max.nolabel($Temp,$NONE) $month.outTemp.maxtime.format($D,$NODAY)  $month.outTemp.min.nolabel($Temp,$NONE) $month.outTemp.mintime.format($D,$NODAY) $month.outTemp.max_ge($Hot).nolabel($Count,$NONE) $month.outTemp.max_le($Cold).nolabel($Count,$NONE) $month.outTemp.min_le($Cold).nolabel($Count,$NONE) $month.outTemp.min_le($VeryCold).nolabel($Count,$NONE)
+$month.dateTime.format($YM) $month.outTemp.meanmax.nolabel($Temp,$NONE) $month.outTemp.meanmin.nolabel($Temp,$NONE) $month.outTemp.avg.nolabel($Temp,$NONE) $month.heatdeg.sum.nolabel($Temp,$NONE) $month.cooldeg.sum.nolabel($Temp,$NONE)  $month.outTemp.max.nolabel($Temp,$NONE) $month.outTemp.maxtime.format($D,$NODAY)  $month.outTemp.min.nolabel($Temp,$NONE) $month.outTemp.mintime.format($D,$NODAY) $month.outTemp.max_ge($TropicDay).nolabel($Count,$NONE) $month.outTemp.max_ge($SummerDay).nolabel($Count,$NONE) $month.outTemp.min_ge($TropicNight).nolabel($Count,$NONE) $month.outTemp.max_le($ArkticDay).nolabel($Count,$NONE)
 #else
 $month.dateTime.format($YM)
 #end if
 #end for
 ------------------------------------------------------------------------------------------------
-        $year.outTemp.meanmax.nolabel($Temp,$NONE) $year.outTemp.meanmin.nolabel($Temp,$NONE) $year.outTemp.avg.nolabel($Temp,$NONE) $year.heatdeg.sum.nolabel($Temp,$NONE) $year.cooldeg.sum.nolabel($Temp,$NONE)  $year.outTemp.max.nolabel($Temp,$NONE) $year.outTemp.maxtime.format($M,$NODAY)  $year.outTemp.min.nolabel($Temp,$NONE) $year.outTemp.mintime.format($M,$NODAY) $year.outTemp.max_ge($Hot).nolabel($Count,$NONE) $year.outTemp.max_le($Cold).nolabel($Count,$NONE) $year.outTemp.min_le($Cold).nolabel($Count,$NONE) $year.outTemp.min_le($VeryCold).nolabel($Count,$NONE)
+        $year.outTemp.meanmax.nolabel($Temp,$NONE) $year.outTemp.meanmin.nolabel($Temp,$NONE) $year.outTemp.avg.nolabel($Temp,$NONE) $year.heatdeg.sum.nolabel($Temp,$NONE) $year.cooldeg.sum.nolabel($Temp,$NONE)  $year.outTemp.max.nolabel($Temp,$NONE) $year.outTemp.maxtime.format($M,$NODAY)  $year.outTemp.min.nolabel($Temp,$NONE) $year.outTemp.mintime.format($M,$NODAY) $year.outTemp.max_ge($TropicDay).nolabel($Count,$NONE) $year.outTemp.max_ge($SummerDay).nolabel($Count,$NONE) $year.outTemp.min_ge($TropicNight).nolabel($Count,$NONE) $year.outTemp.min_le($ArkticDay).nolabel($Count,$NONE)
 
 
                   PRECIPITATION ($unit.label.rain.strip())
