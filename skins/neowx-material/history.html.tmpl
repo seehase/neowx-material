@@ -43,35 +43,65 @@
                         $max_temp_table
                     </div>
 
-                    <div class="card card-body">
-                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-showers"></i>
-                            $gettext("rain")</h4>
-                        $rain_table
-                    </div>
+                   <div class="card card-body">
+                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
+                            $gettext("summer_days")</h4>
+                        $summer_days_table
+                   </div>
 
-                    <div class="card card-body">
-                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-showers"></i>
-                            $gettext("rain_days") (> 0.2mm)</h4>
-                        $rain_days_table
-                    </div>
+                   <div class="card card-body">
+                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
+                            $gettext("tropical_days")</h4>
+                        $tropical_days_table
+                   </div>
 
-                    <div class="card card-body">
-                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-strong-wind"></i>
-                            $gettext("max_wind")</h4>
-                        $max_wind_table
-                    </div>
+                   <div class="card card-body">
+                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
+                            $gettext("tropical_nights")</h4>
+                        $tropical_nights_table
+                   </div>
 
-                    <div class="card card-body">
-                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-strong-wind"></i>
-                            $gettext("avg_wind")</h4>
-                        $avg_wind_table
-                    </div>
+                   <div class="card card-body">
+                       <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-thermometer"></i>
+                           $gettext("arctic_days")</h4>
+                       $arctic_days_table
+                   </div>
 
-                    <div class="card card-body">
-                        <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-day-sunny"></i>
-                            $gettext("uv_max")</h4>
-                        $uv_max_table
-                    </div>
+                    #if $alltime.rain.has_data
+                        <div class="card card-body">
+                            <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-showers"></i>
+                                $gettext("rain")</h4>
+                            $rain_table
+                        </div>
+
+                        <div class="card card-body">
+                            <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-showers"></i>
+                                $gettext("rain_days") (> 0.2mm)</h4>
+                            $rain_days_table
+                        </div>
+                    #end if
+
+                    #if $alltime.windSpeed.has_data
+                        <div class="card card-body">
+                            <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-strong-wind"></i>
+                                $gettext("max_wind")</h4>
+                            $max_wind_table
+                        </div>
+
+                        <div class="card card-body">
+                            <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-strong-wind"></i>
+                                $gettext("avg_wind")</h4>
+                            $avg_wind_table
+                        </div>
+                    #end if
+
+                    #if $alltime.UV.has_data
+                        <div class="card card-body">
+                            <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-day-sunny"></i>
+                                $gettext("uv_max")</h4>
+                            $uv_max_table
+                        </div>
+                    #end if
                 </div>
             </div>
 
