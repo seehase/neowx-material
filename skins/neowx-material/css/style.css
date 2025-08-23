@@ -4873,6 +4873,7 @@ table.table a.btn.btn-black {
 }
 .card .card-body {
   padding: 0.75rem 0.5rem;
+  min-width: fit-content;
 }
 .card .card-body h1, .card .card-body h2, .card .card-body h3, .card .card-body h4, .card .card-body h5, .card .card-body h6 {
   font-weight: 400;
