@@ -9,17 +9,10 @@
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
-#if $unit.unit_type_dict.group_temperature == "degree_F"
-#set $TropicDay =(86.0,"degree_F")
-#set $SummerDat =(77.0,"degree_F")
-#set $TropicNight =(68.0,"degree_F")
-#set $ArkticDay =(14.0,"degree_F")
-#else
-#set $TropicDay =(30.0,"degree_C")
-#set $SummerDay =(25.0,"degree_C")
-#set $TropicNight =(20.0,"degree_C")
-#set $ArkticDay =(-10.0,"degree_C")
-#end if
+#set $TropicDay = ($Extras.tropical_days_threshold, $Extras.threshold_unit)
+#set $SummerDay = ($Extras.summer_days_threshold, $Extras.threshold_unit)
+#set $TropicNight = ($Extras.tropical_nights_threshold, $Extras.threshold_unit)
+#set $ArcticDay = ($Extras.arctic_days_threshold, $Extras.threshold_unit)
 
 #def valuesCard($name)
   #if $getVar('month.' + name + '.has_data')
@@ -167,7 +160,7 @@
 #include "header.inc"
 
 <main>
-  <div class="container-fluid d-flex-xxl">
+<div class="container-fluid d-flex-xxl">
 
     <div class="row my-4 temprow align-content-start">
 
@@ -186,13 +179,13 @@
           <div class="card">
             <div class="card-body text-center">
               <h3 class="h5-responsive $Extras.color-text">
-                $gettext("arctic_days")
+                $gettext("summer_days")
               </h3>
               <div class="row">
                 <div class="col-3 text-muted font-small"></div>
                 <div class="col-6">
                   <h4 class="h2-responsive">
-                    $month.outTemp.max_le($ArkticDay).nolabel("%6d", " N/A")
+                    $month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
                   </h4>
                 </div>
                 <div class="col-3 text-muted font-small hi-text"></div>
@@ -240,13 +233,13 @@
           <div class="card">
             <div class="card-body text-center">
               <h3 class="h5-responsive $Extras.color-text">
-                $gettext("summer_days")
+                $gettext("arctic_days")
               </h3>
               <div class="row">
                 <div class="col-3 text-muted font-small"></div>
                 <div class="col-6">
                   <h4 class="h2-responsive">
-                    $month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
+                    $month.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")
                   </h4>
                 </div>
                 <div class="col-3 text-muted font-small hi-text"></div>
