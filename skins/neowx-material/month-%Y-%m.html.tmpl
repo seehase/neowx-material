@@ -9,10 +9,13 @@
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
-#set $TropicDay = ($Extras.tropical_days_threshold, $Extras.threshold_unit)
-#set $SummerDay = ($Extras.summer_days_threshold, $Extras.threshold_unit)
-#set $TropicNight = ($Extras.tropical_nights_threshold, $Extras.threshold_unit)
-#set $ArcticDay = ($Extras.arctic_days_threshold, $Extras.threshold_unit)
+## Access HistoryReport section from skin.conf
+#set $table_dict = $generator.skin_dict['HistoryReport']
+#set $threshold_unit = $table_dict.get('threshold_unit', 'degree_C')
+#set $SummerDay = ($table_dict.get('summer_days_threshold', 25.0),  $threshold_unit)
+#set $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
+#set $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
+#set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
 
 #def valuesCard($name)
   #if $getVar('month.' + name + '.has_data')
