@@ -3,3 +3,4 @@
 /dist/*.zip
 /skins/neowx-material/node_modules/
 /neowx-material-latest.zip
+/skins/neowx-material/skin.conf.backup*

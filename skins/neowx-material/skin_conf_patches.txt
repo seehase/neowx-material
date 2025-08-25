@@ -1,0 +1,14 @@
+#######################################################################
+# Patch file for neowx-material skin
+# Add key/value pairs to the skin configuration file (skin.conf)
+# to be patched with your custom settings. This helps you to
+# avoid merge conflicts when updating the skin.
+# Just add the settings you want to change from the default
+# skin.conf file. See the default skin.conf file for all
+# available settings and their default values.
+#######################################################################
+custom1_label =
+custom1_url =
+custom2_label =
+custom2_url =
+archive_nav_link = yes
