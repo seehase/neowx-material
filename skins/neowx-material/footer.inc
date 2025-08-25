@@ -12,7 +12,7 @@
         <div class="row">
 
             ## Grid column
-            <div class="col-md-6 mt-md-0 mt-3">
+            <div class="col-md-5 mt-md-0 mt-3">
 
                 ## Content
                 <h5 class="text-uppercase">$gettext("about")</h5>
@@ -21,19 +21,21 @@
                     <tr>
                         <td>$gettext("hardware"):</td>
                         <td>$station.hardware</td>
-                        <td>&nbsp</td>
-                        <td>&nbsp</td>
-                        <td>$gettext("station_uptime"):</td>
-                        <td>$station.uptime.long_form</td>
                     </tr>
                     <tr>
                         <td>$gettext("altitude"):</td>
                         <td>$station.altitude</td>
-                        <td>&nbsp</td>
-                        <td>&nbsp</td>
+                    </tr>
+                    #if $Extras.Footer.show_uptime == "yes"
+                    <tr>
+                        <td>$gettext("station_uptime"):</td>
+                        <td>$station.uptime.long_form</td>
+                    </tr>
+                    <tr>
                         <td>$gettext("server_uptime"):</td>
                         <td>$station.os_uptime.long_form</td>
                     </tr>
+                    #end if
                     #if $Extras.Footer.show_telemetry == "yes"
                     <tr>
                         <td>
@@ -56,7 +58,7 @@
             <hr class="clearfix w-100 d-md-none pb-3">
 
             ## Grid column
-            <div class="col-md-3 mb-md-0 mb-3">
+            <div class="col-md-4 mb-md-0 mb-3">
 
                 #if $Extras.Footer.box_title != ""
                 <h5 class="text-uppercase">$Extras.Footer.box_title</h5>
