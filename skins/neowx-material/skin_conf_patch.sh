@@ -2,6 +2,7 @@
 
 # Patch script for skin.conf
 # Reads skin_conf_patches.txt and applies key-value replacements to skin.conf
+# Supports section-aware key identification (e.g., Extras.Header.custom1_url)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATCHES_FILE="$SCRIPT_DIR/skin_conf_patches.txt"
@@ -24,70 +25,132 @@ BACKUP_FILE="${SKIN_CONF}.backup.$(date +%Y%m%d_%H%M%S)"
 cp "$SKIN_CONF" "$BACKUP_FILE"
 echo "Created backup: $BACKUP_FILE"
 
-# Read skin_conf_patches.txt and apply changes
 echo "Applying patches to skin.conf..."
 
-# Use a different approach to read the file that handles missing final newline
+# Create a temporary file for the new skin.conf
+TEMP_FILE=$(mktemp)
+
+# First, read all patches and store them in a simple format
+PATCHES_TEMP=$(mktemp)
 while IFS= read -r line || [[ -n "$line" ]]; do
     # Skip empty lines and comments
-    if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
-        continue
-    fi
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-    # Parse key=value
+    # Parse Section.Subsection.key=value
     if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
-        key="${BASH_REMATCH[1]}"
+        full_key="${BASH_REMATCH[1]}"
         value="${BASH_REMATCH[2]}"
 
         # Trim whitespace
-        key=$(echo "$key" | xargs)
-        value=$(echo "$value" | xargs)
+        full_key=$(echo "$full_key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-        echo "Patching: $key = $value"
+        echo "$full_key|$value" >> "$PATCHES_TEMP"
+        echo "Found patch: $full_key = $value"
+    fi
+done < "$PATCHES_FILE"
 
-        # Use sed to replace the line with the key
-        # This handles the pattern "key = " (with spaces around =)
-        if grep -q "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF"; then
-            # Replace existing key
-            sed -i.tmp "s|^[[:space:]]*${key}[[:space:]]*=.*|        ${key} = ${value}|" "$SKIN_CONF"
-            rm "${SKIN_CONF}.tmp"
-            echo "  ✓ Updated existing key: $key"
-        else
-            echo "  ⚠ Warning: Key '$key' not found in skin.conf"
-        fi
-    else
-        echo "  ⚠ Warning: Invalid line format: $line"
+# Process skin.conf line by line
+current_section=""
+current_subsection=""
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+    # Track current section
+    if [[ "$line" =~ ^[[:space:]]*\[([^\]]+)\][[:space:]]*$ ]]; then
+        current_section="${BASH_REMATCH[1]}"
+        current_subsection=""
+        echo "$line" >> "$TEMP_FILE"
+        continue
+    elif [[ "$line" =~ ^[[:space:]]*\[\[([^\]]+)\]\][[:space:]]*$ ]]; then
+        current_subsection="${BASH_REMATCH[1]}"
+        echo "$line" >> "$TEMP_FILE"
+        continue
     fi
 
-done < "$PATCHES_FILE"
+    # Check if this line matches any patch
+    line_modified=false
+
+    while IFS='|' read -r patch_key patch_value; do
+        # Parse the patch key
+        if [[ "$patch_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
+            # Format: Section.Subsection.key
+            section="${BASH_REMATCH[1]}"
+            subsection="${BASH_REMATCH[2]}"
+            key="${BASH_REMATCH[3]}"
+
+            # Check if we're in the right section and this line matches
+            if [[ "$current_section" == "$section" ]] && [[ "$current_subsection" == "$subsection" ]]; then
+                if [[ "$line" =~ ^[[:space:]]*${key}[[:space:]]*= ]]; then
+                    echo "        $key = $patch_value" >> "$TEMP_FILE"
+                    echo "  ✓ Updated: [$section].[$subsection] $key"
+                    line_modified=true
+                    break
+                fi
+            fi
+        elif [[ "$patch_key" =~ ^([^.]+)\.([^.]+)$ ]]; then
+            # Format: Section.key
+            section="${BASH_REMATCH[1]}"
+            key="${BASH_REMATCH[2]}"
+
+            # Check if we're in the right section and this line matches
+            if [[ "$current_section" == "$section" ]] && [[ -z "$current_subsection" ]]; then
+                if [[ "$line" =~ ^[[:space:]]*${key}[[:space:]]*= ]]; then
+                    echo "    $key = $patch_value" >> "$TEMP_FILE"
+                    echo "  ✓ Updated: [$section] $key"
+                    line_modified=true
+                    break
+                fi
+            fi
+        fi
+    done < "$PATCHES_TEMP"
+
+    # If line wasn't modified, keep original
+    if [[ "$line_modified" == false ]]; then
+        echo "$line" >> "$TEMP_FILE"
+    fi
+
+done < "$SKIN_CONF"
+
+# Replace the original file
+mv "$TEMP_FILE" "$SKIN_CONF"
+rm "$PATCHES_TEMP"
 
 echo ""
 echo "Patching complete!"
 echo "Original file backed up to: $BACKUP_FILE"
 echo ""
-echo "Summary of changes:"
+echo "Summary of applied changes:"
 
-# Read patches file again and show all applied changes
+# Show what was applied - use a simpler approach that works on all systems
 while IFS= read -r line || [[ -n "$line" ]]; do
-    # Skip empty lines and comments
-    if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
-        continue
-    fi
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-    # Parse key=value
     if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
-        key="${BASH_REMATCH[1]}"
-        value="${BASH_REMATCH[2]}"
+        full_key="${BASH_REMATCH[1]}"
+        full_key=$(echo "$full_key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-        # Trim whitespace
-        key=$(echo "$key" | xargs)
-        value=$(echo "$value" | xargs)
+        if [[ "$full_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
+            # Format: Section.Subsection.key
+            section="${BASH_REMATCH[1]}"
+            subsection="${BASH_REMATCH[2]}"
+            key="${BASH_REMATCH[3]}"
 
-        # Show the current value from skin.conf for this key
-        if grep -q "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF"; then
-            current_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF")
-            echo "  $current_line"
+            # Use a simpler approach to find the updated line
+            found_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF" | head -1)
+            if [[ -n "$found_line" ]]; then
+                echo "  $found_line"
+            fi
+
+        elif [[ "$full_key" =~ ^([^.]+)\.([^.]+)$ ]]; then
+            # Format: Section.key
+            section="${BASH_REMATCH[1]}"
+            key="${BASH_REMATCH[2]}"
+
+            # Use a simpler approach to find the updated line
+            found_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF" | head -1)
+            if [[ -n "$found_line" ]]; then
+                echo "  $found_line"
+            fi
         fi
     fi
-
 done < "$PATCHES_FILE"
