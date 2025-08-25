@@ -9,7 +9,7 @@ SKIN_CONF="$SCRIPT_DIR/skin.conf"
 
 # Check if patches file exists
 if [ ! -f "$PATCHES_FILE" ]; then
-    echo "Error: patches.txt not found at $PATCHES_FILE"
+    echo "Error: skin_conf_patches.txt not found at $PATCHES_FILE"
     exit 1
 fi
 
@@ -27,27 +27,36 @@ echo "Created backup: $BACKUP_FILE"
 # Read skin_conf_patches.txt and apply changes
 echo "Applying patches to skin.conf..."
 
-while IFS='=' read -r key value; do
+# Use a different approach to read the file that handles missing final newline
+while IFS= read -r line || [[ -n "$line" ]]; do
     # Skip empty lines and comments
-    if [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]]; then
+    if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
         continue
     fi
 
-    # Trim whitespace
-    key=$(echo "$key" | xargs)
-    value=$(echo "$value" | xargs)
+    # Parse key=value
+    if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
 
-    echo "Patching: $key = $value"
+        # Trim whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
 
-    # Use sed to replace the line with the key
-    # This handles the pattern "key = " (with spaces around =)
-    if grep -q "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF"; then
-        # Replace existing key
-        sed -i.tmp "s|^[[:space:]]*${key}[[:space:]]*=.*|        ${key} = ${value}|" "$SKIN_CONF"
-        rm "${SKIN_CONF}.tmp"
-        echo "  ✓ Updated existing key: $key"
+        echo "Patching: $key = $value"
+
+        # Use sed to replace the line with the key
+        # This handles the pattern "key = " (with spaces around =)
+        if grep -q "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF"; then
+            # Replace existing key
+            sed -i.tmp "s|^[[:space:]]*${key}[[:space:]]*=.*|        ${key} = ${value}|" "$SKIN_CONF"
+            rm "${SKIN_CONF}.tmp"
+            echo "  ✓ Updated existing key: $key"
+        else
+            echo "  ⚠ Warning: Key '$key' not found in skin.conf"
+        fi
     else
-        echo "  ⚠ Warning: Key '$key' not found in skin.conf"
+        echo "  ⚠ Warning: Invalid line format: $line"
     fi
 
 done < "$PATCHES_FILE"
@@ -59,20 +68,26 @@ echo ""
 echo "Summary of changes:"
 
 # Read patches file again and show all applied changes
-while IFS='=' read -r key value; do
+while IFS= read -r line || [[ -n "$line" ]]; do
     # Skip empty lines and comments
-    if [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]]; then
+    if [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]]; then
         continue
     fi
 
-    # Trim whitespace
-    key=$(echo "$key" | xargs)
-    value=$(echo "$value" | xargs)
+    # Parse key=value
+    if [[ "$line" =~ ^[[:space:]]*([^=]+)=(.*)$ ]]; then
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
 
-    # Show the current value from skin.conf for this key
-    if grep -q "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF"; then
-        current_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF")
-        echo "  $current_line"
+        # Trim whitespace
+        key=$(echo "$key" | xargs)
+        value=$(echo "$value" | xargs)
+
+        # Show the current value from skin.conf for this key
+        if grep -q "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF"; then
+            current_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF")
+            echo "  $current_line"
+        fi
     fi
 
 done < "$PATCHES_FILE"
