@@ -1,13 +1,13 @@
 {
   "name": "neowx-material",
-  "version": "1.49.2",
+  "version": "1.49.12",
   "description": "The most versatile and modern weewx skin",
   "main": "index.js",
   "repository": "https://github.com/neoground/neowx-material",
   "author": "Neoground GmbH",
   "license": "MIT",
   "dependencies": {
-    "sass": "^1.90.0"
+    "sass": "^1.91.0"
   },
   "scripts": {
     "build-css": "sass --load-path scss scss/style.scss css/style.css",
