@@ -377,6 +377,6 @@ class BasicInstaller(ExtensionInstaller):
                      'skins/neowx-material/year.html.tmpl',
                      'skins/neowx-material/yesterday.html.tmpl']),
                    ('bin/user',
-                    ['bin/user/historygenerator.py']),
+                    ['bin/user/historygenerator.py', 'bin/user/openmeteo.py']),
             ]
             )
