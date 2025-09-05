@@ -192,6 +192,11 @@
   <div class="container-fluid d-flex-xxl">
 
     <div class="row my-4 temprow align-content-start">
+      #if $Extras.Forecast.enable_forecast == "yes"
+        #if $Extras.Forecast.position == "top"
+          #include "forecast.inc"
+        #end if
+      #end if
       #for $x in $Extras.Appearance.values_order
 
       #if $x == "ET"
@@ -203,6 +208,12 @@
       #end if
 
       #end for
+
+      #if $Extras.Forecast.enable_forecast == "yes"
+        #if $Extras.Forecast.position == "middle"
+          #include "forecast.inc"
+        #end if
+      #end if
     </div>
 
     <hr class="my-4 rowdivider">
@@ -220,6 +231,14 @@
 
       #end for
     </div>
+
+    #if $Extras.Forecast.enable_forecast == "yes"
+        #if $Extras.Forecast.position == "bottom"
+          <div class="row my-4 temprow align-content-start">
+            #include "forecast.inc"
+          </div>
+        #end if
+      #end if
 
   </div>
 </main>
