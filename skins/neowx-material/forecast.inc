@@ -41,7 +41,7 @@
         <h3 class="h5-responsive $Extras.color-text">
             $pgettext("Forecast","daily")
         </h3>
-        #if "simple" in $Extras.Forecast.forecast_values_order
+        #if $Extras.Forecast.type == "simple" 
           <div class="d-flex">
           #for $x in $forecast.daily
             <div class="flex-fill">
@@ -56,10 +56,7 @@
           #end for
           </div>
         #end if
-        #if "simple" in $Extras.Forecast.forecast_values_order and "advanced" in $Extras.Forecast.forecast_values_order
-          <hr />
-        #end if
-        #if "advanced" in $Extras.Forecast.forecast_values_order
+        #if $Extras.Forecast.type == "advanced" 
           <div class="d-lg-flex">
           #set $count = 0
           #set $total = len($forecast.daily)
