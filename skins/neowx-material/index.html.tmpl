@@ -230,15 +230,13 @@
       #end if
 
       #end for
-    </div>
 
-    #if $Extras.Forecast.enable_forecast == "yes"
+      #if $Extras.Forecast.enable_forecast == "yes"
         #if $Extras.Forecast.position == "bottom"
-          <div class="row my-4 temprow align-content-start">
-            #include "forecast.inc"
-          </div>
+          #include "forecast.inc"
         #end if
       #end if
+    </div>
 
   </div>
 </main>

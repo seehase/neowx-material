@@ -34,70 +34,74 @@
     99: "wi-day-thunderstorm"
 }
 
-#if $Extras.Forecast.enable_forecast == "yes"
-  <div class="col-12 col-md-6 col-xl-4 mb-4">
+#if $Extras.Forecast.enable_forecast == "yes" and $forecast is not None
+  <div class="col-12 mb-4">
     <div class="card">
       <div class="card-body text-center">
         <h3 class="h5-responsive $Extras.color-text">
             $pgettext("Forecast","daily")
         </h3>
-        #if "advanced" in $Extras.Forecast.forecast_values_order
-          #set $count = 0
-          #set $total = len($forecast.daily)
+        #if "simple" in $Extras.Forecast.forecast_values_order
+          <div class="d-flex">
           #for $x in $forecast.daily
-            <div class="row">
-              <div class="col-4 $Extras.color-text">
+            <div class="flex-fill">
+              <div class="text-nowrap $Extras.color-text">
                 $x[0].format("%A")
               </div>
-              <div class="col text-left">
-                $pgettext("Forecast",str($x[1].weather_code))
-              </div>
-            </div>
-            <div class="row font-small">
-              <div class="col-4 $Extras.color-text">
-                <i class="wi wi-thermometer" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")" data-toggle="tooltip" data-html="true"></i>
-              </div>
-              <div class="col text-left">
+              <i class="display-3 py-4 wi $weatherMap.get($x[1].weather_code, "wi-na")" title="$pgettext("Forecast",str($x[1].weather_code))" data-toggle="tooltip" data-html="true"></i>
+              <div class="font-small" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")">
                 $x[1].temperature.min / $x[1].temperature.max
               </div>
             </div>
-            <div class="row font-small">
+          #end for
+          </div>
+        #end if
+        #if "simple" in $Extras.Forecast.forecast_values_order and "advanced" in $Extras.Forecast.forecast_values_order
+          <hr />
+        #end if
+        #if "advanced" in $Extras.Forecast.forecast_values_order
+          <div class="d-lg-flex">
+          #set $count = 0
+          #set $total = len($forecast.daily)
+          #for $x in $forecast.daily
+            <div class="row flex-fill font-small">
+              <div class="col-4 text-nowrap $Extras.color-text">
+                $x[0].format("%A")
+              </div>
+              <div class="col-8 text-left">
+                $pgettext("Forecast",str($x[1].weather_code))
+              </div>
+              <div class="col-4 $Extras.color-text">
+                <i class="wi wi-thermometer" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")" data-toggle="tooltip" data-html="true"></i>
+              </div>
+              <div class="col-8 text-left">
+                $x[1].temperature.min / $x[1].temperature.max
+              </div>
               <div class="col-4 $Extras.color-text">
                 <i class="wi wi-day-sunny" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
               </div>
-              <div class="col text-left">
+              <div class="col-8 text-left">
                 $x[1].uv_index_max
               </div>
-            </div>
-            <div class="row font-small">
               <div class="col-4 $Extras.color-text">
                 <i class="wi wi-umbrella" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
               </div>
-              <div class="col text-left">
+              <div class="col-8 text-left">
                 $x[1].precipitation.sum ($x[1].precipitation.probability)
               </div>
-            </div>
-            <div class="row font-small">
               <div class="col-4 $Extras.color-text">
                 <i class="wi wi-strong-wind" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
               </div>
-              <div class="col text-left">
+              <div class="col-8 text-left">
                 $x[1].wind.speed <i class="wi wi-wind from-$x[1].wind.direction.formatted-deg mr-2" title="$x[1].wind.direction.formatted°" data-toggle="tooltip" data-html="true"></i> ($x[1].wind.gusts)
               </div>
             </div>
             #set $count = $count + 1
             #if $count != $total
-              <hr />
+              <hr class="rowdivider"/>
             #end if
           #end for
-        #else if "simple" in $Extras.Forecast.forecast_values_order
-          #for $x in $forecast.daily
-            <div class="row">
-              <div class="col">
-                <i class="wi $weatherMap.get($x[1], "wi-na")"></i>
-              </div>
-            </div>
-          #end for
+          </div>
         #end if
       </div>
       <div class="card-footer text-muted font-small text-center">
