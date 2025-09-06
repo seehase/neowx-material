@@ -8,7 +8,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.35",
+            version="1.50.0",
             name='neowx-material',
             description='The most versatile and modern weewx skin',
             author="Neoground GmbH",
@@ -36,6 +36,7 @@ class BasicInstaller(ExtensionInstaller):
                      'skins/neowx-material/fonts/Rubik-Regular.woff',
                      'skins/neowx-material/fonts/Rubik-Regular.woff2',
                      'skins/neowx-material/footer.inc',
+                     'skins/neowx-material/forecast.inc',
                      'skins/neowx-material/graph_area_archive_config.inc',
                      'skins/neowx-material/graph_area_config.inc',
                      'skins/neowx-material/graph_bar_archive_config.inc',
@@ -377,6 +378,6 @@ class BasicInstaller(ExtensionInstaller):
                      'skins/neowx-material/year.html.tmpl',
                      'skins/neowx-material/yesterday.html.tmpl']),
                    ('bin/user',
-                    ['bin/user/historygenerator.py']),
+                    ['bin/user/historygenerator.py', 'bin/user/openmeteo.py']),
             ]
             )
