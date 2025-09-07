@@ -103,7 +103,7 @@
       </div>
       <div class="card-footer text-muted font-small text-center">
         Weather data by&nbsp;<a href="https://open-meteo.com/">Open-Meteo.com</a>&nbsp;(<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>)
-        <div>Data may have been adapted (e.g., unit conversions).</div>
+        <div>Data may be modified (e.g., unit conversion, aggregation).</div>
       </div>
     </div>
   </div>

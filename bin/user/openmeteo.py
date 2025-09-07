@@ -39,6 +39,8 @@
 import time
 import requests
 import logging
+import math
+from collections import Counter
 
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
@@ -88,9 +90,10 @@ class Forecast(SearchList):
             "timeformat": "unixtime",
         }
 
+        hourly = []
         daily = []
         if type == "advanced" or type == "simple":  # common for both
-            daily.append("weather_code")
+            hourly.append("weather_code")
             daily.append("temperature_2m_min")
             daily.append("temperature_2m_max")
         if type == "advanced":  # additional field for advanced view
@@ -101,6 +104,8 @@ class Forecast(SearchList):
             daily.append("wind_gusts_10m_max")
             daily.append("wind_direction_10m_dominant")
 
+        if len(hourly) > 0:
+            params["hourly"] = ",".join(hourly)
         if len(daily) > 0:
             params["daily"] = ",".join(daily)
 
@@ -139,7 +144,6 @@ def fetch_forecast(base_url, params):
 
 
 def remap_data(generator, data: dict, type) -> dict:
-
     # Using ValueHelper will enable easy converting to correct units set by user in weewx.conf
     def build_value_helper(value, unit, group):
         value_tuple = ValueTuple(value, unit, group)
@@ -147,6 +151,20 @@ def remap_data(generator, data: dict, type) -> dict:
             value_tuple, "current", generator.formatter, generator.converter
         )
         return vh
+    
+    # Calculate daily weather_code
+    daily_weather_codes = []
+    hourly_weather_codes = data["hourly"].get("weather_code", [])
+    day_count = math.floor(len(hourly_weather_codes) / 24) # calculate number of days of data
+    for n in range(day_count):
+        hourly_weather_codes_for_day = hourly_weather_codes[n*24:(n+1)*24]
+        counts = Counter(hourly_weather_codes_for_day)
+        max_count = max(counts.values())
+        candidates = [val for val, cnt in counts.items() if cnt == max_count]
+        result = max(candidates)
+        daily_weather_codes.append(result)
+
+    log.debug("Calculated daily weather codes: %s", daily_weather_codes)
 
     # Daily timeline
     daily_time = data.get("daily", {}).get("time", [])
@@ -157,7 +175,7 @@ def remap_data(generator, data: dict, type) -> dict:
         dt = build_value_helper(t, "unix_epoch", "group_time")
         daily_keys = {}
         if type == "advanced" or type == "simple":  # common for both
-            daily_keys["weather_code"] = data["daily"].get("weather_code", [None])[i]
+            daily_keys["weather_code"] = daily_weather_codes[i]
             daily_keys["temperature"] = {
                 "min": build_value_helper(
                     data["daily"].get("temperature_2m_min", [None])[i],
