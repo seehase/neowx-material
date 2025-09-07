@@ -9,19 +9,32 @@
 [CheetahGenerator]
     search_list_extensions = user.openmeteo.Forecast
 
-[Forecast]
-    enable_forecast = yes/no
-    forecast_days=1/3
-    timezone= auto / or any timezone from list of database time zones
-
-    # Values will show data from daily variables. Use simple or advanced version, not both
-    # advanced = weather_code, uv_index_max, temperature_2m_min, temperature_2m_max, precipitation_sum, precipitation_probability_max, wind_speed_10m_max, wind_gusts_10m_max, wind_direction_10m_dominant
-    # simple = weather_code, temperature_2m_min, temperature_2m_max # will show only icon representation of weather for today and next day
+# Forecast behavior
+# -------------------------------------------------------------------------
+# Here you can change forecast behavior
+#
+[[Forecast]]
+    # Forecast is provided by website https://open-meteo.com, all data available are under Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/)
+    # By enabling forecast you must agree to Terms of use for Non-Commercial Use only. You can read full condition on website https://open-meteo.com/en/terms
+    # By non-commercial is considered website without any fees, subscriptions, comertial purpose or advetisement etc. Please read more in Open Meteo terms of use.
+    
+    # IMPORTANT, if you want to enable forecast
+    # 1) To make it work you must add "user.openmeteo.Forecast" in [CheetahGenerator] search_list_extensions section bellow
+    # 2) You need to install python requests library using:
+    #    in case you installed weewx with pip: "python3 -m pip install requests"
+    #    in case you installed weewx with apt: "apt install python3-requests"
+    
+    # Enable forecast yes / no
+    enable_forecast = no 
+    # Number of forecast days 1 / 3
+    forecast_days = 3
+    # Timezone from list of database time zones, or auto will determine timezone from station coordinates
+    timezone = auto
+    # Type of forecast displayed on page simple / advanced
     type = simple
+    # position on page where to show forecast top / middle / bottom
+    position = top
 """
-
-# Time format must be set to timeformat=unixtime fixed, it is required by chart library
-# for daily unit it can be converted to daynames based on server timezone
 
 import time
 import requests
@@ -32,7 +45,7 @@ from weewx.units import ValueHelper, ValueTuple
 
 log = logging.getLogger(__name__)
 
-# global cache variable
+# global cache variable, we will call api only once in hour
 _weather_cache = {
     "timestamp": None,
     "data": None,
@@ -62,7 +75,7 @@ class Forecast(SearchList):
 
         type = "simple"
         if self.forecast_dict.get("type", "simple") == "advanced":
-            type = "advanced" # just to filter only allowed values advanced / simple
+            type = "advanced" # just to filter only allowed values simple / advanced
 
         params = {
             "latitude": self.latitude,
@@ -127,6 +140,7 @@ def fetch_forecast(base_url, params):
 
 def remap_data(generator, data: dict, type) -> dict:
 
+    # Using ValueHelper will enable easy converting to correct units set by user in weewx.conf
     def build_value_helper(value, unit, group):
         value_tuple = ValueTuple(value, unit, group)
         vh = ValueHelper(
