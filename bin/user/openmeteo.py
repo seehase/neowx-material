@@ -135,11 +135,13 @@ def fetch_forecast(base_url, params):
         _weather_cache["data"] = data
         return data
     except requests.exceptions.HTTPError as e:
-        log.error("HTTP error occurred while fetching data:", e)
+        log.info("HTTP error occurred while fetching forecast data")
+        log.debug(e)
     except requests.exceptions.RequestException as e:
-        log.error("A request error occurred while fetching data:", e)
+        log.info("A request error occurred while fetching forecast data")
+        log.debug(e)
     except:
-        log.error("Unknown exception occured")
+        log.info("Unknown exception occured while fetching forecast data")
     return None
 
 
