@@ -26,8 +26,6 @@
     
     # Enable forecast yes / no
     enable_forecast = no 
-    # Number of forecast days 1 / 3
-    forecast_days = 3
     # Timezone from list of database time zones, or auto will determine timezone from station coordinates
     timezone = auto
     # Type of forecast displayed on page simple / advanced
@@ -71,10 +69,6 @@ class Forecast(SearchList):
             log.debug("Forecast is disabled")
             return None
 
-        forecast_days = 1
-        if int(self.forecast_dict.get("forecast_days", 3)) == 3:
-            forecast_days = 3 # just to filter only allowed values 1 / 3
-
         type = "simple"
         if self.forecast_dict.get("type", "simple") == "advanced":
             type = "advanced" # just to filter only allowed values simple / advanced
@@ -82,7 +76,7 @@ class Forecast(SearchList):
         params = {
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "forecast_days": forecast_days,
+            "forecast_days": 3,
             "timezone": self.forecast_dict.get("timezone", "auto"),
             "temperature_unit": "celsius",
             "wind_speed_unit": "kmh",

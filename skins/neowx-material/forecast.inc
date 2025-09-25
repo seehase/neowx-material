@@ -37,7 +37,7 @@
 #if $Extras.Forecast.enable_forecast == "yes" and $forecast is not None
   <div class="col-12 mb-4">
     <div class="card">
-      <div class="card-body text-center">
+      <div class="card-body text-center pb-1">
         <h3 class="h5-responsive $Extras.color-text">
             $pgettext("Forecast","daily")
         </h3>
@@ -100,10 +100,9 @@
           #end for
           </div>
         #end if
-      </div>
-      <div class="card-footer text-muted font-small text-center">
-        Weather data by&nbsp;<a href="https://open-meteo.com/">Open-Meteo.com</a>&nbsp;(<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>)
-        <div>Data may be modified (e.g., unit conversion, aggregation).</div>
+        <div class="text-muted font-extra-small text-right">
+        	Forecast by&nbsp;<a class="text-muted" href="https://open-meteo.com/">Open-Meteo.com</a>
+    	  </div>
       </div>
     </div>
   </div>

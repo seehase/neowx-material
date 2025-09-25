@@ -110,6 +110,15 @@
 
     ## Copyright
     <div class="footer-copyright text-center py-3">
+        #if $Extras.Forecast.enable_forecast == "yes"
+		<div class="text-center">
+		  <div>
+		    Weather forecast data provided by&nbsp;<a href="https://open-meteo.com/">Open-Meteo.com</a> under (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>) license. Data may be modified (e.g., unit conversion, aggregation).
+		  </div>
+		</div>
+		<hr />
+		#end if
+
         &copy; $current.dateTime.format("%Y") $Extras.Footer.name
 
         #if $Extras.Footer.support_weewx == "yes"

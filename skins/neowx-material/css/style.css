@@ -2147,6 +2147,10 @@ a.text-light:hover, a.text-light:focus {
   font-size: 0.85rem;
 }
 
+.font-extra-small {
+  font-size: 0.6rem;
+}
+
 strong {
   font-weight: 500;
 }
@@ -5145,11 +5149,6 @@ table.table a.btn.btn-black {
   background-color: #e0e0e0 !important;
 }
 
-.md-form {
-  position: relative;
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-}
 .md-form input:not([type]),
 .md-form input[type=text]:not(.browser-default),
 .md-form input[type=password]:not(.browser-default),
@@ -5630,6 +5629,11 @@ table.table a.btn.btn-black {
 .md-form .prefix ~ .form-text {
   margin-left: 2.6rem;
 }
+.md-form {
+  position: relative;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
 .md-form label {
   position: absolute;
   top: 0;
@@ -6081,6 +6085,21 @@ table.table a.btn.btn-black {
 .md-form.md-outline .character-counter {
   margin-top: -0.5rem;
 }
+.md-form.md-bg input[type=text]:focus:not([readonly]),
+.md-form.md-bg input[type=password]:focus:not([readonly]),
+.md-form.md-bg input[type=email]:focus:not([readonly]),
+.md-form.md-bg input[type=url]:focus:not([readonly]),
+.md-form.md-bg input[type=time]:focus:not([readonly]),
+.md-form.md-bg input[type=date]:focus:not([readonly]),
+.md-form.md-bg input[type=datetime-local]:focus:not([readonly]),
+.md-form.md-bg input[type=tel]:focus:not([readonly]),
+.md-form.md-bg input[type=number]:focus:not([readonly]),
+.md-form.md-bg input[type=search-md]:focus:not([readonly]),
+.md-form.md-bg input[type=search]:focus:not([readonly]),
+.md-form.md-bg textarea.md-textarea:focus:not([readonly]) {
+  border-bottom: none;
+  box-shadow: none;
+}
 .md-form.md-bg input[type=text],
 .md-form.md-bg input[type=password],
 .md-form.md-bg input[type=email],
@@ -6103,21 +6122,6 @@ table.table a.btn.btn-black {
   border-top-left-radius: 0.3rem;
   border-top-right-radius: 0.3rem;
   transition: background-size 0.3s cubic-bezier(0.64, 0.09, 0.08, 1);
-}
-.md-form.md-bg input[type=text]:focus:not([readonly]),
-.md-form.md-bg input[type=password]:focus:not([readonly]),
-.md-form.md-bg input[type=email]:focus:not([readonly]),
-.md-form.md-bg input[type=url]:focus:not([readonly]),
-.md-form.md-bg input[type=time]:focus:not([readonly]),
-.md-form.md-bg input[type=date]:focus:not([readonly]),
-.md-form.md-bg input[type=datetime-local]:focus:not([readonly]),
-.md-form.md-bg input[type=tel]:focus:not([readonly]),
-.md-form.md-bg input[type=number]:focus:not([readonly]),
-.md-form.md-bg input[type=search-md]:focus:not([readonly]),
-.md-form.md-bg input[type=search]:focus:not([readonly]),
-.md-form.md-bg textarea.md-textarea:focus:not([readonly]) {
-  border-bottom: none;
-  box-shadow: none;
 }
 .md-form.md-bg input[type=text]:focus,
 .md-form.md-bg input[type=password]:focus,
