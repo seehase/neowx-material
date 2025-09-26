@@ -15,17 +15,17 @@
 #
 [[Forecast]]
     # Forecast is provided by website https://open-meteo.com, all data available are under Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/)
-    # By enabling forecast you must agree to Terms of use for Non-Commercial Use only. You can read full condition on website https://open-meteo.com/en/terms
-    # By non-commercial is considered website without any fees, subscriptions, comertial purpose or advetisement etc. Please read more in Open Meteo terms of use.
+    # By enabling forecast you must agree to Terms of use for Non-Commercial Use only. You can read full condition on website https://open-meteo.com/en/terms Please read more in Open Meteo terms of use.
     
-    # IMPORTANT, if you want to enable forecast
-    # 1) To make it work you must add "user.openmeteo.Forecast" in [CheetahGenerator] search_list_extensions section bellow
-    # 2) You need to install python requests library using:
-    #    in case you installed weewx with pip: "python3 -m pip install requests"
-    #    in case you installed weewx with apt: "apt install python3-requests"
-    
+    # IMPORTANT, READ BEFORE ENABLING FORECAST:
+    # 1) To make it work you need to add "user.openmeteo.Forecast" in [CheetahGenerator] search_list_extensions section in this file
+    # 2) You need to have installed python requests library, if it is missing in your system you can install using this commands:
+    #    in case you installed weewx using pip: "python3 -m pip install requests"
+    #    in case you installed weewx using apt: "apt install python3-requests"
+    # After installing skin you need to restart weewx service to make it work
+
     # Enable forecast yes / no
-    enable_forecast = no 
+    enable = no 
     # Timezone from list of database time zones, or auto will determine timezone from station coordinates
     timezone = auto
     # Type of forecast displayed on page simple / advanced
@@ -63,15 +63,15 @@ class Forecast(SearchList):
 
     def forecast(self):
 
-        enabled = self.forecast_dict.get("enable_forecast", "no")
-
-        if enabled != "yes":
+        enabled = self.forecast_dict.get("enable", "no").lower()
+        if enabled != "yes": 
             log.debug("Forecast is disabled")
             return None
 
-        type = "simple"
-        if self.forecast_dict.get("type", "simple") == "advanced":
-            type = "advanced" # just to filter only allowed values simple / advanced
+        f_type = self.forecast_dict.get("type", "simple").lower()
+        if f_type != "advanced" and f_type != "simple": # just to filter only allowed values simple / advanced
+            log.info("Parameter type with value '%s' is not valid, simple forecast will be used as fallback.", f_type)
+            f_type = "simple" 
 
         params = {
             "latitude": self.latitude,
@@ -86,11 +86,11 @@ class Forecast(SearchList):
 
         hourly = []
         daily = []
-        if type == "advanced" or type == "simple":  # common for both
+        if f_type == "advanced" or f_type == "simple": # common for both
             hourly.append("weather_code")
             daily.append("temperature_2m_min")
             daily.append("temperature_2m_max")
-        if type == "advanced":  # additional field for advanced view
+        if f_type == "advanced":  # additional field for advanced view
             daily.append("uv_index_max")
             daily.append("precipitation_sum")
             daily.append("precipitation_probability_max")
@@ -98,16 +98,14 @@ class Forecast(SearchList):
             daily.append("wind_gusts_10m_max")
             daily.append("wind_direction_10m_dominant")
 
-        if len(hourly) > 0:
-            params["hourly"] = ",".join(hourly)
-        if len(daily) > 0:
-            params["daily"] = ",".join(daily)
+        params["hourly"] = ",".join(hourly)
+        params["daily"] = ",".join(daily)
 
         log.debug("params: %s", params)
 
         raw_data = fetch_forecast(self.base_url, params)
         if raw_data is not None:
-            return remap_data(self.generator, raw_data, type)
+            return remap_data(self.generator, raw_data, f_type)
 
         return None
 
@@ -129,17 +127,20 @@ def fetch_forecast(base_url, params):
         _weather_cache["data"] = data
         return data
     except requests.exceptions.HTTPError as e:
-        log.info("HTTP error occurred while fetching forecast data")
+        log.info("HTTP error occurred while fetching forecast data from api.open-meteo.com. Enable debug logs in weewx.conf for more details.")
+        log.debug(e)
+    except requests.exceptions.ConnectionError as e:
+        log.info("Connection error occurred while fetching forecast data from api.open-meteo.com. Enable debug logs in weewx.conf for more details.")
+        log.debug(e)
+    except requests.exceptions.Timeout as e:
+        log.info("Fetching forecast data from api.open-meteo.com end up with timeout exception. Enable debug logs in weewx.conf for more details.")
         log.debug(e)
     except requests.exceptions.RequestException as e:
-        log.info("A request error occurred while fetching forecast data")
+        log.info("A request exception occurred while fetching forecast data from api.open-meteo.com. Enable debug in weewx.conf logs for more details.")
         log.debug(e)
-    except:
-        log.info("Unknown exception occured while fetching forecast data")
     return None
 
-
-def remap_data(generator, data: dict, type) -> dict:
+def remap_data(generator, data: dict, f_type):
     # Using ValueHelper will enable easy converting to correct units set by user in weewx.conf
     def build_value_helper(value, unit, group):
         value_tuple = ValueTuple(value, unit, group)
@@ -148,83 +149,94 @@ def remap_data(generator, data: dict, type) -> dict:
         )
         return vh
     
-    # Calculate daily weather_code
-    daily_weather_codes = []
-    hourly_weather_codes = data["hourly"].get("weather_code", [])
-    day_count = math.floor(len(hourly_weather_codes) / 24) # calculate number of days of data
-    for n in range(day_count):
-        hourly_weather_codes_for_day = hourly_weather_codes[n*24:(n+1)*24]
-        counts = Counter(hourly_weather_codes_for_day)
-        max_count = max(counts.values())
-        candidates = [val for val, cnt in counts.items() if cnt == max_count]
-        result = max(candidates)
-        daily_weather_codes.append(result)
+    try:
+        # Calculate daily weather_codes per day by choosing code with highest occurence
+        daily_weather_codes = []
+        hourly_weather_codes = data.get("hourly", {}).get("weather_code", [])
+        if len(hourly_weather_codes) != 72:
+            log.info("Forecast data doesn't contain correct number of records for weather code. Skipping forecast and cleaning cached data.")
+            _weather_cache["timestamp"] = None
+            _weather_cache["data"] = None
+            return None
+        for n in range(3):
+            hourly_weather_codes_for_day = hourly_weather_codes[n*24:(n+1)*24]
+            counts = Counter(hourly_weather_codes_for_day)
+            max_count = max(counts.values())
+            candidates = [val for val, cnt in counts.items() if cnt == max_count]
+            result = max(candidates)
+            daily_weather_codes.append(result)
 
-    log.debug("Calculated daily weather codes: %s", daily_weather_codes)
+        log.debug("Calculated daily weather codes: %s", daily_weather_codes)
 
-    # Daily timeline
-    daily_time = data.get("daily", {}).get("time", [])
+        # Daily timeline
+        daily_time = data.get("daily", {}).get("time", [])
 
-    # Remap daily values
-    daily_list = []
-    for i, t in enumerate(daily_time):
-        dt = build_value_helper(t, "unix_epoch", "group_time")
-        daily_keys = {}
-        if type == "advanced" or type == "simple":  # common for both
-            daily_keys["weather_code"] = daily_weather_codes[i]
-            daily_keys["temperature"] = {
-                "min": build_value_helper(
-                    data["daily"].get("temperature_2m_min", [None])[i],
-                    "degree_C",
-                    "group_temperature",
-                ),
-                "max": build_value_helper(
-                    data["daily"].get("temperature_2m_max", [None])[i],
-                    "degree_C",
-                    "group_temperature",
-                ),
-            }
-        if type == "advanced":  # additional field for advanced view
-            daily_keys["uv_index_max"] = build_value_helper(
-                data["daily"].get("uv_index_max", [None])[i],
-                "uv_index",
-                "group_uv",
-            )
-            daily_keys["precipitation"] = {
-                "sum": build_value_helper(
-                    data["daily"].get("precipitation_sum", [None])[i],
-                    "mm",
-                    "group_rain",
-                ),
-                "probability": build_value_helper(
-                    data["daily"].get("precipitation_probability_max", [None])[i],
-                    "percent",
-                    "group_percent",
-                ),
-            }
-            daily_keys["wind"] = {
-                "speed": build_value_helper(
-                    data["daily"].get("wind_speed_10m_max", [None])[i],
-                    "km_per_hour",
-                    "group_speed",
-                ),
-                "direction": build_value_helper(
-                    data["daily"].get("wind_direction_10m_dominant", [None])[i],
-                    "degree_compass",
-                    "group_direction",
-                ),
-                "gusts": build_value_helper(
-                    data["daily"].get("wind_gusts_10m_max", [None])[i],
-                    "km_per_hour",
-                    "group_speed",
-                ),
-            }
+        # Remap daily values
+        daily_list = []
+        for i, t in enumerate(daily_time):
+            dt = build_value_helper(t, "unix_epoch", "group_time")
+            daily_keys = {}
+            if f_type == "advanced" or f_type == "simple":  # common for both
+                daily_keys["weather_code"] = daily_weather_codes[i]
+                daily_keys["temperature"] = {
+                    "min": build_value_helper(
+                        data["daily"].get("temperature_2m_min", [None])[i],
+                        "degree_C",
+                        "group_temperature",
+                    ),
+                    "max": build_value_helper(
+                        data["daily"].get("temperature_2m_max", [None])[i],
+                        "degree_C",
+                        "group_temperature",
+                    ),
+                }
+            if f_type == "advanced":  # additional fields for advanced view
+                daily_keys["uv_index_max"] = build_value_helper(
+                    data["daily"].get("uv_index_max", [None])[i],
+                    "uv_index",
+                    "group_uv",
+                )
+                daily_keys["precipitation"] = {
+                    "sum": build_value_helper(
+                        data["daily"].get("precipitation_sum", [None])[i],
+                        "mm",
+                        "group_rain",
+                    ),
+                    "probability": build_value_helper(
+                        data["daily"].get("precipitation_probability_max", [None])[i],
+                        "percent",
+                        "group_percent",
+                    ),
+                }
+                daily_keys["wind"] = {
+                    "speed": build_value_helper(
+                        data["daily"].get("wind_speed_10m_max", [None])[i],
+                        "km_per_hour",
+                        "group_speed",
+                    ),
+                    "direction": build_value_helper(
+                        data["daily"].get("wind_direction_10m_dominant", [None])[i],
+                        "degree_compass",
+                        "group_direction",
+                    ),
+                    "gusts": build_value_helper(
+                        data["daily"].get("wind_gusts_10m_max", [None])[i],
+                        "km_per_hour",
+                        "group_speed",
+                    ),
+                }
 
-        daily_list.append([dt, daily_keys])
+            daily_list.append([dt, daily_keys])
 
-    remapped = {
-        "daily": daily_list,
-    }
-    log.debug("Remapped data: %s", remapped)
+        remapped = {
+            "daily": daily_list,
+        }
+        log.debug("Remapped data: %s", remapped)
 
-    return remapped
+        return remapped
+    except BaseException as e:
+        _weather_cache["timestamp"] = None
+        _weather_cache["data"] = None
+        log.error("Error occured while processing forecast data, cleaning cached data. If this error occure again, please see detailed log below.")
+        log.error(e)
+    return None

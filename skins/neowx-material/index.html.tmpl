@@ -195,8 +195,8 @@
   <div class="container-fluid d-flex-xxl">
 
     <div class="row my-4 temprow align-content-start">
-      #if $Extras.Forecast.enable_forecast == "yes"
-        #if $Extras.Forecast.position == "top"
+      #if $Extras.Forecast.get("enable", "no").lower() == "yes"
+        #if $Extras.Forecast.get("position", "top").lower() == "top"
           #include "forecast.inc"
         #end if
       #end if
@@ -212,8 +212,8 @@
 
       #end for
 
-      #if $Extras.Forecast.enable_forecast == "yes"
-        #if $Extras.Forecast.position == "middle"
+      #if $Extras.Forecast.get("enable", "no").lower() == "yes"
+        #if $Extras.Forecast.get("position", "top").lower() == "middle"
           #include "forecast.inc"
         #end if
       #end if
@@ -234,8 +234,8 @@
 
       #end for
 
-      #if $Extras.Forecast.enable_forecast == "yes"
-        #if $Extras.Forecast.position == "bottom"
+      #if $Extras.Forecast.get("enable", "no").lower() == "yes"
+        #if $Extras.Forecast.get("position", "top").lower() == "bottom"
           #include "forecast.inc"
         #end if
       #end if

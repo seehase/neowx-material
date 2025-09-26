@@ -34,14 +34,14 @@
     99: "wi-day-thunderstorm"
 }
 
-#if $Extras.Forecast.enable_forecast == "yes" and $forecast is not None
+#if $Extras.Forecast.get("enable", "no").lower() == "yes" and $forecast is not None
   <div class="col-12 mb-4">
     <div class="card">
       <div class="card-body text-center pb-1">
         <h3 class="h5-responsive $Extras.color-text">
             $pgettext("Forecast","daily")
         </h3>
-        #if $Extras.Forecast.type == "simple" 
+        #if $Extras.Forecast.get("type", "simple").lower() == "simple"
           <div class="d-flex">
           #for $x in $forecast.daily
             <div class="flex-fill">
@@ -56,7 +56,7 @@
           #end for
           </div>
         #end if
-        #if $Extras.Forecast.type == "advanced" 
+        #if $Extras.Forecast.get("type", "simple").lower() == "advanced"
           <div class="d-lg-flex">
           #set $count = 0
           #set $total = len($forecast.daily)
