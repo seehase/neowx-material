@@ -37,7 +37,6 @@
 import time
 import requests
 import logging
-import math
 from collections import Counter
 
 from weewx.cheetahgenerator import SearchList
@@ -90,10 +89,10 @@ class Forecast(SearchList):
             hourly.append("weather_code")
             daily.append("temperature_2m_min")
             daily.append("temperature_2m_max")
-        if f_type == "advanced":  # additional field for advanced view
-            daily.append("uv_index_max")
             daily.append("precipitation_sum")
             daily.append("precipitation_probability_max")
+        if f_type == "advanced":  # additional field for advanced view
+            daily.append("uv_index_max")
             daily.append("wind_speed_10m_max")
             daily.append("wind_gusts_10m_max")
             daily.append("wind_direction_10m_dominant")
@@ -190,12 +189,6 @@ def remap_data(generator, data: dict, f_type):
                         "group_temperature",
                     ),
                 }
-            if f_type == "advanced":  # additional fields for advanced view
-                daily_keys["uv_index_max"] = build_value_helper(
-                    data["daily"].get("uv_index_max", [None])[i],
-                    "uv_index",
-                    "group_uv",
-                )
                 daily_keys["precipitation"] = {
                     "sum": build_value_helper(
                         data["daily"].get("precipitation_sum", [None])[i],
@@ -208,6 +201,12 @@ def remap_data(generator, data: dict, f_type):
                         "group_percent",
                     ),
                 }
+            if f_type == "advanced":  # additional fields for advanced view
+                daily_keys["uv_index_max"] = build_value_helper(
+                    data["daily"].get("uv_index_max", [None])[i],
+                    "uv_index",
+                    "group_uv",
+                )
                 daily_keys["wind"] = {
                     "speed": build_value_helper(
                         data["daily"].get("wind_speed_10m_max", [None])[i],

@@ -52,6 +52,9 @@
               <div class="font-small" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")">
                 $x[1].temperature.min / $x[1].temperature.max
               </div>
+              <div class="font-small" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))">
+                $x[1].precipitation.sum ($x[1].precipitation.probability)
+              </div>
             </div>
           #end for
           </div>
