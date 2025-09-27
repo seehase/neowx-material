@@ -2147,6 +2147,10 @@ a.text-light:hover, a.text-light:focus {
   font-size: 0.85rem;
 }
 
+.font-extra-small {
+  font-size: 0.6rem;
+}
+
 strong {
   font-weight: 500;
 }
