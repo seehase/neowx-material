@@ -42,6 +42,8 @@
 """
 
 import time
+import json
+import hashlib
 import requests
 import logging
 from collections import Counter
@@ -49,11 +51,13 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
+VERSION = "1.0.0"
+
 log = logging.getLogger(__name__)
 
 # global cache variable, we will call api only once in hour
 _weather_cache = {
-    "timestamp": None,
+    "params_hash": None,
     "data": None,
 }
 
@@ -61,6 +65,7 @@ class Forecast(SearchList):
 
     def __init__(self, generator):
         SearchList.__init__(self, generator)
+        log.info("version: %s" % VERSION)
         self.latitude = self.generator.stn_info.latitude_f
         self.longitude = self.generator.stn_info.longitude_f
         self.base_url = "https://api.open-meteo.com/v1/forecast"
@@ -109,29 +114,34 @@ class Forecast(SearchList):
 
         log.debug("params: %s", params)
 
-        raw_data = fetch_forecast(self.base_url, params)
-        if raw_data is not None:
-            return remap_data(self.generator, raw_data, f_type)
+        return fetch_forecast(self.generator, self.base_url, params, f_type)
+    
+def hash_params(params, f_type):
+    now = int(time.time())
+    current_hour = str(now - (now % 3600)) # round to full hour
+    params_strigified = json.dumps(params, sort_keys=True) + f_type + current_hour # stringify params and add current hour and type to make sure we will call api only once in hour or if params are changed
+    return hashlib.md5(params_strigified.encode()).hexdigest() # create hash from params
 
-        return None
-
-
-def fetch_forecast(base_url, params):
+def fetch_forecast(generator, base_url, params, f_type):
     global _weather_cache
     try:
-        now = int(time.time())
-        current_hour = now - (now % 3600)  # round to full hour
-        if _weather_cache["timestamp"] == current_hour:
-            log.debug("Using cached data: %s", _weather_cache["data"])
+        log.debug("Current cache state: %s", _weather_cache)
+        params_hash = hash_params(params, f_type)
+        if _weather_cache["params_hash"] == params_hash and _weather_cache["data"] is not None:
+            log.debug("Using cached data.")
             return _weather_cache["data"]
+        else:
+            _weather_cache["params_hash"] = None
+            _weather_cache["data"] = None
         response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
         log.debug("Fetched raw data: %s", data)
-        # save to cache
-        _weather_cache["timestamp"] = current_hour
-        _weather_cache["data"] = data
-        return data
+        remaped_data = remap_data(generator, data, f_type)
+        # save to cache and return
+        _weather_cache["params_hash"] = params_hash
+        _weather_cache["data"] = remaped_data
+        return _weather_cache["data"]
     except requests.exceptions.HTTPError as e:
         log.info("HTTP error occurred while fetching forecast data from api.open-meteo.com. Enable debug logs in weewx.conf for more details.")
         log.debug(e)
@@ -161,7 +171,7 @@ def remap_data(generator, data: dict, f_type):
         hourly_weather_codes = data.get("hourly", {}).get("weather_code", [])
         if len(hourly_weather_codes) != 72:
             log.info("Forecast data doesn't contain correct number of records for weather code. Skipping forecast and cleaning cached data.")
-            _weather_cache["timestamp"] = None
+            _weather_cache["params_hash"] = None
             _weather_cache["data"] = None
             return None
         for n in range(3):
@@ -241,7 +251,7 @@ def remap_data(generator, data: dict, f_type):
 
         return remapped
     except BaseException as e:
-        _weather_cache["timestamp"] = None
+        _weather_cache["params_hash"] = None
         _weather_cache["data"] = None
         log.error("Error occured while processing forecast data, cleaning cached data. If this error occure again, please see detailed log below.")
         log.error(e)
