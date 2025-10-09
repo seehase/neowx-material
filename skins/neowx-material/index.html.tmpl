@@ -201,11 +201,14 @@
         #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
           $valuesCard('ET')
         #end if
+      #else if $x == "forecast"
+        #include "forecast.inc"
       #else
         $valuesCard($x)
       #end if
 
       #end for
+
     </div>
 
     <hr class="my-4 rowdivider">
@@ -222,6 +225,7 @@
       #end if
 
       #end for
+
     </div>
 
   </div>
