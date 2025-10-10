@@ -1,0 +1,140 @@
+#encoding UTF-8
+## +-------------------------------------------------------------+
+## |    forecast.inc                       Forecast templates    |
+## +-------------------------------------------------------------+
+
+#set $weatherMap = {
+    0: "wi-day-sunny",
+    1: "wi-day-sunny-overcast",
+    2: "wi-day-cloudy",
+    3: "wi-cloudy",
+    45: "wi-day-fog",
+    48: "wi-day-fog",
+    51: "wi-day-sprinkle",
+    53: "wi-day-sprinkle",
+    55: "wi-day-sprinkle",
+    56: "wi-day-sprinkle",
+    57: "wi-day-sprinkle",
+    61: "wi-day-showers",
+    63: "wi-day-showers",
+    65: "wi-day-rain",
+    66: "wi-day-showers",
+    67: "wi-day-rain",
+    71: "wi-day-snow",
+    73: "wi-day-snow",
+    75: "wi-day-snow",
+    77: "wi-day-snow",
+    80: "wi-day-showers",
+    81: "wi-day-rain",
+    82: "wi-day-rain",
+    85: "wi-day-snow",
+    86: "wi-day-snow",
+    95: "wi-day-storm-showers",
+    96: "wi-day-thunderstorm",
+    99: "wi-day-thunderstorm"
+}
+
+#set $vars = $Extras.Forecast.variables
+#if not isinstance($vars, list)
+    #set $vars = [$vars]
+#end if
+
+#if $forecast is not None
+  #for $x in $forecast.daily
+    <div class="col-12 col-md-6 col-xl-4 mb-4">
+      <div class="card">
+        <div class="card-body text-center pb-1">
+          <h3 class="h5-responsive $Extras.color-text">
+            $pgettext("Forecast","daily") - $x[0].format("%A")
+          </h3>
+          <div class="row flex-fill font-small">
+            #if $Extras.Forecast.show_description == "yes"
+              <div class="col-12 text-center pb-2">$pgettext("Forecast",str($x[1].weather_code))</div> 
+            #end if
+            #if $Extras.Forecast.show_icon == "yes"
+              #if $vars and len($vars) > 0
+                <div class="col-5">
+                  <i class="display-3 py-4 wi $weatherMap.get($x[1].weather_code, "wi-na")" title="$pgettext("Forecast",str($x[1].weather_code))" data-toggle="tooltip" data-html="true"></i>
+                </div>
+                <div class="col-7 text-nowrap align-content-center">
+                  <div class="row">
+                    #for $variable in $vars
+                      #if $variable == "temperature"
+                        <div class="col-2 p-0">
+                          <i class="wi wi-thermometer $Extras.color-text" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")" data-toggle="tooltip" data-html="true"></i>
+                        </div>
+                        <div class="col-10 text-left">
+                          $x[1].temperature.min.format("%.0f") / $x[1].temperature.max.format("%.0f")
+                        </div>
+                      #end if
+                      #if $variable == "precipitation"
+                        <div class="col-2 p-0">
+                          <i class="wi wi-umbrella $Extras.color-text" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
+                        </div>
+                        <div class="col-10 text-left">
+                          $x[1].precipitation.sum ($x[1].precipitation.probability)
+                        </div>
+                      #end if
+                      #if $variable == "uv"
+                        <div class="col-2 p-0">
+                          <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
+                        </div>
+                        <div class="col-10 text-left">
+                          $x[1].uv_index_max.format("%.0f")
+                        </div>
+                      #end if
+                      #if $variable == "wind"
+                        <div class="col-2 p-0">
+                          <i class="wi wi-strong-wind $Extras.color-text" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
+                        </div>
+                        <div class="col-10 text-left">
+                          $x[1].wind.speed.format("%.0f") <i class="wi wi-wind from-$x[1].wind.direction.formatted-deg mr-2" title="$x[1].wind.direction.formatted°" data-toggle="tooltip" data-html="true"></i> ($x[1].wind.gusts.format("%.0f"))
+                        </div>
+                      #end if
+                    #end for
+                  </div>
+                </div>
+              #else
+                <div class="col-12">
+                  <i class="display-3 py-4 wi $weatherMap.get($x[1].weather_code, "wi-na")" title="$pgettext("Forecast",str($x[1].weather_code))" data-toggle="tooltip" data-html="true"></i>
+                </div>
+              #end if
+            #else
+              #for $variable in $vars
+                <div class="col-6 text-left text-nowrap">
+                  #if $variable == "temperature"
+                    <div class="text-center d-inline-block">
+                      <i style="width: 20px;" class="wi wi-thermometer $Extras.color-text" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")" data-toggle="tooltip" data-html="true"></i>
+                      <span>$x[1].temperature.min.format("%.0f") / $x[1].temperature.max.format("%.0f")</span>
+                    </div>
+                  #end if
+                  #if $variable == "precipitation"
+                    <div class="text-center d-inline-block">
+                      <i style="width: 20px;" class="wi wi-umbrella $Extras.color-text" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
+                      <span>$x[1].precipitation.sum ($x[1].precipitation.probability)</span>
+                    </div>
+                  #end if
+                  #if $variable == "uv"
+                    <div class="text-center d-inline-block">
+                      <i style="width: 20px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
+                      <span>$x[1].uv_index_max.format("%.0f")</span>
+                    </div>
+                  #end if
+                  #if $variable == "wind"
+                    <div class="text-center d-inline-block">
+                      <i style="width: 20px;" class="wi wi-strong-wind $Extras.color-text" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
+                      <span>$x[1].wind.speed.format("%.0f") <i class="wi wi-wind from-$x[1].wind.direction.formatted-deg mr-2" title="$x[1].wind.direction.formatted°" data-toggle="tooltip" data-html="true"></i> ($x[1].wind.gusts.format("%.0f"))</span>
+                    </div>
+                  #end if
+                </div>
+              #end for
+            #end if
+          </div>
+          <div class="text-muted font-extra-small text-right">
+            Forecast by&nbsp;<a class="text-muted" href="https://open-meteo.com/">Open-Meteo.com</a>
+      	  </div>
+        </div>
+      </div>
+    </div>
+  #end for
+#end if
