@@ -40,12 +40,21 @@
 #end if
 
 #if $forecast is not None
-  #for $x in $forecast.daily
+  #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[0] != "forecast"
+  <hr class="col-12 m-0 mb-4 p-0" />
+  #end if 
+  #for $i, $x in $enumerate($forecast.daily)
     <div class="col-12 col-md-6 col-xl-4 mb-4">
       <div class="card">
         <div class="card-body text-center pb-1">
           <h3 class="h5-responsive $Extras.color-text">
-            $pgettext("Forecast","daily") - $x[0].format("%A")
+            #if $Extras.Forecast.show_today_tomorrow == "yes" and $i == 0
+              $pgettext("Forecast","forecast") - $pgettext("Forecast","today")
+            #else if $Extras.Forecast.show_today_tomorrow == "yes" and $i == 1
+              $pgettext("Forecast","forecast") - $pgettext("Forecast","tomorrow")
+            #else
+              $pgettext("Forecast","forecast") - $x[0].format("%A")
+            #end if
           </h3>
           <div class="row flex-fill font-small">
             #if $Extras.Forecast.show_description == "yes"
@@ -137,4 +146,7 @@
       </div>
     </div>
   #end for
+  #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[-1] != "forecast"
+  <hr class="col-12 m-0 mb-4 p-0" />
+  #end if 
 #end if
