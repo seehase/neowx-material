@@ -22,8 +22,8 @@ fi
 
 # Create backup of original skin.conf
 BACKUP_FILE="${SKIN_CONF}.backup.$(date +%Y%m%d_%H%M%S)"
-cp "$SKIN_CONF" "$BACKUP_FILE"
-echo "Created backup: $BACKUP_FILE"
+# cp "$SKIN_CONF" "$BACKUP_FILE"
+# echo "Created backup: $BACKUP_FILE"
 
 echo "Applying patches to skin.conf..."
 
@@ -117,7 +117,7 @@ rm "$PATCHES_TEMP"
 
 echo ""
 echo "Patching complete!"
-echo "Original file backed up to: $BACKUP_FILE"
+#echo "Original file backed up to: $BACKUP_FILE"
 echo ""
 echo "Summary of applied changes:"
 

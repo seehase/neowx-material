@@ -24,14 +24,20 @@
 
     # Timezone from list of database time zones, or auto will determine timezone from station coordinates
     timezone = auto
-    # Forecast variables to display inside forecast cards, supported variables are: temperature, uv, precipitation, wind
-    variables = temperature, uv, precipitation, wind
+
+    # Forecast variables to display inside forecast cards, supported variables are:
+    # temperature, evapotranspiration, precipitation, wind, uv, sun, uv-sun
+    variables = temperature, evapotranspiration, precipitation, wind, uv, sun, uv-sun
+
     # Display weather icon yes/no
     show_icon = yes
+
     # Display forecast description yes/no
     show_description = yes
+
     # Number of days to show in forecast, min 1 and max 7
     days = 3
+
     # Model to use, by default "best_match" is used. For more options see https://open-meteo.com/en/docs only one model can be used at a time.
     model = best_match
 """
@@ -47,7 +53,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 log = logging.getLogger(__name__)
 
@@ -60,7 +66,7 @@ _weather_cache = {
 retries = 3
 delay = 10  # seconds
 timeout = 15  # seconds
-supported_variables = ["temperature", "precipitation", "wind", "uv"] # supported variables
+supported_variables = ["temperature", "precipitation", "wind","evapotranspiration", "uv", "sun", "uv-sun"] # supported variables
 
 class Forecast(SearchList):
 
@@ -120,6 +126,7 @@ class Forecast(SearchList):
         if isinstance(variables, str):
             variables = [var.strip() for var in variables.split(",")]
         variables = [var for var in variables if var in supported_variables]
+        log.debug("variables: %s", variables)
 
         params = {
             "latitude": self.latitude,
@@ -129,6 +136,7 @@ class Forecast(SearchList):
             "temperature_unit": "celsius",
             "wind_speed_unit": "kmh",
             "precipitation_unit": "mm",
+            "et0_fao_evapotranspiration_unit": "mm",
             "timeformat": "unixtime",
             "models": model,
         }
@@ -146,8 +154,12 @@ class Forecast(SearchList):
             daily.append("wind_speed_10m_max")
             daily.append("wind_gusts_10m_max")
             daily.append("wind_direction_10m_dominant")
-        if "uv" in variables:
+        if ("uv" in variables) or ("sun" in variables) or ("uv-sun" in variables):
             daily.append("uv_index_max")
+            daily.append("sunshine_duration")
+            daily.append("daylight_duration")
+        if "evapotranspiration" in variables:
+            daily.append("et0_fao_evapotranspiration")
 
         params["hourly"] = ",".join(hourly)
         params["daily"] = ",".join(daily)
@@ -274,12 +286,30 @@ def remap_data(generator, data: dict, days: int, variables: list):
                         "group_percent",
                     ),
                 }
-            if "uv" in variables:
-                daily_keys["uv_index_max"] = build_value_helper(
-                    data["daily"].get("uv_index_max", [None])[i],
-                    "uv_index",
-                    "group_uv",
+            if "evapotranspiration" in variables:
+                daily_keys["et0_fao_evapotranspiration"] = build_value_helper(
+                    data["daily"].get("et0_fao_evapotranspiration", [None])[i],
+                    "mm",
+                    "group_rain",
                 )
+            if ("sun" in variables) or ("uv-sun" in variables) or ("uv" in variables):
+                daily_keys["sun"] = {
+                    "sunshine_duration": build_value_helper(
+                        data["daily"].get("sunshine_duration", [None])[i],
+                        "second",
+                        "group_deltatime",
+                    ),
+                    "daylight_duration": build_value_helper(
+                        data["daily"].get("daylight_duration", [None])[i],
+                        "second",
+                        "group_deltatime",
+                    ),
+                    "uv":  build_value_helper(
+                        data["daily"].get("uv_index_max", [None])[i],
+                        "uv_index",
+                        "group_uv",
+                    )
+                }
             if "wind" in variables:
                 daily_keys["wind"] = {
                     "speed": build_value_helper(
