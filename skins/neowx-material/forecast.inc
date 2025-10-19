@@ -90,9 +90,9 @@
                           #set sunshine_hours = int($x[1].sun.sunshine_duration.raw / 3600)
                           #set sunshine_minutes = int(($x[1].sun.sunshine_duration.raw % 3600) / 60)
                           #if ($variable == "sun")
-                            ${sunshine_hours}:${sunshine_minutes}h / ${daylight_hours}:${daylight_minutes}h
+                            ${sunshine_hours}:${'%02d' % $sunshine_minutes}h / ${daylight_hours}:${'%02d' % $daylight_minutes}h
                           #else
-                            $x[1].sun.uv.format("%.0f") / ${sunshine_hours}:${sunshine_minutes}h / ${daylight_hours}:${daylight_minutes}h
+                            $x[1].sun.uv.format("%.0f") / ${sunshine_hours}:${'%02d' % $sunshine_minutes}h / ${daylight_hours}:${'%02d' % $daylight_minutes}h
                           #end if
                         </div>
                       #end if
@@ -147,18 +147,22 @@
                   #end if
                   #if ($variable == "sun") or ($variable == "uv-sun")
                     <div class="text-center d-inline-block">
-                      <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv") / $pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
-                        #set daylight_hours = int($x[1].sun.daylight_duration.raw / 3600)
-                        #set daylight_minutes = int(($x[1].sun.daylight_duration.raw % 3600) / 60)
-                        #set sunshine_hours = int($x[1].sun.sunshine_duration.raw / 3600)
-                        #set sunshine_minutes = int(($x[1].sun.sunshine_duration.raw % 3600) / 60)
-                        <span>
-                          #if ($variable == "sun")
-                            ${sunshine_hours}:${sunshine_minutes}h / ${daylight_hours}:${daylight_minutes}h
-                          #else
-                            $x[1].sun.uv.format("%.0f") / ${sunshine_hours}:${sunshine_minutes}h / ${daylight_hours}:${daylight_minutes}h
-                          #end if
-                        <span>
+                      #if ($variable == "sun")
+                        <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                      #else
+                        <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv") / $pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                      #end if
+                      #set daylight_hours = int($x[1].sun.daylight_duration.raw / 3600)
+                      #set daylight_minutes = int(($x[1].sun.daylight_duration.raw % 3600) / 60)
+                      #set sunshine_hours = int($x[1].sun.sunshine_duration.raw / 3600)
+                      #set sunshine_minutes = int(($x[1].sun.sunshine_duration.raw % 3600) / 60)
+                      <span>
+                        #if ($variable == "sun")
+                          ${sunshine_hours}:${'%02d' % $sunshine_minutes}h / ${daylight_hours}:${'%02d' % $daylight_minutes}h
+                        #else
+                          $x[1].sun.uv.format("%.0f") / ${sunshine_hours}:${'%02d' % $sunshine_minutes}h / ${daylight_hours}:${'%02d' % $daylight_minutes}h
+                        #end if
+                      <span>
                     </div>
                   #end if
                   #if $variable == "precipitation"
