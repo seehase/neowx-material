@@ -151,5 +151,5 @@ These 3rd party libraries are used:
 
 - [Apexcharts](https://github.com/apexcharts/apexcharts.js) (MIT license)
 - [MomentJS](https://github.com/moment/moment) (MIT license)
-- [Weather Icons by Erik Flowers](https://github.com/erikflowers/weather-icons)
-  (MIT / SIL OFL 1.1 license)
+- [Weather Icons by Erik Flowers](https://github.com/erikflowers/weather-icons) (MIT / SIL OFL 1.1 license)
+- [open-meteo](https://open-meteo.com) [(CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/)
