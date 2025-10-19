@@ -78,7 +78,11 @@
                       #end if
                       #if ($variable == "sun") or ($variable == "uv-sun")
                         <div class="col-2 p-0">
-                          <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv") / $pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                          #if ($variable == "sun")
+                            <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                          #else
+                            <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv") / $pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                          #end if
                         </div>
                         <div class="col-10 text-left">
                           #set daylight_hours = int($x[1].sun.daylight_duration.raw / 3600)
