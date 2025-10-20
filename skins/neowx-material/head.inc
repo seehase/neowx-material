@@ -79,6 +79,9 @@
 <link rel="stylesheet" href="weather-icons/css/weather-icons.min.css">
 <link rel="stylesheet" href="weather-icons/css/weather-icons-wind.min.css">
 
+## ApexChart stylesheet
+<link rel="stylesheet" href="js/vendor/apexcharts/apexcharts.css">
+
 ## Appearance settings
 
 #if $Extras.Appearance.lo_value_color != ""
