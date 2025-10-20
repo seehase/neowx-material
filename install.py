@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.50.2",
+            version="1.50.6",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoground GmbH",
@@ -95,6 +95,19 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/js/popper.min.js",
                         "skins/neowx-material/js/vendor/apexcharts/LICENSE",
                         "skins/neowx-material/js/vendor/apexcharts/apexcharts.min.js",
+                        "skins/neowx-material/js/vendor/apexcharts/apexcharts.css",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/ar.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/be-cyrl.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/be-latn.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/da.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/et.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/fa.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/hu.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/ja.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/lv.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/ms.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/vi.json",
+                        "skins/neowx-material/js/vendor/apexcharts/locales/zh-tw.json",
                         "skins/neowx-material/js/vendor/apexcharts/locales/ca.json",
                         "skins/neowx-material/js/vendor/apexcharts/locales/cs.json",
                         "skins/neowx-material/js/vendor/apexcharts/locales/de.json",
