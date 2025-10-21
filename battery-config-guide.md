@@ -298,14 +298,3 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 3. Check the telemetry page
 4. Look at the chart - "good" status should be at the top
 5. If upside-down, set `flip_values = yes`
-
----
-
-## Need Help?
-
-Check your weewx logs for the actual raw values:
-```bash
-sudo weewxctl report show
-```
-
-Or look in your database to see what values are being stored for battery fields.
