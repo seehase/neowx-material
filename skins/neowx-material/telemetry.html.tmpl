@@ -51,7 +51,7 @@
 ## +-------------------------------------------------------------------------+
 #def isBatteryFieldEnabled($name)
   #try
-      #set enabled = $getVar('Extras.BatteryFields.' + $name + '.enabled', 'no')
+      #set enabled = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.enabled', 'no')
       #if $enabled == 'yes'
           #return True
       #else
@@ -77,7 +77,7 @@
           #set key = str(int(float(raw_val) + 0.000001))
       #end if
       
-      #set mapped = $getVar('Extras.BatteryFields.' + $name + '.' + $key, None)
+      #set mapped = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $key, None)
       #if $mapped is not None
           #return $mapped
       #else
@@ -103,7 +103,7 @@
       ## Check if flip is enabled for this specific field
       #set flip = False
       #try
-          #if $getVar('Extras.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
+          #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
               #set flip = True
           #end if
       #except
@@ -111,11 +111,11 @@
       #end try
       
       ## Get chart position based on key
-      #set chart_pos = $getVar('Extras.BatteryFields.' + $name + '.chart_position_' + $key, None)
+      #set chart_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + $key, None)
       #if $chart_pos is not None
           #if $flip
               ## Invert the position if flip is enabled
-              #set max_pos = int($getVar('Extras.BatteryFields.' + $name + '.max_chart_position', '1'))
+              #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
               #set chart_pos = str($max_pos - int($chart_pos))
           #end if
           #return $chart_pos
@@ -229,7 +229,7 @@ new ApexCharts(document.querySelector('#$name-chart'), {
   yaxis: {
     #if $is_battery
     #try
-      #set max_pos = int($getVar('Extras.BatteryFields.' + $name + '.max_chart_position', '1'))
+      #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
     #except
       #set max_pos = 1
     #end try
@@ -241,7 +241,7 @@ new ApexCharts(document.querySelector('#$name-chart'), {
         ## Generate label mapping from config for this specific field
         #set flip = False
         #try
-            #if $getVar('Extras.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
+            #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
                 #set flip = True
             #end if
         #except
@@ -257,7 +257,7 @@ new ApexCharts(document.querySelector('#$name-chart'), {
           ## Find which key maps to this position
           #for $j in range(10)
             #try
-              #set check_pos = $getVar('Extras.BatteryFields.' + $name + '.chart_position_' + str($j), None)
+              #set check_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + str($j), None)
               #if $check_pos is not None and int($check_pos) == $pos
                 #set label_key = str($j)
                 #break
@@ -268,7 +268,7 @@ new ApexCharts(document.querySelector('#$name-chart'), {
           #end for
           #if $label_key is not None
             #try
-              #set label_text = $getVar('Extras.BatteryFields.' + $name + '.' + $label_key, $label_key)
+              #set label_text = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $label_key, $label_key)
             #except
               #set label_text = $label_key
             #end try
