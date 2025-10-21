@@ -3,12 +3,19 @@
 ## |    graph_line_archive_config.inc             JS config for default line charts    |
 ## +-----------------------------------------------------------------------------------+
 
+#set $allowMouseWheelZoom = "false"
+#if $Extras.Appearance.allowMouseWheelZoom == "true"
+#set $allowMouseWheelZoom = "true"
+#end if
+
+
 chart: {
     type: 'line',
     zoom: {
         enabled: false,
         type: 'x',  
         autoScaleYaxis: false,
+        allowMouseWheelZoom: $allowMouseWheelZoom,
     },
 },
 

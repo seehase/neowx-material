@@ -43,6 +43,11 @@
     }
 </script>
 
+#set $allowMouseWheelZoom = "false"
+#if $Extras.Appearance.allowMouseWheelZoom == "true"
+#set $allowMouseWheelZoom = "true"
+#end if
+
 ## Global apexcharts config
 <script type="text/javascript">
     var config_mode = '${Extras.Appearance.mode}';
@@ -76,7 +81,8 @@
             zoom: {
                 type: 'x',
                 enabled: true,
-                autoScaleYaxis: true
+                autoScaleYaxis: true,
+                allowMouseWheelZoom: $allowMouseWheelZoom,
             },
             toolbar: {
                 autoSelected: 'zoom',
