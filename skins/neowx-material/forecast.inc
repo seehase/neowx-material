@@ -41,7 +41,7 @@
 
 #if $forecast is not None
   #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[0] != "forecast"
-  <hr class="col-12 m-0 mb-4 p-0" />
+  <div class="col-12"><hr class="m-0 mb-4" /></div>
   #end if 
   #for $i, $x in $enumerate($forecast.daily)
     <div class="col-12 col-md-6 col-xl-4 mb-4">
@@ -201,6 +201,6 @@
     </div>
   #end for
   #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[-1] != "forecast"
-  <hr class="col-12 m-0 mb-4 p-0" />
+  <div class="col-12"><hr class="m-0 mb-4" /></div>
   #end if 
 #end if
