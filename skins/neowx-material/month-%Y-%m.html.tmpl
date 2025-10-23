@@ -165,7 +165,7 @@
 <main>
 <div class="container-fluid d-flex-xxl">
 
-    <div class="row my-4 temprow align-content-start">
+    <div class="row mt-3 temprow align-content-start">
 
       <div class="col-12 mb-4 text-center">
         <h2 class="h2-responsive text-dark">$month_name $year_name</h2>
@@ -259,9 +259,9 @@
 
     </div>
 
-    <hr class="my-4 rowdivider">
+    <hr class="m-0 mb-4 rowdivider">
 
-    <div class="row mt-5 mb-4 graphrow align-content-start">
+    <div class="row mt-3 graphrow align-content-start">
       #set seen_charts = set()
       #for $x in $Extras.Appearance.charts_order
           #if $x not in $seen_charts

@@ -165,7 +165,7 @@
 <main>
   <div class="container-fluid d-flex-xxl">
 
-    <div class="row my-4 temprow align-content-start">
+    <div class="row mt-3 temprow align-content-start">
 
       <div class="col-12 mb-4 text-center">
         <h2 class="h2-responsive text-dark">$gettext("year") $year_name</h2>
@@ -216,9 +216,9 @@
 
     </div>
 
-    <hr class="my-4 rowdivider">
+    <hr class="m-0 mb-4 rowdivider">
 
-    <div class="row mt-5 mb-4 graphrow align-content-start">
+    <div class="row mt-3 graphrow align-content-start">
     #set seen_cards = set()
     #for $x in $Extras.Appearance.values_order
         #if $x not in $seen_cards
@@ -306,9 +306,7 @@
         #end if
       #end for
 
-      <div class="col-12 mt-2 mb-4">
-        <hr>
-      </div>
+      <div class="col-12"><hr class="m-0 mb-4" /></div>
 
       #set seen_charts = set()
       #for $x in $Extras.Appearance.charts_order
