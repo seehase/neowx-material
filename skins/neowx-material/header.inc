@@ -161,21 +161,21 @@
                 </li>
                 <li class="nav-item mr-4 text-white text-center" style="line-height: 1.75" >
                     <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
-                        #if $almanac.moon_phase == $almanac.moon_phases[0]
+                        #if $almanac.moon_index == 0
                         <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[1]
+                        #else if $almanac.moon_index == 1
                         <i class="wi wi-moon-waxing-crescent-4 mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[2]
+                        #else if $almanac.moon_index == 2
                         <i class="wi wi-moon-first-quarter mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[3]
+                        #else if $almanac.moon_index == 3
                         <i class="wi wi-moon-waxing-gibbous-4 mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[4]
+                        #else if $almanac.moon_index == 4
                         <i class="wi wi-moon-full mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[5]
+                        #else if $almanac.moon_index == 5
                         <i class="wi wi-moon-waning-gibbous-4 mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[6]
+                        #else if $almanac.moon_index == 6
                         <i class="wi wi-moon-third-quarter mr-1" style="opacity: .75"></i>
-                        #else if $almanac.moon_phase == $almanac.moon_phases[7]
+                        #else if $almanac.moon_index == 7
                         <i class="wi wi-moon-waning-crescent-4 mr-1" style="opacity: .75"></i>
                         #else
                         <i class="wi wi-moon-waning-crescent-3 mr-1" style="opacity: .75"></i>
