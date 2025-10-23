@@ -105,12 +105,163 @@
                 </div>
             </div>
 
+## RT Code Start
+	<div class="col-12 mb-4 text-center">
+		<h2 class="h2-responsive text-dark">$gettext("year_records")</h2>
+        </div>
+
+            <div class="col-sm mb-4 text-center">
+                <div class="card">
+
+                    <div class="card-body" style="text-align:left;width:100%;">
+                        <table class="table text-left records" style="width:100%;">
+                        #if $year.outTemp.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-thermometer"></i>
+                                    $getVar('obs.label.outTemp')</th>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest")</td>
+                                <td style="font-size:16px;">$year.outTemp.max</td>
+                                <td style="font-size:16px;">$year.outTemp.maxtime</td>
+                                </tr>
+                                <tr>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
+                                <td style="font-size:16px;">$year.outTemp.min</td>
+                                <td style="font-size:16px;">$year.outTemp.mintime</td>
+                            </tr>
+                        #end if
+                        #if $year.appTemp.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-day-windy"></i>
+                                    $getVar('obs.label.appTemp')</th>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest")</td>
+                                <td style="font-size:16px;">$year.appTemp.max</td>
+                                <td style="font-size:16px;">$year.appTemp.maxtime</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
+                                <td style="font-size:16px;">$year.appTemp.min</td>
+                                <td style="font-size:16px;">$year.appTemp.mintime</td>
+                            </tr>
+                        #end if
+                       #if $year.outHumidity.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-humidity"></i>
+                                    $getVar('obs.label.outHumidity')</th>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest")</td>
+                                <td style="font-size:16px;">$year.outHumidity.max</td>
+                                <td style="font-size:16px;">$year.outHumidity.maxtime</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
+                                <td style="font-size:16px;">$year.outHumidity.min</td>
+                                <td style="font-size:16px;">$year.outHumidity.mintime</td>
+                            </tr>
+                        #end if
+                        #if $year.barometer.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-barometer"></i>
+                                    $getVar('obs.label.barometer')</th>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest")</td>
+                                <td style="font-size:16px;">$year.barometer.max</td>
+                                <td style="font-size:16px;">$year.barometer.maxtime</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("lowest")</td>
+                                <td style="font-size:16px;">$year.barometer.min</td>
+                                <td style="font-size:16px;">$year.barometer.mintime</td>
+                            </tr>
+                        #end if
+                        #if $year.windSpeed.has_data or $year.windGust.has_data or $year.windrun.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-strong-wind"></i>
+                                    $getVar('obs.label.wind')</th>
+                            </tr>
+                            #if $year.windSpeed.has_data
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest") $getVar('obs.label.windSpeed')</td>
+                                <td style="font-size:16px;">$year.windSpeed.max.format('%.0f')</td>
+                                <td style="font-size:16px;">$year.windSpeed.maxtime</td>
+                            </tr>
+                            #end if
+                            #if $year.windGust.has_data
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest") $getVar('obs.label.windGust')</td>
+                                <td style="font-size:16px;">$year.windGust.max.format('%.0f')</td>
+                                <td style="font-size:16px;">$year.windGust.maxtime</td>
+                            </tr>
+                            #end if
+                            #if $year.windrun.has_data
+                                <tr>
+                                    <td style="font-size:16px;">$gettext("longest") $getVar('obs.label.windrun')</td>
+                                    <td style="font-size:16px;">$year.windrun.max</td>
+                                    <td style="font-size:16px;">$year.windrun.maxtime</td>
+                                </tr>
+                            #end if
+                        #end if
+                       #if $year.rain.has_data or $year.rainRate.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-umbrella"></i>
+                                    $getVar('obs.label.rain')</th>
+                            </tr>
+                            #if $year.rain.has_data
+                            <tr>
+                                <td style="font-size:16px;">$gettext("most") $getVar('obs.label.rain')</td>
+                                <td style="font-size:16px;">$year.rain.maxsum</td>
+                                <td style="font-size:16px;">$year.rain.maxsumtime</td>
+                            </tr>
+                            #end if
+                            #if $year.rainRate.has_data
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest") $getVar('obs.label.rainRate')</td>
+                                <td style="font-size:16px;">$year.rainRate.max</td>
+                                <td style="font-size:16px;">$year.rainRate.maxtime</td>
+                            </tr>
+                            #end if
+                        #end if
+                        #if $year.UV.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-day-sunny"></i>
+                                    $getVar('obs.label.UV')</th>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest")</td>
+                                <td style="font-size:16px;">$year.UV.max</td>
+                                <td style="font-size:16px;">$year.UV.maxtime</td>
+                            </tr>
+                        #end if
+                        #if $year.radiation.has_data
+                            <tr>
+                                <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-day-sunny"></i>
+                                    $getVar('obs.label.radiation')</th>
+                            </tr>
+                            <tr>
+                                <td style="font-size:16px;">$gettext("highest")</td>
+                                <td style="font-size:16px;">$year.radiation.max</td>
+                                <td style="font-size:16px;">$year.radiation.maxtime</td>
+                            </tr>
+                        #end if
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+## RT Code End
+
             <div class="col-12 mb-4 text-center">
                 <h2 class="h2-responsive text-dark">$gettext("all_time_records")</h2>
             </div>
 
             <div class="col-sm mb-4 text-center">
                 <div class="card">
+
                     <div class="card-body" style="text-align:left;width:100%;">
                         <table class="table text-left records" style="width:100%;">
                         #if $alltime.outTemp.has_data

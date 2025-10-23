@@ -166,106 +166,110 @@
 <main>
   <div class="container-fluid d-flex-xxl">
 
-    <div class="row my-4 temprow align-content-start">
+    <div class="row mt-3 temprow align-content-start">
+      #set seen_cards = set()
       #for $x in $Extras.Appearance.values_order
-
-      #if $x == "ET"
-        #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
-          $valuesCard('ET')
-        #end if
-      #else if $x == "temperatureThresholdDays"
-        <div class="col-12 col-md-6 col-xl-4 mb-4">
-          <div class="card">
-            <div class="card-body text-center">
-              <h3 class="h5-responsive $Extras.color-text">
-                $gettext("summer_days")
-              </h3>
-              <div class="row">
-                <div class="col-3 text-muted font-small"></div>
-                <div class="col-6">
-                  <h4 class="h2-responsive">
-                    $month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
-                  </h4>
+          #if $x not in $seen_cards
+              #silent $seen_cards.add($x)
+              #if $x == "ET"
+                #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
+                  $valuesCard('ET')
+                #end if
+              #else if $x == "temperatureThresholdDays"
+                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      <h3 class="h5-responsive $Extras.color-text">
+                        $gettext("summer_days")
+                      </h3>
+                      <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6">
+                          <h4 class="h2-responsive">
+                            $month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
+                          </h4>
+                        </div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="col-3 text-muted font-small hi-text"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-4 mb-4">
-          <div class="card">
-            <div class="card-body text-center">
-              <h3 class="h5-responsive $Extras.color-text">
-                $gettext("tropical_days")
-              </h3>
-              <div class="row">
-                <div class="col-3 text-muted font-small"></div>
-                <div class="col-6">
-                  <h4 class="h2-responsive">
-                    $month.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")
-                  </h4>
+                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      <h3 class="h5-responsive $Extras.color-text">
+                        $gettext("tropical_days")
+                      </h3>
+                      <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6">
+                          <h4 class="h2-responsive">
+                            $month.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")
+                          </h4>
+                        </div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="col-3 text-muted font-small hi-text"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-4 mb-4">
-          <div class="card">
-            <div class="card-body text-center">
-              <h3 class="h5-responsive $Extras.color-text">
-                $gettext("tropical_nights")
-              </h3>
-              <div class="row">
-                <div class="col-3 text-muted font-small"></div>
-                <div class="col-6">
-                  <h4 class="h2-responsive">
-                    $month.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")
-                  </h4>
+                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      <h3 class="h5-responsive $Extras.color-text">
+                        $gettext("tropical_nights")
+                      </h3>
+                      <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6">
+                          <h4 class="h2-responsive">
+                            $month.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")
+                          </h4>
+                        </div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="col-3 text-muted font-small hi-text"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-12 col-md-6 col-xl-4 mb-4">
-          <div class="card">
-            <div class="card-body text-center">
-              <h3 class="h5-responsive $Extras.color-text">
-                $gettext("arctic_days")
-              </h3>
-              <div class="row">
-                <div class="col-3 text-muted font-small"></div>
-                <div class="col-6">
-                  <h4 class="h2-responsive">
-                    $month.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")
-                  </h4>
+                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                  <div class="card">
+                    <div class="card-body text-center">
+                      <h3 class="h5-responsive $Extras.color-text">
+                        $gettext("arctic_days")
+                      </h3>
+                      <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6">
+                          <h4 class="h2-responsive">
+                            $month.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")
+                          </h4>
+                        </div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="col-3 text-muted font-small hi-text"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      #else
-        $valuesCard($x)
-      #end if
-
+              #else
+                $valuesCard($x)
+              #end if
+          #end if
       #end for
     </div>
 
-    <hr class="my-4 rowdivider">
+    <hr class="m-0 mb-4 rowdivider">
 
-    <div class="row mt-5 mb-4 graphrow align-content-start">
+    <div class="row mt-3 graphrow align-content-start">
+      #set seen_charts = set()
       #for $x in $Extras.Appearance.charts_order
-
-      #if $x == "ET"
-        #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
-          $chartCard($x, $x + 'chart')
-        #end if
-      #else
-        $chartCard($x, $x + 'chart')
-      #end if
-
+          #if $x not in $seen_charts
+              #silent $seen_charts.add($x)
+              #if $x == "ET"
+                #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
+                  $chartCard($x, $x + 'chart')
+                #end if
+              #else
+                $chartCard($x, $x + 'chart')
+              #end if
+          #end if
       #end for
     </div>
 

@@ -157,33 +157,37 @@
 <main>
   <div class="container-fluid d-flex-xxl">
 
-    <div class="row my-4 temprow align-content-start">
+    <div class="row mt-3 temprow align-content-start">
+      #set seen_cards = set()
       #for $x in $Extras.Appearance.values_order
-
-      #if $x == "ET"
-        #if $week.ET.has_data and $week.ET.sum.raw is not None and $week.ET.sum.raw > 0.0
-          $valuesCard('ET')
-        #end if
-      #else
-        $valuesCard($x)
-      #end if
-
+          #if $x not in $seen_cards
+              #silent $seen_cards.add($x)
+              #if $x == "ET"
+                #if $week.ET.has_data and $week.ET.sum.raw is not None and $week.ET.sum.raw > 0.0
+                  $valuesCard('ET')
+                #end if
+              #else
+                $valuesCard($x)
+              #end if
+          #end if
       #end for
     </div>
 
-    <hr class="my-4 rowdivider">
+    <hr class="m-0 mb-4 rowdivider">
 
-    <div class="row mt-5 mb-4 graphrow align-content-start">
+    <div class="row mt-3 graphrow align-content-start">
+    #set seen_charts = set()
       #for $x in $Extras.Appearance.charts_order
-
-      #if $x == "ET"
-        #if $week.ET.has_data and $week.ET.sum.raw is not None and $week.ET.sum.raw > 0.0
-          $chartCard($x, $x + 'chart')
+        #if $x not in $seen_charts
+          #silent $seen_charts.add($x)
+          #if $x == "ET"
+            #if $week.ET.has_data and $week.ET.sum.raw is not None and $week.ET.sum.raw > 0.0
+              $chartCard($x, $x + 'chart')
+            #end if
+          #else
+            $chartCard($x, $x + 'chart')
+          #end if
         #end if
-      #else
-        $chartCard($x, $x + 'chart')
-      #end if
-
       #end for
     </div>
 

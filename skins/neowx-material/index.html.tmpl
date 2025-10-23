@@ -15,7 +15,6 @@
         <h3 class="h5-responsive $Extras.color-text">
           $getVar('obs.label.' + name)
 
-
           #if $name in $Extras.Appearance.show_trend_on and $getVar('trend.' + name + '.raw') is not None
 
             #if $getVar('trend.' + name + '.raw') > 0.5
@@ -194,36 +193,40 @@
 <main>
   <div class="container-fluid d-flex-xxl">
 
-    <div class="row my-4 temprow align-content-start">
+    <div class="row mt-3 temprow align-content-start">
+      #set seen_cards = set()
       #for $x in $Extras.Appearance.values_order
-
-      #if $x == "ET"
-        #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
-          $valuesCard('ET')
+        #if $x not in $seen_cards
+          #silent $seen_cards.add($x)
+          #if $x == "ET"
+            #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
+              $valuesCard('ET')
+            #end if
+          #else if $x == "forecast"
+            #include "forecast.inc"
+          #else
+            $valuesCard($x)
+          #end if
         #end if
-      #else if $x == "forecast"
-        #include "forecast.inc"
-      #else
-        $valuesCard($x)
-      #end if
-
       #end for
 
     </div>
 
-    <hr class="my-4 rowdivider">
+    <hr class="m-0 mb-4 rowdivider">
 
-    <div class="row mt-5 mb-4 graphrow align-content-start">
+    <div class="row mt-3 graphrow align-content-start">
+      #set seen_charts = set()
       #for $x in $Extras.Appearance.charts_order
-
-      #if $x == "ET"
-        #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
-          $chartCard($x, $x + 'chart')
+        #if $x not in $seen_charts
+          #silent $seen_charts.add($x)
+          #if $x == "ET"
+            #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
+              $chartCard($x, $x + 'chart')
+            #end if
+          #else
+            $chartCard($x, $x + 'chart')
+          #end if
         #end if
-      #else
-        $chartCard($x, $x + 'chart')
-      #end if
-
       #end for
 
     </div>
