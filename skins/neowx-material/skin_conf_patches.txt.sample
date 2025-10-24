@@ -18,3 +18,5 @@ Extras.Header.custom1_url =
 Extras.Header.custom2_label =
 Extras.Footer.about =
 CopyGenerator.copy_once =
+Extras.Appearance.values_order = outTemp, outHumidity,
+Extras.Embedded.image2.title = My Imagae Title

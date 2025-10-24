@@ -53,16 +53,23 @@ done < "$PATCHES_FILE"
 # Process skin.conf line by line
 current_section=""
 current_subsection=""
+current_subsubsection=""
 
 while IFS= read -r line || [[ -n "$line" ]]; do
-    # Track current section
+    # Track current section levels
     if [[ "$line" =~ ^[[:space:]]*\[([^\]]+)\][[:space:]]*$ ]]; then
         current_section="${BASH_REMATCH[1]}"
         current_subsection=""
+        current_subsubsection=""
         echo "$line" >> "$TEMP_FILE"
         continue
     elif [[ "$line" =~ ^[[:space:]]*\[\[([^\]]+)\]\][[:space:]]*$ ]]; then
         current_subsection="${BASH_REMATCH[1]}"
+        current_subsubsection=""
+        echo "$line" >> "$TEMP_FILE"
+        continue
+    elif [[ "$line" =~ ^[[:space:]]*\[\[\[([^\]]+)\]\]\][[:space:]]*$ ]]; then
+        current_subsubsection="${BASH_REMATCH[1]}"
         echo "$line" >> "$TEMP_FILE"
         continue
     fi
@@ -71,18 +78,34 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     line_modified=false
 
     while IFS='|' read -r patch_key patch_value; do
-        # Parse the patch key
-        if [[ "$patch_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
+        # Parse the patch key - check for four-level format first
+        if [[ "$patch_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
+            # Format: Section.Subsection.Subsubsection.key
+            section="${BASH_REMATCH[1]}"
+            subsection="${BASH_REMATCH[2]}"
+            subsubsection="${BASH_REMATCH[3]}"
+            key="${BASH_REMATCH[4]}"
+
+            # Check if we're in the right section hierarchy and this line matches
+            if [[ "$current_section" == "$section" ]] && [[ "$current_subsection" == "$subsection" ]] && [[ "$current_subsubsection" == "$subsubsection" ]]; then
+                if [[ "$line" =~ ^[[:space:]]*${key}[[:space:]]*= ]]; then
+                    echo "            $key = $patch_value" >> "$TEMP_FILE"
+                    echo "  ✓ Updated: [$section][[$subsection]][[[$subsubsection]]] $key"
+                    line_modified=true
+                    break
+                fi
+            fi
+        elif [[ "$patch_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
             # Format: Section.Subsection.key
             section="${BASH_REMATCH[1]}"
             subsection="${BASH_REMATCH[2]}"
             key="${BASH_REMATCH[3]}"
 
             # Check if we're in the right section and this line matches
-            if [[ "$current_section" == "$section" ]] && [[ "$current_subsection" == "$subsection" ]]; then
+            if [[ "$current_section" == "$section" ]] && [[ "$current_subsection" == "$subsection" ]] && [[ -z "$current_subsubsection" ]]; then
                 if [[ "$line" =~ ^[[:space:]]*${key}[[:space:]]*= ]]; then
                     echo "        $key = $patch_value" >> "$TEMP_FILE"
-                    echo "  ✓ Updated: [$section].[$subsection] $key"
+                    echo "  ✓ Updated: [$section][[$subsection]] $key"
                     line_modified=true
                     break
                 fi
@@ -93,7 +116,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             key="${BASH_REMATCH[2]}"
 
             # Check if we're in the right section and this line matches
-            if [[ "$current_section" == "$section" ]] && [[ -z "$current_subsection" ]]; then
+            if [[ "$current_section" == "$section" ]] && [[ -z "$current_subsection" ]] && [[ -z "$current_subsubsection" ]]; then
                 if [[ "$line" =~ ^[[:space:]]*${key}[[:space:]]*= ]]; then
                     echo "    $key = $patch_value" >> "$TEMP_FILE"
                     echo "  ✓ Updated: [$section] $key"
@@ -129,7 +152,20 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         full_key="${BASH_REMATCH[1]}"
         full_key=$(echo "$full_key" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-        if [[ "$full_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
+        if [[ "$full_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
+            # Format: Section.Subsection.Subsubsection.key
+            section="${BASH_REMATCH[1]}"
+            subsection="${BASH_REMATCH[2]}"
+            subsubsection="${BASH_REMATCH[3]}"
+            key="${BASH_REMATCH[4]}"
+
+            # Use a simpler approach to find the updated line
+            found_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF" | head -1)
+            if [[ -n "$found_line" ]]; then
+                echo "  [$section][[$subsection]][[[$subsubsection]]] $found_line"
+            fi
+
+        elif [[ "$full_key" =~ ^([^.]+)\.([^.]+)\.([^.]+)$ ]]; then
             # Format: Section.Subsection.key
             section="${BASH_REMATCH[1]}"
             subsection="${BASH_REMATCH[2]}"
@@ -138,7 +174,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             # Use a simpler approach to find the updated line
             found_line=$(grep "^[[:space:]]*${key}[[:space:]]*=" "$SKIN_CONF" | head -1)
             if [[ -n "$found_line" ]]; then
-                echo "  $found_line"
+                echo "  [$section][[$subsection]] $found_line"
             fi
 
         elif [[ "$full_key" =~ ^([^.]+)\.([^.]+)$ ]]; then
