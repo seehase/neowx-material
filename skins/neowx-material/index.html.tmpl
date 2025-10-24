@@ -7,6 +7,95 @@
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
+#def notFoundCard($name)
+  <div class="col-12 col-md-6 col-xl-4 mb-4">
+    <div class="card">
+      <div class="card-body text-center">
+        Section definition not found for "$name"
+      </div>
+    </div>
+  </div>
+#end def
+
+#def iframeCard($name)
+  #set iframe_url = $getVar('Extras.Embedded.' + name + '.url', "")
+  #set iframe_title = $getVar('Extras.Embedded.' + name + '.title', "")
+  #set iframe_aspect = $getVar('Extras.Embedded.' + name + '.aspect_ratio', "4/3")
+  #if iframe_url != ""
+    <div class="col-12 col-md-6 col-xl-4 mb-4">
+      <div class="card overflow-hidden">
+        <div class="card-body text-center d-flex flex-column px-0 ${'pb-0' if iframe_title != '' else 'py-0'} overflow-hidden">
+          #if iframe_title != ""
+          <h5 class="h5-responsive $Extras.color-text">
+            $iframe_title
+          </h5>
+          #end if
+          <iframe src="$iframe_url" frameborder="0" class="flex-grow-1 w-100" style="aspect-ratio: ${iframe_aspect};"></iframe>
+        </div>
+      </div>
+    </div>
+  #else
+    $notFoundCard($name)
+  #end if
+#end def
+
+#def imageCard($name)
+  #set image_url = $getVar('Extras.Embedded.' + name + '.url', "")
+  ## by adding a timestamp parameter we prevent browser caching of the image
+  #set $sep = '&' if '?' in $image_url else '?'
+  #set $timestamp = int($time.time() / 60)
+  #set image_title = $getVar('Extras.Embedded.' + name + '.title', "")
+  #set image_link = $getVar('Extras.Embedded.' + name + '.link', "")
+  #set image_new_tab = $getVar('Extras.Embedded.' + name + '.new_tab', "no")
+  #set image_padding = $getVar('Extras.Embedded.' + name + '.padding', "no")
+  #set image_aspect = $getVar('Extras.Embedded.' + name + '.aspect_ratio', "4/3")
+  #set image_alt = $getVar('Extras.Embedded.' + name + '.alt', "Image")
+
+  #if image_padding != "yes"
+    #set padding_x = "px-0"
+    #if image_title != ""
+      #set padding_y = "pb-0"
+    #else
+      #set padding_y = "py-0"
+    #end if
+  #else
+    #set padding_x = "px-3"
+    #if image_title != ""
+      #set padding_y = "pb-3"
+    #else
+      #set padding_y = "py-3"
+    #end if
+  #end if
+
+  #if image_url != ""
+    <div class="col-12 col-md-6 col-xl-4 mb-4">
+      <div class="card overflow-hidden">
+        <div class="card-body text-center d-flex flex-column ${padding_x} ${padding_y} overflow-hidden">
+          #if image_title != ""
+          <h5 class="h5-responsive $Extras.color-text">
+            $image_title
+          </h5>
+          #end if
+          #if image_link != ""
+            #if image_new_tab.lower() == "yes"
+            <a href="$image_link" target="_blank" rel="noopener noreferrer" class="flex-grow-1 d-flex flex-column w-100">
+            #else
+            <a href="$image_link" class="flex-grow-1 d-flex flex-column w-100">
+            #end if
+          #end if
+          
+          <img src="${image_url}${sep}ts=${timestamp}" alt="${image_alt}" class="flex-grow-1 w-100" style="aspect-ratio: ${image_aspect};" />
+          #if image_link != ""
+            </a>
+          #end if
+        </div>
+      </div>
+    </div>
+  #else
+    $notFoundCard($name)
+  #end if
+#end def
+
 #def valuesCard($name)
   #if $getVar('day.' + name + '.has_data')
   <div class="col-12 col-md-6 col-xl-4 mb-4">
@@ -191,7 +280,7 @@
 #include "header.inc"
 
 <main>
-  <div class="container-fluid d-flex-xxl">
+  <div class="container-fluid d-flex-xxl flex-wrap">
 
     <div class="row mt-3 temprow align-content-start">
       #set seen_cards = set()
@@ -228,9 +317,35 @@
           #end if
         #end if
       #end for
-
     </div>
 
+    #set $embedded_order = $Extras.Appearance.embedded_order
+    #if not isinstance($embedded_order, list)
+      #if $embedded_order.strip() == ""
+      #set $embedded_order = []
+      #else
+      #set $embedded_order = [$embedded_order]
+      #end if
+    #end if
+    ## Show embedded section only if there are embedded items
+    #if len($embedded_order) > 0
+    <div class="row align-content-start flex-grow-1">
+      <div class="col-12 "><hr class="mt-0 mb-4"></div>
+      #set seen_embedded = set()
+      #for $x in $embedded_order
+        #if $x not in $seen_embedded
+          #silent $seen_embedded.add($x)
+          #if $x.startswith("iFrame")
+            $iframeCard($x)
+          #else if $x.startswith("image")
+            $imageCard($x)
+          #else
+            $notFoundCard($x)
+          #end if
+        #end if
+      #end for
+    </div>
+    #end if
   </div>
 </main>
 
