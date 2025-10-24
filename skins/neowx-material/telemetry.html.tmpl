@@ -7,7 +7,6 @@
 ## | Template for display card of telemetry values                           |
 ## +-------------------------------------------------------------------------+
 
-
 #def valuesCard($name)
 #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
 <div class="col-12 col-lg-6 mb-4">
@@ -145,9 +144,7 @@
 #include "header.inc"
 
 <main>
-
   <div class="container">
-
     <div class="row my-4 align-content-start">
 
       <div class="col-12 mb-4 text-center">
@@ -159,9 +156,7 @@
       #end for
 
     </div>
-
   </div>
-
 </main>
 
 #include "footer.inc"
@@ -219,7 +214,7 @@
 
 #def getChartJsCode($name, $series, $column = "avg")
 
-#if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0  or $Extras.Telemetry.allow_zero_values == "yes")
+#if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
 
   ## Check if this is an enabled battery field for custom Y-axis
   #set is_battery = $isBatteryFieldEnabled($name)
