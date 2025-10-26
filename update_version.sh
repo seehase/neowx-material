@@ -120,7 +120,7 @@ echo "Updating version to: $VERSION"
 # Update skin.conf
 echo "Updating skins/neowx-material/skin.conf..."
 if [ -f "skins/neowx-material/skin.conf" ]; then
-    sed -i '' "s/version = .*/version = $VERSION/" skins/neowx-material/skin.conf
+    sed -i '' "s/^[[:space:]]*version = .*/    version = $VERSION/" skins/neowx-material/skin.conf
     echo "✓ Updated skin.conf"
 else
     echo "✗ Error: skins/neowx-material/skin.conf not found"
