@@ -43,6 +43,7 @@
 """
 
 import time
+from time import struct_time
 import json
 import hashlib
 import urllib.request
@@ -53,7 +54,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 log = logging.getLogger(__name__)
 
@@ -66,7 +67,16 @@ _weather_cache = {
 retries = 3
 delay = 10  # seconds
 timeout = 15  # seconds
-supported_variables = ["temperature", "precipitation", "wind","evapotranspiration", "uv", "sun", "uv-sun"] # supported variables
+supported_variables = [
+    "temperature",
+    "precipitation",
+    "wind",
+    "evapotranspiration",
+    "uv",
+    "sun",
+    "uv-sun",
+]  # supported variables
+
 
 class Forecast(SearchList):
 
@@ -128,11 +138,23 @@ class Forecast(SearchList):
         variables = [var for var in variables if var in supported_variables]
         log.debug("variables: %s", variables)
 
+        # specify correct range of forecast, just to be sure it matches days in remap_data bellow
+        now = time.localtime()
+        today = time.struct_time(
+            (now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1)
+        )
+        start_date = time.strftime("%Y-%m-%d", today)
+        last_day = time.struct_time(
+            (now.tm_year, now.tm_mon, now.tm_mday + (days - 1), 0, 0, 0, 0, 0, -1)
+        )
+        end_date = time.strftime("%Y-%m-%d", last_day)
+
         params = {
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "forecast_days": days,
             "timezone": self.forecast_dict.get("timezone", "auto"),
+            "start_date": start_date,
+            "end_date": end_date,
             "temperature_unit": "celsius",
             "wind_speed_unit": "kmh",
             "precipitation_unit": "mm",
@@ -166,7 +188,7 @@ class Forecast(SearchList):
 
         log.debug("params: %s", params)
 
-        return fetch_forecast(self.generator, self.base_url, params, variables)
+        return fetch_forecast(self.generator, self.base_url, params, variables, today)
 
 
 def hash_params(params):
@@ -180,7 +202,7 @@ def hash_params(params):
     ).hexdigest()  # create hash from params
 
 
-def fetch_forecast(generator, base_url, params, variables: list):
+def fetch_forecast(generator, base_url, params, variables: list, today: struct_time):
     global _weather_cache
     log.debug("Current cache state: %s", _weather_cache)
     params_hash = hash_params(params)
@@ -203,7 +225,7 @@ def fetch_forecast(generator, base_url, params, variables: list):
                 log.debug("Fetched raw data: %s", body)
                 data = json.loads(body)
                 log.debug("Parsed raw data as json: %s", data)
-                remaped_data = remap_data(generator, data, params["forecast_days"], variables)
+                remaped_data = remap_data(generator, data, variables, today)
                 # save to cache and return
                 _weather_cache["params_hash"] = params_hash
                 _weather_cache["data"] = remaped_data
@@ -221,7 +243,7 @@ def fetch_forecast(generator, base_url, params, variables: list):
     return None
 
 
-def remap_data(generator, data: dict, days: int, variables: list):
+def remap_data(generator, data: dict, variables: list, today: struct_time):
     # Using ValueHelper will enable easy converting to correct units set by user in weewx.conf
     def build_value_helper(value, unit, group):
         value_tuple = ValueTuple(value, unit, group)
@@ -234,6 +256,7 @@ def remap_data(generator, data: dict, days: int, variables: list):
         # Calculate daily weather_codes per day by choosing code with highest occurence
         daily_weather_codes = []
         hourly_weather_codes = data.get("hourly", {}).get("weather_code", [])
+        days = len(data.get("daily", {}).get("time", []))
         if len(hourly_weather_codes) != 24 * days:
             log.info(
                 "Forecast data doesn't contain correct number of records for weather code. Skipping forecast and cleaning cached data."
@@ -251,13 +274,17 @@ def remap_data(generator, data: dict, days: int, variables: list):
 
         log.debug("Calculated daily weather codes: %s", daily_weather_codes)
 
-        # Daily timeline
-        daily_time = data.get("daily", {}).get("time", [])
-
         # Remap daily values
         daily_list = []
-        for i, t in enumerate(daily_time):
-            dt = build_value_helper(t, "unix_epoch", "group_time")
+        for i in range(days):
+            # generate unix epoch time using python time module
+            # tm_wday and tm_yday are autocalculated/fixed by time liberary
+            # don't need to care about month length, time.mktime will handle it
+            day = time.struct_time(
+                (today.tm_year, today.tm_mon, today.tm_mday + i, 0, 0, 0, 0, 0, -1)
+            )
+            midnight_timestamp = int(time.mktime(day))
+            dt = build_value_helper(midnight_timestamp, "unix_epoch", "group_time")
             daily_keys = {}
             daily_keys["weather_code"] = daily_weather_codes[i]
             if "temperature" in variables:
@@ -304,11 +331,11 @@ def remap_data(generator, data: dict, days: int, variables: list):
                         "second",
                         "group_deltatime",
                     ),
-                    "uv":  build_value_helper(
+                    "uv": build_value_helper(
                         data["daily"].get("uv_index_max", [None])[i],
                         "uv_index",
                         "group_uv",
-                    )
+                    ),
                 }
             if "wind" in variables:
                 daily_keys["wind"] = {
