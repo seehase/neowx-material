@@ -142,6 +142,18 @@
 		  Weather forecast data provided by&nbsp;<a href="https://open-meteo.com/">Open-Meteo.com</a> under (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>) license. Data may be modified (e.g., unit conversion, aggregation).
 		</div>
 		#end if
+
+        ## Update notification
+        #if $update_check and $update_check.available
+        <div class="alert alert-info alert-dismissible fade show mx-3 my-2" role="alert">
+            <i class="fas fa-info-circle"></i>
+            <strong>Update Available!</strong>
+            $gettext("update_available")
+            <strong>v$update_check.latest_version</strong>
+            ($gettext("current"): v$update_check.current_version)
+            <a href="$update_check.github_url" target="_blank" class="alert-link">$gettext("view_on_github")</a>
+        </div>
+        #end if
     </div>
     ## Copyright
 
