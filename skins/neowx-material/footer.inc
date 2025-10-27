@@ -147,8 +147,7 @@
         #if $update_check and $update_check.available
         <div class="alert alert-info alert-dismissible fade show mx-3 my-2" role="alert">
             <i class="fas fa-info-circle"></i>
-            <strong>Update Available!</strong>
-            $gettext("update_available")
+            $gettext("update_available")!
             <strong>v$update_check.latest_version</strong>
             ($gettext("current"): v$update_check.current_version)
             <a href="$update_check.github_url" target="_blank" class="alert-link">$gettext("view_on_github")</a>
