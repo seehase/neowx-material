@@ -39,9 +39,11 @@ try:
     from packaging import version
     HAVE_PACKAGING = True
 except ImportError:
-    # Fallback for systems without packaging library
-    from distutils.version import LooseVersion
     HAVE_PACKAGING = False
+    version = None
+
+def _parse_version(ver):
+    return tuple(int(x) for x in ver.split('.') if x.isdigit())
 
 try:
     from weewx.cheetahgenerator import SearchList
@@ -68,7 +70,7 @@ DELAY = 5  # seconds between retries
 class UpdateCheck(SearchList):
 
     def __init__(self, generator):
-        SearchList.__init__(self, generator)
+        super().__init__(generator)
         log.info("version: %s" % VERSION)
 
         self.generator = generator
@@ -135,7 +137,7 @@ class UpdateCheck(SearchList):
                         log.debug("Found latest version: %s", latest_version)
 
                         # Update cache
-                        _update_cache["last_check"] = current_time
+                        _update_cache["last_check"] = int(current_time)
                         _update_cache["data"] = latest_version
 
                         return latest_version
@@ -160,8 +162,8 @@ class UpdateCheck(SearchList):
                 current = version.parse(current_ver)
                 latest = version.parse(latest_ver)
             else:
-                current = LooseVersion(current_ver)
-                latest = LooseVersion(latest_ver)
+                current = _parse_version(current_ver)
+                latest = _parse_version(latest_ver)
 
             if latest <= current:
                 log.debug("Current version %s is up to date (latest: %s)", current_ver, latest_ver)
@@ -180,7 +182,7 @@ class UpdateCheck(SearchList):
                     current_parts = current_ver.split('.')
                     latest_parts = latest_ver.split('.')
                     if (len(current_parts) >= 2 and len(latest_parts) >= 2 and
-                        (current_parts[0] != latest_parts[0] or current_parts[1] != latest_parts[1])):
+                            (current_parts[0] != latest_parts[0] or current_parts[1] != latest_parts[1])):
                         return self._create_update_info(current_ver, latest_ver, "minor")
             elif self.update_check_mode == "patch":
                 # Show all updates including patches
