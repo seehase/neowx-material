@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.52.3",
+            version="1.52.4",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoground GmbH",
@@ -391,6 +391,6 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/yesterday.html.tmpl",
                     ],
                 ),
-                ("bin/user", ["bin/user/historygenerator.py", "bin/user/openmeteo.py"]),
+                ("bin/user", ["bin/user/historygenerator.py", "bin/user/openmeteo.py", "bin/user/updatecheck.py"]),
             ],
         )
