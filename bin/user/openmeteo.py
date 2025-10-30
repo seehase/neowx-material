@@ -43,7 +43,7 @@
 """
 
 import time
-from time import struct_time
+from datetime import datetime, timedelta
 import json
 import hashlib
 import urllib.request
@@ -54,7 +54,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 log = logging.getLogger(__name__)
 
@@ -139,15 +139,17 @@ class Forecast(SearchList):
         log.debug("variables: %s", variables)
 
         # specify correct range of forecast, just to be sure it matches days in remap_data bellow
-        now = time.localtime()
-        today = time.struct_time(
-            (now.tm_year, now.tm_mon, now.tm_mday, 0, 0, 0, 0, 0, -1)
-        )
+        now = datetime.now()
+        
+        today_date = now.date()
+        today_midnight = datetime.combine(today_date, datetime.min.time())
+        today = time.localtime(today_midnight.timestamp())
         start_date = time.strftime("%Y-%m-%d", today)
-        last_day = time.struct_time(
-            (now.tm_year, now.tm_mon, now.tm_mday + (days - 1), 0, 0, 0, 0, 0, -1)
-        )
-        end_date = time.strftime("%Y-%m-%d", last_day)
+
+        target_date = now.date() + timedelta(days=days - 1)
+        target_midnight = datetime.combine(target_date, datetime.min.time())
+        target = time.localtime(target_midnight.timestamp())
+        end_date = time.strftime("%Y-%m-%d", target)
 
         params = {
             "latitude": self.latitude,
@@ -188,7 +190,7 @@ class Forecast(SearchList):
 
         log.debug("params: %s", params)
 
-        return fetch_forecast(self.generator, self.base_url, params, variables, today)
+        return fetch_forecast(self.generator, self.base_url, params, variables, now)
 
 
 def hash_params(params):
@@ -202,7 +204,7 @@ def hash_params(params):
     ).hexdigest()  # create hash from params
 
 
-def fetch_forecast(generator, base_url, params, variables: list, today: struct_time):
+def fetch_forecast(generator, base_url, params, variables: list, now: datetime):
     global _weather_cache
     log.debug("Current cache state: %s", _weather_cache)
     params_hash = hash_params(params)
@@ -225,7 +227,7 @@ def fetch_forecast(generator, base_url, params, variables: list, today: struct_t
                 log.debug("Fetched raw data: %s", body)
                 data = json.loads(body)
                 log.debug("Parsed raw data as json: %s", data)
-                remaped_data = remap_data(generator, data, variables, today)
+                remaped_data = remap_data(generator, data, variables, now)
                 # save to cache and return
                 _weather_cache["params_hash"] = params_hash
                 _weather_cache["data"] = remaped_data
@@ -243,7 +245,7 @@ def fetch_forecast(generator, base_url, params, variables: list, today: struct_t
     return None
 
 
-def remap_data(generator, data: dict, variables: list, today: struct_time):
+def remap_data(generator, data: dict, variables: list, now: datetime):
     # Using ValueHelper will enable easy converting to correct units set by user in weewx.conf
     def build_value_helper(value, unit, group):
         value_tuple = ValueTuple(value, unit, group)
@@ -280,10 +282,9 @@ def remap_data(generator, data: dict, variables: list, today: struct_time):
             # generate unix epoch time using python time module
             # tm_wday and tm_yday are autocalculated/fixed by time liberary
             # don't need to care about month length, time.mktime will handle it
-            day = time.struct_time(
-                (today.tm_year, today.tm_mon, today.tm_mday + i, 0, 0, 0, 0, 0, -1)
-            )
-            midnight_timestamp = int(time.mktime(day))
+            date = now.date() + timedelta(days=i)
+            date_midnight = datetime.combine(date, datetime.min.time())
+            midnight_timestamp = int(date_midnight.timestamp())
             dt = build_value_helper(midnight_timestamp, "unix_epoch", "group_time")
             daily_keys = {}
             daily_keys["weather_code"] = daily_weather_codes[i]
