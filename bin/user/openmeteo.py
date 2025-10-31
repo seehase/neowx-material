@@ -54,7 +54,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 log = logging.getLogger(__name__)
 
@@ -267,7 +267,12 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
             _weather_cache["data"] = None
             return None
         for n in range(days):
-            hourly_weather_codes_for_day = hourly_weather_codes[n * 24 : (n + 1) * 24]
+            hourly_weather_codes_for_day = None
+            if n == 0:
+                # ignore past hours for current day
+                hourly_weather_codes_for_day = hourly_weather_codes[now.hour : 24]
+            else:
+                hourly_weather_codes_for_day = hourly_weather_codes[n * 24 : (n + 1) * 24]
             counts = Counter(hourly_weather_codes_for_day)
             max_count = max(counts.values())
             candidates = [val for val, cnt in counts.items() if cnt == max_count]
