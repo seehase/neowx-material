@@ -120,7 +120,13 @@ echo "Updating version to: $VERSION"
 # Update skin.conf
 echo "Updating skins/neowx-material/skin.conf..."
 if [ -f "skins/neowx-material/skin.conf" ]; then
-    sed -i '' "s/^[[:space:]]*version = .*/    version = $VERSION/" skins/neowx-material/skin.conf
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s/^[[:space:]]*version = .*/    version = $VERSION/" skins/neowx-material/skin.conf
+    else
+        # Linux and other Unix-like systems
+        sed -i "s/^[[:space:]]*version = .*/    version = $VERSION/" skins/neowx-material/skin.conf
+    fi
     echo "✓ Updated skin.conf"
 else
     echo "✗ Error: skins/neowx-material/skin.conf not found"
@@ -130,7 +136,13 @@ fi
 # Update install.py
 echo "Updating install.py..."
 if [ -f "install.py" ]; then
-    sed -i '' "s/version=\"[^\"]*\"/version=\"$VERSION\"/" install.py
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s/version=\"[^\"]*\"/version=\"$VERSION\"/" install.py
+    else
+        # Linux and other Unix-like systems
+        sed -i "s/version=\"[^\"]*\"/version=\"$VERSION\"/" install.py
+    fi
     echo "✓ Updated install.py"
 else
     echo "✗ Error: install.py not found"
@@ -140,7 +152,13 @@ fi
 # Update package.json
 echo "Updating skins/neowx-material/package.json..."
 if [ -f "skins/neowx-material/package.json" ]; then
-    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" skins/neowx-material/package.json
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" skins/neowx-material/package.json
+    else
+        # Linux and other Unix-like systems
+        sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" skins/neowx-material/package.json
+    fi
     echo "✓ Updated package.json"
 else
     echo "✗ Error: skins/neowx-material/package.json not found"
