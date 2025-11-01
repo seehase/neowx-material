@@ -54,7 +54,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 log = logging.getLogger(__name__)
 
@@ -140,7 +140,7 @@ class Forecast(SearchList):
 
         # specify correct range of forecast, just to be sure it matches days in remap_data bellow
         now = datetime.now()
-        
+
         today_date = now.date()
         today_midnight = datetime.combine(today_date, datetime.min.time())
         today = time.localtime(today_midnight.timestamp())
@@ -257,6 +257,7 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
     try:
         # Calculate daily weather_codes per day by choosing code with highest occurence
         daily_weather_codes = []
+        daily_weather_codes_by_hours = []
         hourly_weather_codes = data.get("hourly", {}).get("weather_code", [])
         days = len(data.get("daily", {}).get("time", []))
         if len(hourly_weather_codes) != 24 * days:
@@ -268,6 +269,11 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
             return None
         for n in range(days):
             hourly_weather_codes_for_day = hourly_weather_codes[n * 24 : (n + 1) * 24]
+            daily_weather_codes_by_hours.append(hourly_weather_codes_for_day)
+            if n == 0:
+                # ignore past hours for current day
+                hourly_weather_codes_for_day = hourly_weather_codes[now.hour : 24]
+                log.debug("Current day weather_codes: %s from all available: %s", hourly_weather_codes_for_day, hourly_weather_codes)
             counts = Counter(hourly_weather_codes_for_day)
             max_count = max(counts.values())
             candidates = [val for val, cnt in counts.items() if cnt == max_count]
@@ -288,6 +294,7 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
             dt = build_value_helper(midnight_timestamp, "unix_epoch", "group_time")
             daily_keys = {}
             daily_keys["weather_code"] = daily_weather_codes[i]
+            daily_keys["hourly_weather_codes"] = daily_weather_codes_by_hours[i]
             if "temperature" in variables:
                 daily_keys["temperature"] = {
                     "min": build_value_helper(
@@ -361,6 +368,7 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
 
         remapped = {
             "daily": daily_list,
+            "generated": {"hour": now.hour, "minute": now.minute},
         }
         log.debug("Remapped data: %s", remapped)
 

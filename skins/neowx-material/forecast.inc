@@ -36,7 +36,11 @@
 
 #set $vars = $Extras.Forecast.variables
 #if not isinstance($vars, list)
-    #set $vars = [$vars]
+    #if len($vars) > 0
+        #set $vars = [$vars]
+    #else
+        #set $vars = []
+    #end if
 #end if
 
 #if $forecast is not None
@@ -193,6 +197,36 @@
               #end for
             #end if
           </div>
+
+          #if $Extras.Forecast.show_hourly_icons == "yes"
+          <table class="text-center w-100 mb-1">
+            <tr style="line-height: 0.6rem;">
+              #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
+              #if $i == 0 and $hour_index < $forecast.generated.hour
+              <th class="font-extra-small text-light">${"%02d" % $hour_index}</th>
+              #else if $i == 0 and $hour_index == $forecast.generated.hour
+              <th class="font-extra-small $Extras.color-text">${"%02d" % $hour_index}</th>
+              #else
+              <th class="font-extra-small">${"%02d" % $hour_index}</th>
+              #end if
+              #end for
+            </tr>
+            <tr style="line-height: 0.8rem;">
+              #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
+              <td>
+                #if $i == 0 and $hour_index < $forecast.generated.hour
+                <i class="font-extra-small text-light wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                #else if $i == 0 and $hour_index == $forecast.generated.hour
+                <i class="font-extra-small $Extras.color-text wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                #else
+                <i class="font-extra-small wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                #end if
+              </td>
+              #end for
+            </tr>
+          </table>
+          #end if
+
           <div class="text-muted font-extra-small text-right">
             Forecast by&nbsp;<a class="text-muted" href="https://open-meteo.com/">Open-Meteo.com</a>
           </div>
