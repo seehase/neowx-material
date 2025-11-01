@@ -203,7 +203,7 @@
             <tr style="line-height: 0.6rem;">
               #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
               #if $i == 0 and $hour_index < $forecast.generated.hour
-              <th class="font-extra-small text-light">${"%02d" % $hour_index}</th>
+              <th class="font-extra-small text-muted">${"%02d" % $hour_index}</th>
               #else if $i == 0 and $hour_index == $forecast.generated.hour
               <th class="font-extra-small $Extras.color-text">${"%02d" % $hour_index}</th>
               #else
@@ -215,7 +215,7 @@
               #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
               <td>
                 #if $i == 0 and $hour_index < $forecast.generated.hour
-                <i class="font-extra-small text-light wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                <i class="font-extra-small text-muted wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
                 #else if $i == 0 and $hour_index == $forecast.generated.hour
                 <i class="font-extra-small $Extras.color-text wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
                 #else
