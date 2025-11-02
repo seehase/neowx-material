@@ -1,8 +1,8 @@
 .idea
+.vscode/
 /dist/skins/neowx-material/
 /dist/*.zip
 /skins/neowx-material/node_modules/
 /neowx-material-latest.zip
-/skins/neowx-material/skin.conf.backup*
-/skins/neowx-material/skin_conf_patches.txt
+/skins/neowx-material/skin.conf.patch
 
