@@ -7,7 +7,7 @@ chart: {
     type: 'line',
     zoom: {
         enabled: false,
-        type: 'x',  
+        type: 'x',
         autoScaleYaxis: false,
     },
 },
@@ -22,7 +22,7 @@ stroke: {
 
 plotOptions: {
     line: {
-      borderRadius: 2,
+        borderRadius: 2,
     }
 },
 
