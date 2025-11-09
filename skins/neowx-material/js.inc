@@ -12,10 +12,10 @@
 <script type="text/javascript" src="js/mdb.min.js"></script>
 ## Vendor JS
 #if $lang == "en"
-<script src="js/vendor/moment.min.js"></script>
+    <script src="js/vendor/moment.min.js"></script>
 #else
-<script src="js/vendor/moment-with-locales.min.js"></script>
-<script type="text/javascript">moment.locale('$lang')</script>
+    <script src="js/vendor/moment-with-locales.min.js"></script>
+    <script type="text/javascript">moment.locale('$lang')</script>
 #end if
 <script src="js/vendor/apexcharts/apexcharts.min.js"></script>
 ## NeoWX Material App
@@ -36,7 +36,7 @@
         const statusLabel = document.getElementById("status-label");
         if (statusLabel && diffMinutes > $Extras.Header.offline_threshold_minutes) {
             statusLabel.textContent = "$gettext('OFFLINE')";
-        } else {
+            } else {
             // enable if you want to show also ONLINE (which should always be the excepted state)
             // statusLabel.textContent = "$gettext('ONLINE')";
         }
@@ -45,7 +45,7 @@
 
 #set $allowMouseWheelZoom = "false"
 #if $Extras.Appearance.allowMouseWheelZoom == "true"
-#set $allowMouseWheelZoom = "true"
+    #set $allowMouseWheelZoom = "true"
 #end if
 
 ## Global apexcharts config
@@ -105,19 +105,19 @@
         },
     }
 
-## Ordinals conversion for W0CHP's custom WindDir Charts:
-function getOrdinalDirection(degrees) {
-    var sectors = [
-      '$Extras.hemispheres[0]',
-      '$Extras.hemispheres[1]',
-      '$Extras.hemispheres[2]',
-      '$Extras.hemispheres[3]',
-      '$Extras.hemispheres[4]',
-      '$Extras.hemispheres[5]',
-      '$Extras.hemispheres[6]',
-      '$Extras.hemispheres[7]'
-    ];
-    var index = Math.round(degrees / (360 / sectors.length));
-    return sectors[index % sectors.length];
-}
+    ## Ordinals conversion for W0CHP's custom WindDir Charts:
+    function getOrdinalDirection(degrees) {
+        var sectors = [
+            '$Extras.hemispheres[0]',
+            '$Extras.hemispheres[1]',
+            '$Extras.hemispheres[2]',
+            '$Extras.hemispheres[3]',
+            '$Extras.hemispheres[4]',
+            '$Extras.hemispheres[5]',
+            '$Extras.hemispheres[6]',
+            '$Extras.hemispheres[7]'
+        ];
+        var index = Math.round(degrees / (360 / sectors.length));
+        return sectors[index % sectors.length];
+    }
 </script>

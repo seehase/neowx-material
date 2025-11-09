@@ -11,14 +11,14 @@ fill: {
 },
 xaxis: {
     categories: [
-      '$Extras.hemispheres[0]',
-      '$Extras.hemispheres[1]',
-      '$Extras.hemispheres[2]',
-      '$Extras.hemispheres[3]',
-      '$Extras.hemispheres[4]',
-      '$Extras.hemispheres[5]',
-      '$Extras.hemispheres[6]',
-      '$Extras.hemispheres[7]'
+        '$Extras.hemispheres[0]',
+        '$Extras.hemispheres[1]',
+        '$Extras.hemispheres[2]',
+        '$Extras.hemispheres[3]',
+        '$Extras.hemispheres[4]',
+        '$Extras.hemispheres[5]',
+        '$Extras.hemispheres[6]',
+        '$Extras.hemispheres[7]'
     ]
 },
 tooltip: {

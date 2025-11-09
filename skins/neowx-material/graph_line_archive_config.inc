@@ -5,15 +5,14 @@
 
 #set $allowMouseWheelZoom = "false"
 #if $Extras.Appearance.allowMouseWheelZoom == "true"
-#set $allowMouseWheelZoom = "true"
+    #set $allowMouseWheelZoom = "true"
 #end if
-
 
 chart: {
     type: 'line',
     zoom: {
         enabled: false,
-        type: 'x',  
+        type: 'x',
         autoScaleYaxis: false,
         allowMouseWheelZoom: $allowMouseWheelZoom,
     },
@@ -29,7 +28,7 @@ stroke: {
 
 plotOptions: {
     line: {
-      borderRadius: 2,
+        borderRadius: 2,
     }
 },
 
