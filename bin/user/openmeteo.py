@@ -40,6 +40,22 @@
 
     # Model to use, by default "best_match" is used. For more options see https://open-meteo.com/en/docs only one model can be used at a time.
     model = best_match
+
+    # Render separator between current weather and forecast yes/no
+    forecast_separator = no
+
+    # Show words "Today" and "Tomorrow" instead of weekday names yes/no
+    show_today_tomorrow = no
+
+    # Show hourly weather icons at bottom of cards yes/no
+    show_hourly_icons = no
+
+    # Hourly icons aggregation interval in hours, used only if show_hourly_icons is yes, possible values are 1, 3, 6
+    hourly_icons_interval = 3
+
+    # Apply weigh to weather codes when aggregating daily icon / description from hourly icons yes/no
+    apply_weather_code_weights = yes
+
 """
 
 import time
@@ -54,7 +70,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 
 log = logging.getLogger(__name__)
 
@@ -77,6 +93,36 @@ supported_variables = [
     "uv-sun",
 ]  # supported variables
 
+weather_weights = {
+    0: 1,
+    1: 1,
+    2: 1,
+    3: 1,
+    45: 1,
+    48: 1,
+    51: 1,
+    53: 2,
+    55: 3,
+    56: 1,
+    57: 3,
+    61: 1,
+    63: 2,
+    65: 3,
+    66: 1,
+    67: 3,
+    71: 1,
+    73: 2,
+    75: 3,
+    77: 1,
+    80: 1,
+    81: 2,
+    82: 3,
+    85: 1,
+    86: 3,
+    95: 1,
+    96: 1,
+    99: 3,
+}
 
 class Forecast(SearchList):
 
@@ -121,6 +167,33 @@ class Forecast(SearchList):
                 days,
             )
             days = 3
+
+        hourly_icons_interval_str = self.forecast_dict.get(
+            "hourly_icons_interval", "1"
+        )
+        hourly_icons_interval = 1
+        try:
+            hourly_icons_interval = int(hourly_icons_interval_str)
+        except (ValueError, TypeError):
+            log.info(
+                "Parameter hourly_icons_interval with value '%s' is not valid, 1 will be used as fallback.",
+                hourly_icons_interval_str,
+            )
+            hourly_icons_interval = 1
+        
+        if hourly_icons_interval not in [1, 3, 6]:
+            log.info(
+                "Parameter hourly_icons_interval with value '%s' is not valid, 1 will be used as fallback.",
+                hourly_icons_interval,
+            )
+            hourly_icons_interval = 1
+
+        apply_weather_code_weights_str = self.forecast_dict.get(
+            "apply_weather_code_weights", "no"
+        )
+        apply_weather_code_weights = False
+        if isinstance(apply_weather_code_weights_str, str) and apply_weather_code_weights_str.lower() == "yes":
+            apply_weather_code_weights = True
 
         model = self.forecast_dict.get("model", "best_match")
         # check if model is string
@@ -190,7 +263,7 @@ class Forecast(SearchList):
 
         log.debug("params: %s", params)
 
-        return fetch_forecast(self.generator, self.base_url, params, variables, now)
+        return fetch_forecast(self.generator, self.base_url, params, variables, now, hourly_icons_interval, apply_weather_code_weights)
 
 
 def hash_params(params):
@@ -204,7 +277,7 @@ def hash_params(params):
     ).hexdigest()  # create hash from params
 
 
-def fetch_forecast(generator, base_url, params, variables: list, now: datetime):
+def fetch_forecast(generator, base_url, params, variables: list, now: datetime, hourly_icons_interval: int, apply_weather_code_weights: bool):
     global _weather_cache
     log.debug("Current cache state: %s", _weather_cache)
     params_hash = hash_params(params)
@@ -227,7 +300,7 @@ def fetch_forecast(generator, base_url, params, variables: list, now: datetime):
                 log.debug("Fetched raw data: %s", body)
                 data = json.loads(body)
                 log.debug("Parsed raw data as json: %s", data)
-                remaped_data = remap_data(generator, data, variables, now)
+                remaped_data = remap_data(generator, data, variables, now, hourly_icons_interval, apply_weather_code_weights)
                 # save to cache and return
                 _weather_cache["params_hash"] = params_hash
                 _weather_cache["data"] = remaped_data
@@ -245,7 +318,7 @@ def fetch_forecast(generator, base_url, params, variables: list, now: datetime):
     return None
 
 
-def remap_data(generator, data: dict, variables: list, now: datetime):
+def remap_data(generator, data: dict, variables: list, now: datetime, hourly_icons_interval: int, apply_weather_code_weights: bool):
     # Using ValueHelper will enable easy converting to correct units set by user in weewx.conf
     def build_value_helper(value, unit, group):
         value_tuple = ValueTuple(value, unit, group)
@@ -274,11 +347,7 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
                 # ignore past hours for current day
                 hourly_weather_codes_for_day = hourly_weather_codes[now.hour : 24]
                 log.debug("Current day weather_codes: %s from all available: %s", hourly_weather_codes_for_day, hourly_weather_codes)
-            counts = Counter(hourly_weather_codes_for_day)
-            max_count = max(counts.values())
-            candidates = [val for val, cnt in counts.items() if cnt == max_count]
-            result = max(candidates)
-            daily_weather_codes.append(result)
+            daily_weather_codes.append(aggregate_daily_icons(hourly_weather_codes_for_day, apply_weather_code_weights))
 
         log.debug("Calculated daily weather codes: %s", daily_weather_codes)
 
@@ -294,7 +363,7 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
             dt = build_value_helper(midnight_timestamp, "unix_epoch", "group_time")
             daily_keys = {}
             daily_keys["weather_code"] = daily_weather_codes[i]
-            daily_keys["hourly_weather_codes"] = daily_weather_codes_by_hours[i]
+            daily_keys["hourly_weather_codes"] = aggregate_hourly_icons(daily_weather_codes_by_hours[i], hourly_icons_interval)
             if "temperature" in variables:
                 daily_keys["temperature"] = {
                     "min": build_value_helper(
@@ -381,3 +450,24 @@ def remap_data(generator, data: dict, variables: list, now: datetime):
         )
         log.error(e)
     return None
+
+def aggregate_daily_icons(hourly_codes: list, apply_weather_code_weights: bool) -> int:
+    """Aggregate hourly weather codes for a day into single weather icon with the most weighted occurrence."""
+    weighted_counts = Counter()
+    for code in hourly_codes:
+        weight = weather_weights.get(code, 1) if apply_weather_code_weights else 1
+        weighted_counts[code] += weight
+    log.debug("Weighted weather codes: %s from all available weather codes: %s", weighted_counts, hourly_codes)
+    max_weight = max(weighted_counts.values())
+    candidates = [val for val, weight in weighted_counts.items() if weight == max_weight]
+    return max(candidates)
+
+def aggregate_hourly_icons(hourly_codes: list, interval: int) -> list:
+    """Aggregate hourly weather codes into specified interval by choosing the highest code value for each interval."""
+    aggregated_codes = []
+    for i in range(0, len(hourly_codes), interval):
+        chunk = hourly_codes[i : i + interval]
+        if chunk:  # Ensure the chunk is not empty
+            result = max(chunk)  # Choose the highest code value in the interval
+            aggregated_codes.append(result)
+    return aggregated_codes
