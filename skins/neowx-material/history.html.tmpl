@@ -102,6 +102,14 @@
                                     $uv_max_table
                                 </div>
                             #end if
+
+                            #if $alltime.lightning_strike_count.has_data
+                                <div class="card card-body">
+                                    <h4 class="h5-responsive $Extras.color-text"><i class="wi wi-lightning"></i>
+                                    $gettext("lightning_strikes")</h4>
+                                    $lightning_strike_count_table
+                                </div>
+                            #end if
                         </div>
                     </div>
 
@@ -246,6 +254,17 @@
                                             <td style="font-size:16px;">$gettext("highest")</td>
                                             <td style="font-size:16px;">$year.radiation.max</td>
                                             <td style="font-size:16px;">$year.radiation.maxtime</td>
+                                        </tr>
+                                    #end if
+                                    #if $year.lightning_strike_count.has_data
+                                        <tr>
+                                            <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-lightning"></i>
+                                            $getVar('obs.label.lightning_strike_count')</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-size:16px;">$gettext("most")</td>
+                                            <td style="font-size:16px;">$year.lightning_strike_count.maxsum</td>
+                                            <td style="font-size:16px;">$year.lightning_strike_count.maxsumtime</td>
                                         </tr>
                                     #end if
                                 </table>
@@ -395,6 +414,17 @@
                                             <td style="font-size:16px;">$gettext("highest")</td>
                                             <td style="font-size:16px;">$alltime.radiation.max</td>
                                             <td style="font-size:16px;">$alltime.radiation.maxtime</td>
+                                        </tr>
+                                    #end if
+                                    #if $alltime.lightning_strike_count.has_data
+                                        <tr>
+                                            <th colspan="3" class="$Extras.color-text" style="text-align:left;font-size:20px;"><i class="wi wi-lightning"></i>
+                                            $getVar('obs.label.lightning_strike_count')</th>
+                                        </tr>
+                                        <tr>
+                                            <td style="font-size:16px;">$gettext("most")</td>
+                                            <td style="font-size:16px;">$alltime.lightning_strike_count.maxsum</td>
+                                            <td style="font-size:16px;">$alltime.lightning_strike_count.maxsumtime</td>
                                         </tr>
                                     #end if
                                 </table>
