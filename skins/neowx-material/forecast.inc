@@ -199,27 +199,32 @@
                             </div>
 
                             #if $Extras.Forecast.show_hourly_icons == "yes"
+                                #set $size = "font-extra-small" if int($Extras.Forecast.hourly_icons_interval) == 1 else "font-small"
+                                #set $hour_line_height = "0.6rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.1rem"
+                                #set $icon_line_height = "0.8rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.4rem"
                                 <table class="text-center w-100 mb-1">
-                                    <tr style="line-height: 0.6rem;">
+                                    <tr style="line-height: $hour_line_height;">
                                         #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
-                                            #if $i == 0 and $hour_index < $forecast.generated.hour
-                                                <th class="font-extra-small text-muted">${"%02d" % $hour_index}</th>
-                                            #else if $i == 0 and $hour_index == $forecast.generated.hour
-                                                <th class="font-extra-small $Extras.color-text">${"%02d" % $hour_index}</th>
+                                            #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
+                                            #if $i == 0 and $hour < $forecast.generated.hour
+                                                <th class="$size text-muted">${"%02d" % $hour}</th>
+                                            #else if $i == 0 and $hour == $forecast.generated.hour
+                                                <th class="$size $Extras.color-text">${"%02d" % $hour}</th>
                                             #else
-                                                <th class="font-extra-small">${"%02d" % $hour_index}</th>
+                                                <th class="$size">${"%02d" % $hour}</th>
                                             #end if
                                         #end for
                                     </tr>
-                                    <tr style="line-height: 0.8rem;">
+                                    <tr style="line-height: $icon_line_height;">
                                         #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
+                                            #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
                                             <td>
-                                                #if $i == 0 and $hour_index < $forecast.generated.hour
-                                                    <i class="font-extra-small text-muted wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
-                                                #else if $i == 0 and $hour_index == $forecast.generated.hour
-                                                    <i class="font-extra-small $Extras.color-text wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                                                #if $i == 0 and $hour < $forecast.generated.hour
+                                                    <i class="$size text-muted wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                                                #else if $i == 0 and $hour == $forecast.generated.hour
+                                                    <i class="$size $Extras.color-text wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
                                                 #else
-                                                    <i class="font-extra-small wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                                                    <i class="$size wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
                                                 #end if
                                             </td>
                                         #end for
