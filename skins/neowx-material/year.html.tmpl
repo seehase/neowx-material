@@ -747,7 +747,7 @@
 
         // Lightning
         #if $year.lightning_strike_count.has_data
-            $getChartJsCode("lightning_strike_count", "lightning_strike_countchart", "bar", "lightning_strike_count")
+            $getChartJsCode("lightning_strike_count", "lightning_strike_countchart", "bar", "lightning_strike_count", "", "sum")
         #end if
 
         #if $year.lightning_noise_count.has_data
