@@ -343,13 +343,13 @@
 #def getChartData($name, $column)
     #for $record in $year.days
         #try
-        #set val = $getattr($record, $name)
-        #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
-        [$record.start.raw, $data],
+            #set val = $getattr($record, $name)
+            #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
+            [$record.start.raw, $data],
         #except
 
-    #end try
-#end for
+        #end try
+    #end for
 #end def
 
 ## +-------------------------------------------------------------------------+

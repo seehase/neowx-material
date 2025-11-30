@@ -24,7 +24,7 @@ options:
   --version             show program's version number and exit
 """
 # Define the script version
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 def reformat_cheetah_template(source_code):
     """
@@ -60,15 +60,12 @@ def reformat_cheetah_template(source_code):
 
         # Determine line type by content (Cheetah > JS > HTML)
         if stripped_line.startswith('#'):
-            if stripped_line.startswith(('#if', '#for', '#def')):
+            if stripped_line.startswith(('#if', '#for', '#def', '#try')):
                 opens = 1
-            elif stripped_line.startswith(('#else if', '#elif')):
-                opens = 1
-                closes = 1
-            elif stripped_line.startswith('#else'):
+            elif stripped_line.startswith(('#else', '#else if', '#elif', '#except')):
                 opens = 1
                 closes = 1
-            elif stripped_line.startswith('#end'):
+            elif stripped_line.startswith(('#end', '#end try')):
                 closes = 1
         elif in_multiline_tag:
             # If we are in a multi-line tag, we don't change indentation, just look for the end
@@ -106,7 +103,7 @@ def reformat_cheetah_template(source_code):
         if closes > opens:
             current_indent_level -= (closes - opens)
 
-        if stripped_line.startswith(('#else', '#elif', '#else if')):
+        if stripped_line.startswith(('#else', '#elif', '#else if', '#except')):
             current_indent_level -= 1
 
         current_indent_level = max(0, current_indent_level)
