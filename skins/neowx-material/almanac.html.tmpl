@@ -93,7 +93,7 @@
                                         </thead>
                                         <tbody>
                                             #for $body in $bodies
-                                            #set $binder = $getattr($almanac,$body)
+                                                #set $binder = $getattr($almanac,$body)
                                                 <tr>
                                                     <td scope="row">$gettext($body)</td>
                                                     <td>$binder.rise<div class="d-md-none">$binder.azimuth.formatted°</div></td>
