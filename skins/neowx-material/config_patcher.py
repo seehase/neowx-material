@@ -9,7 +9,7 @@ Source: https://github.com/seehase/python-config-patcher
 
 Usage: usage: config_patcher.py [-h] source patch [-o OUTFILE]
 """
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 def parse_config(file_path):
     config = {}
@@ -88,12 +88,12 @@ def write_config(config, patch_config, source_file_path, output_file_path):
             return
 
         source_section = get_section(source_config, section_path)
-        
+
         new_items = {}
         for pkey, pvalue in patch_section.items():
             if not source_section or pkey not in source_section:
                 new_items[pkey] = pvalue
-        
+
         if new_items:
             output_lines.extend(format_new_items(new_items, section_level))
 
@@ -109,10 +109,10 @@ def write_config(config, patch_config, source_file_path, output_file_path):
                 old_level, old_name = section_stack.pop()
                 path = tuple(s[1] for s in section_stack) + (old_name,)
                 add_new_items_for_section(path, old_level)
-            
+
             output_lines.extend(comment_buffer)
             comment_buffer = []
-            
+
             if level <= deleted_section_level: deleted_section_level = float('inf')
             if deleted_section_level < float('inf'): continue
 
@@ -120,7 +120,7 @@ def write_config(config, patch_config, source_file_path, output_file_path):
             if get_section(config, path) is None:
                 deleted_section_level = level
                 continue
-            
+
             section_stack.append((level, name))
             output_lines.append(line)
 
@@ -129,11 +129,11 @@ def write_config(config, patch_config, source_file_path, output_file_path):
         elif '=' in stripped and not stripped.startswith('#'):
             output_lines.extend(comment_buffer)
             comment_buffer = []
-            
+
             try:
                 key, _ = [p.strip() for p in stripped.split('=', 1)]
                 path = tuple(s[1] for s in section_stack)
-                
+
                 merged_section = get_section(config, path)
                 if merged_section and key in merged_section:
                     indent = len(line) - len(line.lstrip(' '))
@@ -147,8 +147,14 @@ def write_config(config, patch_config, source_file_path, output_file_path):
         level, name = section_stack.pop()
         path = tuple(s[1] for s in section_stack) + (name,)
         add_new_items_for_section(path, level)
-    
+
     output_lines.extend(comment_buffer)
+
+    # Add new top-level sections from the patch
+    for section_name, section_content in patch_config.items():
+        if section_name not in source_config:
+            output_lines.append(f"\n[{section_name}]\n")
+            output_lines.extend(format_new_items(section_content, 1))
 
     with open(output_file_path, 'w') as f:
         f.writelines(output_lines)
