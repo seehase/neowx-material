@@ -7,6 +7,8 @@
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
+#set global $custom_time_delta = int(($current.dateTime.raw % 3600) + 86400)  ## Align to the last full hour and add lenght of 1 day (86400 seconds)
+
 #def notFoundCard($name)
     <div class="col-12 col-md-6 col-xl-4 mb-4">
         <div class="card">
@@ -369,7 +371,7 @@
                 #set current_interval = int($Extras.Charts.current_rain_timespan)
             #end if
 
-            #for $record in $span($day_delta=1).spans(interval=current_interval)
+            #for $record in $span($time_delta=$custom_time_delta).spans(interval=current_interval)
                 #try
                     #set val = $getattr($record, $name)
                     #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
@@ -590,7 +592,7 @@
             };
 
             var raw_data = [
-                #for $record in $span($day_delta=1).spans(interval=int($Extras.Charts.current_timespan))
+                #for $record in $span($time_delta=$custom_time_delta).spans(interval=int($Extras.Charts.current_timespan))
                     {
                         'dir': "$record.wind.vecdir.raw",
                         'speed': "$record.windSpeed.avg.raw",

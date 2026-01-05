@@ -7,6 +7,8 @@
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
+#set global $number_of_records = int(86400 / int($Extras.Charts.current_timespan)) + 1 ## Number of records corresponding to 24 hours
+
 #def valuesCard($name)
     #if $getVar('yesterday.' + name + '.has_data')
         <div class="col-12 col-md-6 col-xl-4 mb-4">
@@ -213,7 +215,7 @@
                 #set current_interval = int($Extras.Charts.current_rain_timespan)
             #end if
 
-            #for $record in $span($hour_delta=48).spans(interval=current_interval)
+            #for $record in $span($day_delta=1,$boundary='midnight').spans(interval=current_interval)
                 #try
                     #set val = $getattr($record, $name)
                     #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
@@ -245,21 +247,21 @@
                 ## Get chart data and slice it (only first half of last 48 hours)
 
                 series1data = [ $getChartData(series1, column) ];
-                half_length1 = Math.ceil(series1data.length / 2);
+                end_of_yesterday1 = Math.min(series1data.length, $number_of_records);
 
                 #if $series2 != ""
                     series2data = [ $getChartData(series2, column) ];
-                    half_length2 = Math.ceil(series2data.length / 2);
+                    end_of_yesterday2 = Math.min(series2data.length, $number_of_records);
                 #end if
 
                 #if $series3 != ""
                     series3data = [ $getChartData(series3, column) ];
-                    half_length3 = Math.ceil(series3data.length / 2);
+                    end_of_yesterday3 = Math.min(series3data.length, $number_of_records);
                 #end if
 
                 #if $series4 != ""
                     series4data = [ $getChartData(series4, column) ];
-                    half_length4 = Math.ceil(series4data.length / 2);
+                    end_of_yesterday4 = Math.min(series4data.length, $number_of_records);
                 #end if
 
                 var chartElement = document.querySelector('#$id');
@@ -308,24 +310,24 @@
                         series: [
                             {
                                 name: "$getVar('obs.label.' + series1)",
-                                data: series1data.splice(0,half_length1)
+                                data: series1data.splice(0,end_of_yesterday1)
                             }
                             #if $series2 != "" and $getVar('yesterday.' + series2 + '.has_data')
                                 ,{
                                     name: "$getVar('obs.label.' + series2)",
-                                    data: series2data.splice(0,half_length2)
+                                    data: series2data.splice(0,end_of_yesterday2)
                                 }
                             #end if
                             #if $series3 != "" and $getVar('yesterday.' + series3 + '.has_data')
                                 ,{
                                     name: "$getVar('obs.label.' + series3)",
-                                    data: series3data.splice(0,half_length3)
+                                    data: series3data.splice(0,end_of_yesterday3)
                                 }
                             #end if
                             #if $series4 != "" and $getVar('yesterday.' + series4 + '.has_data')
                                 ,{
                                     name: "$getVar('obs.label.' + series4)",
-                                    data: series4data.splice(0,half_length4)
+                                    data: series4data.splice(0,end_of_yesterday4)
                                 }
                             #end if
                         ]
@@ -343,7 +345,16 @@
         <script type="text/javascript">
             // Declare variables
             var series1data = null;
-            var half_length1 = null;
+            var end_of_yesterday1 = null;
+
+            var series2data = null;
+            var end_of_yesterday2 = null;
+
+            var series3data = null;
+            var end_of_yesterday3 = null;
+
+            var series4data = null;
+            var end_of_yesterday4 = null;
 
             // Config templates
 
@@ -466,7 +477,7 @@
             };
 
             var raw_data = [
-                #for $record in $span($hour_delta=48).spans(interval=int($Extras.Charts.current_timespan))
+                #for $record in $span($day_delta=1,$boundary='midnight').spans(interval=int($Extras.Charts.current_timespan))
                     {
                         'dir': "$record.wind.vecdir.raw",
                         'speed': "$record.windSpeed.avg.raw",
@@ -475,8 +486,8 @@
                 #end for
             ];
 
-            half_length1 = Math.ceil(raw_data.length / 2);
-            raw_data = raw_data.splice(0,half_length1);
+            end_of_yesterday1 = Math.min(raw_data.length, $number_of_records);
+            raw_data = raw_data.splice(0,end_of_yesterday1);
 
             raw_data.forEach(function(item) {
                 var vec_dir = parseInt(item.dir);

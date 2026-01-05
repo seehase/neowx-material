@@ -220,7 +220,7 @@
                 #set current_interval = int($Extras.Charts.week_windrun_timespan)
             #end if
 
-            #for $record in $span($week_delta=1).spans(interval=current_interval)
+            #for $record in $span($week_delta=1,$boundary='midnight').spans(interval=current_interval)
                 #try
                     #set val = $getattr($record, $name)
                     #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
@@ -452,7 +452,7 @@
             };
 
             var raw_data = [
-                #for $record in $span($week_delta=1).spans(interval=int($Extras.Charts.week_timespan))
+                #for $record in $span($week_delta=1,$boundary='midnight').spans(interval=int($Extras.Charts.week_timespan))
                     {
                         'dir': "$record.wind.vecdir.raw",
                         'speed': "$record.windSpeed.avg.raw",
