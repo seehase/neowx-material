@@ -215,7 +215,7 @@
                 #set current_interval = int($Extras.Charts.current_rain_timespan)
             #end if
 
-            #set records = $span($day_delta=1,$boundary='midnight').spans(interval=current_interval)
+            #set $records = list($span($day_delta=1,$boundary='midnight').spans(interval=current_interval))
             #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
