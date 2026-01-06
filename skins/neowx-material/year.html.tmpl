@@ -301,11 +301,14 @@
                 #set current_interval = int($Extras.Charts.year_windrun_timespan)
             #end if
 
-            #for $record in $span($year_delta=1,$boundary='midnight').spans(interval=current_interval)
+            #set $records = list($span($year_delta=1,$boundary='midnight').spans(interval=current_interval))
+            #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
                     #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
-                    [$record.start.raw, $data],
+                    #if $data != "null" or $idx == 0 or $idx == len($records) - 1
+                        [$record.start.raw, $data],
+                    #end if
                 #except
 
                 #end try

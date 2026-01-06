@@ -295,11 +295,14 @@
         ## +-------------------------------------------------------------------------+
 
         #def getChartData($name, $column)
-            #for $record in $month.days
+            #set $days = list($month.days)
+            #for idx, record in enumerate($days)
                 #try
                     #set val = $getattr($record, $name)
                     #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
-                    [$record.start.raw, $data],
+                    #if $data != "null" or $idx == 0 or $idx == len($days) - 1
+                        [$record.start.raw, $data],
+                    #end if
                 #except
 
                 #end try

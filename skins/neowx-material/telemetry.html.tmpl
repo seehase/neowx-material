@@ -186,7 +186,8 @@
             ## Check if this is an enabled battery field
             #set is_battery = $isBatteryFieldEnabled($name)
 
-            #for $record in $span($day_delta=$chart_days).spans(interval=current_interval)
+            #set records = list($span($day_delta=$chart_days).spans(interval=current_interval))
+            #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
                     #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
@@ -196,7 +197,9 @@
                         #set data = $getBatteryChartValue($name, $data)
                     #end if
 
-                    [$record.start.raw, $data],
+                    #if $data != "null" or $idx == 0 or $idx == len($records) - 1
+                        [$record.start.raw, $data],
+                    #end if
                 #except
 
                 #end try
