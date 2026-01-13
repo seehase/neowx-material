@@ -85,7 +85,7 @@
                 allowMouseWheelZoom: $allowMouseWheelZoom,
             },
             toolbar: {
-                autoSelected: 'zoom',
+                autoSelected: 'pan',
                 export: {
                     csv: {
                         headerCategory: 'DateTime',
