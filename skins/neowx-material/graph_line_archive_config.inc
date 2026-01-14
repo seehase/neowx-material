@@ -4,8 +4,13 @@
 ## +-----------------------------------------------------------------------------------+
 
 #set $allowMouseWheelZoom = "false"
-#if $Extras.Appearance.allowMouseWheelZoom == "true"
+#if $Extras.Appearance.get('allowMouseWheelZoom') == "true"
     #set $allowMouseWheelZoom = "true"
+#end if
+
+#set $defaultChartBehavior = "zoom"
+#if $Extras.Appearance.get('defaultChartBehavior') == "pan"
+    #set $defaultChartBehavior = "pan"
 #end if
 
 chart: {
@@ -15,6 +20,17 @@ chart: {
         type: 'x',
         autoScaleYaxis: false,
         allowMouseWheelZoom: $allowMouseWheelZoom,
+    },
+    toolbar: {
+        autoSelected: '$defaultChartBehavior',
+        export: {
+            csv: {
+                headerCategory: 'DateTime',
+                dateFormatter(timestamp) {
+                    return moment.unix(timestamp).toISOString()
+                }
+            }
+        }
     },
 },
 
