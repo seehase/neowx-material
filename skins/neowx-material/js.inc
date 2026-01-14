@@ -44,8 +44,13 @@
 </script>
 
 #set $allowMouseWheelZoom = "false"
-#if $Extras.Appearance.allowMouseWheelZoom == "true"
+#if $Extras.Appearance.get('allowMouseWheelZoom') == "true"
     #set $allowMouseWheelZoom = "true"
+#end if
+
+#set $defaultChartBehavior = "zoom"
+#if $Extras.Appearance.get('defaultChartBehavior') == "pan"
+    #set $defaultChartBehavior = "pan"
 #end if
 
 ## Global apexcharts config
@@ -85,7 +90,7 @@
                 allowMouseWheelZoom: $allowMouseWheelZoom,
             },
             toolbar: {
-                autoSelected: 'zoom',
+                autoSelected: '$defaultChartBehavior',
                 export: {
                     csv: {
                         headerCategory: 'DateTime',
