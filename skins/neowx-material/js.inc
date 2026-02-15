@@ -83,6 +83,7 @@
         chart: {
             height: $Extras.Charts.height,
             stacked: false,
+            background: theme_mode === 'dark' ? '#444' : '#ffffff',
             zoom: {
                 type: 'x',
                 enabled: true,
