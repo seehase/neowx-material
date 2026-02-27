@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.52.27",
+            version="1.53.3",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoground GmbH",
@@ -142,6 +142,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/js/vendor/apexcharts/locales/zh-cn.json",
                         "skins/neowx-material/js/vendor/moment.min.js",
                         "skins/neowx-material/js/vendor/moment-with-locales.min.js",
+                        "skins/neowx-material/js/weewx-mqtt.js",
                         "skins/neowx-material/lang/ca.conf",
                         "skins/neowx-material/lang/de.conf",
                         "skins/neowx-material/lang/en.conf",

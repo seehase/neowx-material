@@ -21,7 +21,7 @@
 #def valuesCard($name)
     #if $getVar('month.' + name + '.has_data')
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card">
+            <div class="card card-value" id="${name}-value" data-name="$name">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
@@ -130,7 +130,7 @@
 #def chartCard($name, $id, $name2 = "XX")
     #if ($getVar('month.' + name + '.has_data') or $name == "windvec") and $name != "appTemp"
         <div class="col-12 col-xl-6 mb-4">
-            <div class="card">
+            <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
                     <h5 class="h5-responsive $Extras.color-text">
                         #if $name2 != "XX"

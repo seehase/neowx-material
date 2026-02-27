@@ -101,7 +101,7 @@
     #def valuesCard($name)
         #if $getVar('day.' + name + '.has_data')
             <div class="col-12 col-md-6 col-xl-4 mb-4">
-                <div class="card">
+                <div class="card card-value" id="${name}-value" data-name="$name">
                     <div class="card-body text-center">
                         <h3 class="h5-responsive $Extras.color-text">
                             $getVar('obs.label.' + name)
@@ -136,7 +136,7 @@
             #if $name == 'windSpeed'
 
                 <div class="row">
-                    <div class="col-3 text-muted font-small">
+                    <div class="col-3 text-muted font-small lo-text">
                         $day.wind.avg <br>
                         $gettext("avg")
                     </div>
@@ -156,7 +156,7 @@
             #else if $name == 'rain'
 
                 <div class="row">
-                    <div class="col-3 text-muted font-small">
+                    <div class="col-3 text-muted font-small lo-text">
                         $current.rainRate <br>
                         $obs.label.rainRate
                     </div>
@@ -198,7 +198,7 @@
             #else if $name == 'windrun'
 
                 <div class="row">
-                    <div class="col-3 text-muted font-small"></div>
+                    <div class="col-3 text-muted font-small lo-text"></div>
                     <div class="col-6">
                         <h4 class="h2-responsive">$day.windrun.sum</h4>
                     </div>
@@ -208,7 +208,7 @@
             #else if $name == 'ET'
 
                 <div class="row">
-                    <div class="col-3 text-muted font-small"></div>
+                    <div class="col-3 text-muted font-small lo-text"></div>
                     <div class="col-6">
                         <h4 class="h2-responsive">$day.ET.sum</h4>
                     </div>
@@ -244,10 +244,10 @@
 ## | Chart values are defined in the JS section below                        |
 ## +-------------------------------------------------------------------------+
 
-#def chartCard($name, $id, $name2 = "XX")
+#def chartCard($name, $name2 = "XX")
     #if ($getVar('day.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "ET" and $name != "windrun"
         <div class="col-12 col-xl-6 mb-4">
-            <div class="card">
+            <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
                     <h5 class="h5-responsive $Extras.color-text">
                         #if $name2 != "XX"
@@ -257,7 +257,7 @@
                             $getVar('Extras.Charts.Titles.' + name, $getVar('obs.label.' + name))
                         #end if
                     </h5>
-                    <div id="$id"></div>
+                    <div id="${name}chart"></div>
                 </div>
             </div>
         </div>
@@ -312,10 +312,10 @@
                             #silent $seen_charts.add($x)
                             #if $x == "ET"
                                 #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw > 0.0
-                                    $chartCard($x, $x + 'chart')
+                                    $chartCard($x)
                                 #end if
                             #else
-                                $chartCard($x, $x + 'chart')
+                                $chartCard($x)
                             #end if
                         #end if
                     #end for
@@ -352,6 +352,75 @@
         </main>
 
         #include "footer.inc"
+
+        ## +-------------------------------------------------------------------------+
+        ## | MQTT Configuration - Injected as global variables                       |
+        ## +-------------------------------------------------------------------------+
+        ## +-------------------------------------------------------------------------+
+        ## | MQTT Configuration - Injected as global variables                       |
+        ## +-------------------------------------------------------------------------+
+        #set $mqtt_enabled = ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True)
+        #if $mqtt_enabled
+        #set $enabled_str = "true"
+        #else
+        #set $enabled_str = "false"
+        #end if
+        #set $mqtt_debug = ($Extras.MQTT.get('debug', 'false') == "true" or $Extras.MQTT.get('debug', False) == True)
+        #if $mqtt_debug
+        #set $debug_str = "true"
+        #else
+        #set $debug_str = "false"
+        #end if
+        #set $flash_on_update = $Extras.MQTT.get('flash_on_update', 'true')
+        #if $flash_on_update == 'true' or $flash_on_update == True
+        #set $flash_on_update_str = "true"
+        #else
+        #set $flash_on_update_str = "false"
+        #end if
+        #set $flash_color_raw = $Extras.MQTT.get('flash_color', '#00ff00')
+        #set $flash_color = $flash_color_raw.strip('"').strip("'") if $flash_color_raw else '#00ff00'
+        <script type="text/javascript">
+            // MQTT Connection Configuration from skin.conf
+            window.MQTT_CONFIG = {
+                enabled: $enabled_str,
+                debug: $debug_str,
+                host: "$Extras.MQTT.host",
+                port: $Extras.MQTT.port,
+                websocket_path: "$Extras.MQTT.websocket_path",
+                use_ssl: $Extras.MQTT.use_ssl,
+                username: "$Extras.MQTT.username",
+                password: "$Extras.MQTT.password",
+                topic: "$Extras.MQTT.topic",
+                text_connected: "$gettext('mqtt_connected')",
+                text_failed: "$gettext('mqtt_failed')",
+                flash_on_update: $flash_on_update_str,
+                flash_color: "$flash_color"
+            };
+
+            // DateTime format configuration from skin.conf
+            // Store the current datetime value to detect format
+            window.DATETIME_CONFIG = {
+                initial_value: "$current.dateTime",
+                initial_format: null  // Will be detected from initial_value
+            };
+
+            // MQTT Sensor Mapping Configuration from skin.conf
+            // Parsed from CSV format: sensor_name = "payload_attr", "unit", decimals
+            // ConfigObj automatically parses this as a list
+            window.MQTT_SENSOR_MAPPING = {
+                #for $sensor_name in $Extras.MQTT.SensorMapping
+                #set $config = $Extras.MQTT.SensorMapping[$sensor_name]
+                #if isinstance($config, list) and len($config) >= 3
+                '$sensor_name': {
+                    payloadAttr: '$config[0]',
+                    unit: '$config[1]',
+                    decimals: $int($config[2])
+                },
+                #end if
+                #end for
+            };
+        </script>
+
         #include "js.inc"
 
         ## +-------------------------------------------------------------------------+
@@ -779,6 +848,9 @@
             #end if
 
         </script>
+
+        <script src="$Extras.MQTT.paho_mqtt_url" type="text/javascript"></script>
+        <script type="text/javascript" src="js/weewx-mqtt.js"></script>
 
     </body>
 </html>

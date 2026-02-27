@@ -65,6 +65,36 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     exit 0
 fi
 
+# If FileToPatchOnly is provided, only patch version in that file and exit
+if [[ "$1" == FileToPatchOnly ]]; then
+    PATCH_FILE="$2"
+    if [ -z "$PATCH_FILE" ]; then
+        echo "Error: FileToPatchOnly requires a file path as second argument."
+        exit 1
+    fi
+    if [ ! -f "$PATCH_FILE" ]; then
+        echo "Error: File $PATCH_FILE not found."
+        exit 1
+    fi
+    CURRENT_VERSION=$(grep "^[[:space:]]*version = " "$PATCH_FILE" | head -1 | sed 's/.*version = //' | tr -d '\r')
+    if [ -z "$CURRENT_VERSION" ]; then
+        echo "Error: Could not find version in $PATCH_FILE."
+        exit 1
+    fi
+    MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
+    MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
+    PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
+    NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+    echo "Patching $PATCH_FILE: $CURRENT_VERSION -> $NEW_VERSION"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s/^[[:space:]]*version = .*/    version = $NEW_VERSION/" "$PATCH_FILE"
+    else
+        sed -i "s/^[[:space:]]*version = .*/    version = $NEW_VERSION/" "$PATCH_FILE"
+    fi
+    echo "✓ Updated $PATCH_FILE"
+    exit 0
+fi
+
 # Check for multiple parameters (only one should be provided)
 if [ $# -gt 2 ]; then
     echo "Error: Too many parameters provided"
@@ -79,6 +109,13 @@ if [ $# -eq 2 ] && [[ "$1" != "--version" ]]; then
     echo "Only --version accepts an additional argument"
     echo "Use --help for usage information"
     exit 1
+fi
+
+# Check for update_version_only parameter
+UPDATE_VERSION_ONLY=false
+if [[ "$1" == "update_version_only" ]]; then
+    UPDATE_VERSION_ONLY=true
+    shift
 fi
 
 # Determine the version to use
@@ -203,3 +240,4 @@ echo ""
 echo "Build commands executed:"
 echo "  - npm install"
 echo "  - yarn run build"
+

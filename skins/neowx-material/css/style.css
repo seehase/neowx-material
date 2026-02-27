@@ -6521,6 +6521,10 @@ table.table-sm td {
   border-top: 1px solid #dee2e6;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
@@ -6532,6 +6536,22 @@ body {
 
 .main-bg {
   background: rgba(158, 158, 158, 0.1);
+}
+
+header .navbar-brand,
+header h1,
+.navbar-nav .nav-link {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
+header .navbar {
+  height: auto !important;
+}
+
+.lo-text, .font-small, .hi-text {
+  font-size: 0.8rem !important;
+  line-height: 1 !important;
 }
 
 @media screen and (min-width: 1660px) {
