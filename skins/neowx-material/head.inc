@@ -79,6 +79,9 @@
 <link rel="stylesheet" href="weather-icons/css/weather-icons.min.css">
 <link rel="stylesheet" href="weather-icons/css/weather-icons-wind.min.css">
 
+## Font Awesome
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 ## ApexChart stylesheet
 <link rel="stylesheet" href="js/vendor/apexcharts/apexcharts.css">
 
@@ -87,7 +90,7 @@
 #if $Extras.Appearance.lo_value_color != ""
     <style>
         .lo-text {
-            color: #$Extras.Appearance.lo_value_color !important;
+            color: $Extras.Appearance.lo_value_color !important;
         }
     </style>
 #end if
@@ -95,7 +98,7 @@
 #if $Extras.Appearance.hi_value_color != ""
     <style>
         .hi-text {
-            color: #$Extras.Appearance.hi_value_color !important;
+            color: $Extras.Appearance.hi_value_color !important;
         }
     </style>
 #end if
@@ -202,3 +205,57 @@ rel="apple-touch-startup-image"
 media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
 href="img/splash/splash_1536x2048.png"
 />
+
+<style>
+    /* 1. Observation Value Styling (The numbers) */
+    h4.h2-responsive {
+        font-size: 1.5rem !important;
+        font-weight: 400 !important;
+        margin-bottom: 0.25rem !important;
+        transition: color 0.5s, text-shadow 0.5s, background-color 0.5s; /* Smooth flash transitions */
+    }
+
+    .observations-unit {
+        font-size: 0.75rem !important;
+    }
+
+    .observations-icon {
+        font-size: 1.5rem !important;
+    }
+
+    /* 2. Interactive Card Behavior */
+    /* Applies hand cursor and smooth transitions to both Value Cards and Graph Cards */
+    .temprow .card,
+    .graphrow .card {
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+
+    #set $enable_hover = $Extras.Appearance.get('enable_hover_effect', 'true')
+    #if $enable_hover == 'true' or $enable_hover == True
+    /* Hover effect for Value Cards (Lift & Shadow) */
+    .temprow .card:hover {
+        box-shadow: 0 8px 15px rgba(0,0,0,0.3) !important;
+        transform: translateY(-3px);
+    }
+
+    /* Hover effect for Graph Cards (Subtle Pop) */
+    .graphrow .card:hover {
+        transform: scale(1.01);
+    }
+    #end if
+
+    /* 3. Anti-Highlighting Shield */
+    /* Prevents "Touch to Search" popups and blue text selection on mobile/desktop */
+    .temprow .card,
+    .graphrow .card,
+    .graphrow .card h3,
+    .graphrow .card .card-title,
+    .seasons-vector-img {
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none;    /* Firefox */
+        -ms-user-select: none;     /* IE/Edge */
+        user-select: none;         /* Standard */
+        -webkit-tap-highlight-color: transparent; /* Removes the gray flash on mobile tap */
+    }
+</style>
