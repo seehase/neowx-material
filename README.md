@@ -126,8 +126,10 @@ Monitor all your weather station sensors:
 
 If your skin doesn't change automatically, edit `weewx.conf` and set:
 ```ini
-[StdReport]
-    skin = neowx-material
+[[neowx-material]]
+   skin = neowx-material
+   enable = true
+   HTML_ROOT = /var/www/html
 ```
 
 Then reload WeeWX:
@@ -377,7 +379,7 @@ This project maintains the original license from NeoWX Material.
 
 - **Live Demo**: [weewx.seehausen.org](https://weewx.seehausen.org/)
 - **Issues**: [GitHub Issues](https://github.com/seehase/neowx-material/issues)
-- **Original Project**: [neoground/neowx-material](https://github.com/neoground/neowx-material) (archived)
+- **Original Project**: [neoground/neowx-material](https://github.com/neoground/neowx-material) (not maintained)
 - **WeeWX**: [weewx.com](https://weewx.com)
 
 ---
