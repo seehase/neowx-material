@@ -207,23 +207,6 @@ href="img/splash/splash_1536x2048.png"
 />
 
 <style>
-    /* 1. Observation Value Styling (The numbers) */
-    h4.h2-responsive {
-        font-size: 1.5rem !important;
-        font-weight: 400 !important;
-        margin-bottom: 0.25rem !important;
-        transition: color 0.5s, text-shadow 0.5s, background-color 0.5s; /* Smooth flash transitions */
-    }
-
-    .observations-unit {
-        font-size: 0.75rem !important;
-    }
-
-    .observations-icon {
-        font-size: 1.5rem !important;
-    }
-
-    /* 2. Interactive Card Behavior */
     /* Applies hand cursor and smooth transitions to both Value Cards and Graph Cards */
     .temprow .card,
     .graphrow .card {
@@ -245,7 +228,6 @@ href="img/splash/splash_1536x2048.png"
     }
     #end if
 
-    /* 3. Anti-Highlighting Shield */
     /* Prevents "Touch to Search" popups and blue text selection on mobile/desktop */
     .temprow .card,
     .graphrow .card,
