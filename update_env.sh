@@ -48,6 +48,10 @@ echo "New version: $NEW_VERSION"
 # Copy files, excluding node_modules
 rsync -av --exclude 'node_modules' "$SRC_DIR/" "$DEST_DIR/"
 
+# Copy bin/user directory
+echo "Copying bin/user directory..."
+rsync -av "/Users/seehausen/Developer/neowx-material/bin/user/" "/Volumes/docker/weewx/bin/user"
+
 # Copy JS files to web directory
 echo "Copying JS files to /Volumes/web/js..."
 rsync -av "$SRC_DIR/js/" "/Volumes/web/js/"

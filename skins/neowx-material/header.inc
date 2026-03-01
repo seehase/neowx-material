@@ -155,16 +155,16 @@
 
         #if $Extras.Header.show_almanac == "yes"
         #if $almanac.hasExtras
-        <ul class="navbar-nav nav-flex-icons" style="line-height: 1.75; padding-top: .5rem">
+        <ul class="navbar-nav nav-flex-icons" style="line-height: 1.5; padding-top: .5rem; font-size: 11pt">
             <li class="nav-item mr-4 text-white">
                 <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sun.rise <br>
                 <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sun.set
             </li>
-            <li class="nav-item mr-4 text-white" style="line-height: 1.75">
+            <li class="nav-item mr-4 text-white" style="line-height: 1.5">
                 <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> $almanac.moon.rise <br>
                 <i class="wi wi-moonset mr-1" style="opacity: .75"></i> $almanac.moon.set
             </li>
-            <li class="nav-item mr-4 text-white text-center" style="line-height: 1.75" >
+            <li class="nav-item mr-4 text-white text-center" style="line-height: 1.5" >
                         <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
                             #if $almanac.moon_index == 0
                                 <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
@@ -193,7 +193,7 @@
             </li>
         </ul>
         #else
-        <ul class="navbar-nav nav-flex-icons" style="line-height: 1.75; padding-top: .5rem">
+        <ul class="navbar-nav nav-flex-icons" style="line-height: 1.5; padding-top: .5rem; font-size: 11pt">
             <li class="nav-item mr-4 text-white">
                 <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sunrise <br>
                 <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sunset

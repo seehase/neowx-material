@@ -22,6 +22,13 @@
 
     # To enable forecast add lowercase "forecast" without quotes to the values_order list above in the [[Appearance]] section
 
+    # Coordinate override (optional)
+    # By default, coordinates from weewx.conf [Station] section are used
+    # If you want to use different coordinates for the forecast, specify them here
+    # Leave empty to use station coordinates from weewx.conf
+    latitude =
+    longitude =
+
     # Timezone from list of database time zones, or auto will determine timezone from station coordinates
     timezone = auto
 
@@ -70,7 +77,7 @@ from collections import Counter
 from weewx.cheetahgenerator import SearchList
 from weewx.units import ValueHelper, ValueTuple
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 
 log = logging.getLogger(__name__)
 
@@ -129,10 +136,31 @@ class Forecast(SearchList):
     def __init__(self, generator):
         SearchList.__init__(self, generator)
         log.info("version: %s" % VERSION)
-        self.latitude = self.generator.stn_info.latitude_f
-        self.longitude = self.generator.stn_info.longitude_f
-        self.base_url = "https://api.open-meteo.com/v1/forecast"
+
+        # Get forecast configuration
         self.forecast_dict = generator.skin_dict.get("Extras", {}).get("Forecast", {})
+
+        # Get coordinates: try skin.conf first, fallback to weewx.conf station info
+        skin_latitude = self.forecast_dict.get("latitude", "")
+        skin_longitude = self.forecast_dict.get("longitude", "")
+
+        # Use skin.conf coordinates if provided and valid, otherwise use station info
+        if skin_latitude and skin_longitude:
+            try:
+                self.latitude = float(skin_latitude)
+                self.longitude = float(skin_longitude)
+                log.info("Using coordinates from skin.conf: lat=%s, lon=%s" % (self.latitude, self.longitude))
+            except (ValueError, TypeError):
+                log.info("Invalid coordinates in skin.conf, falling back to station coordinates")
+                self.latitude = self.generator.stn_info.latitude_f
+                self.longitude = self.generator.stn_info.longitude_f
+                log.info("Using station coordinates from weewx.conf: lat=%s, lon=%s" % (self.latitude, self.longitude))
+        else:
+            self.latitude = self.generator.stn_info.latitude_f
+            self.longitude = self.generator.stn_info.longitude_f
+            log.info("Using station coordinates from weewx.conf: lat=%s, lon=%s" % (self.latitude, self.longitude))
+
+        self.base_url = "https://api.open-meteo.com/v1/forecast"
         self.values_order = (
             generator.skin_dict.get("Extras", {})
             .get("Appearance", {})
