@@ -164,7 +164,7 @@ For more information, see: [weewx-skyfield-almanac](https://github.com/roe-dl/we
 Set your preferred language in `weewx.conf`:
 ```ini
 [StdReport]
-    [[StandardReport]]]
+    [[NeowxMaterial]]]
         lang = de  # Options: ca, de, en, es, fi, fr, it, nl, pl, se, sk
 ```
 
@@ -258,10 +258,21 @@ Get 7-day forecasts from Open-Meteo:
         values_order = forecast, outTemp, outHumidity, ...
 
     [[Forecast]]
+        # Optional: Override coordinates for forecast
+        # By default, uses station coordinates from weewx.conf [Station] section
+        # Useful if you want forecast for a different location
+        latitude =
+        longitude =
+        
         days = 7
         show_icon = yes
         variables = temperature, precipitation, wind, sun
 ```
+
+**Coordinate Override:**
+- By default, forecast uses your weather station's coordinates from `weewx.conf`
+- Optionally specify different coordinates in `skin.conf` for forecast at another location
+- Leave empty to use station coordinates (recommended for most users)
 
 ### Charts & Appearance
 - Customize chart colors, time spans, and behavior
