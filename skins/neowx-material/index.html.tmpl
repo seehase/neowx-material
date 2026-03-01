@@ -379,6 +379,13 @@
         #end if
         #set $flash_color_raw = $Extras.MQTT.get('flash_color', '#00ff00')
         #set $flash_color = $flash_color_raw.strip('"').strip("'") if $flash_color_raw else '#00ff00'
+        #set $skip_timestamp_check = $Extras.MQTT.get('skip_timestamp_check', 'false')
+        #if $skip_timestamp_check == 'true' or $skip_timestamp_check == True
+        #set $skip_timestamp_check_str = "true"
+        #else
+        #set $skip_timestamp_check_str = "false"
+        #end if
+        #set $message_timestamp_field = $Extras.MQTT.get('message_timestamp_field', 'dateTime')
         <script type="text/javascript">
             // MQTT Connection Configuration from skin.conf
             window.MQTT_CONFIG = {
@@ -394,7 +401,9 @@
                 text_connected: "$gettext('mqtt_connected')",
                 text_failed: "$gettext('mqtt_failed')",
                 flash_on_update: $flash_on_update_str,
-                flash_color: "$flash_color"
+                flash_color: "$flash_color",
+                message_timestamp_field: "$message_timestamp_field",
+                skip_timestamp_check: $skip_timestamp_check_str
             };
 
             // DateTime format configuration from skin.conf

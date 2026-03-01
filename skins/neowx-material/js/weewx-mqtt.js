@@ -105,11 +105,14 @@ if (client) {
             debugLog('Message received: ' + JSON.stringify(payload).substring(0, 100) + '...');
 
             // Check if timestamp is newer, if yes - update page
-            if (isTimestampNewer(payload)) {
-                debugLog('Timestamp is newer, updating values');
-                updateDateTime(payload);
+            var timestampCheck = evaluateMessageTimestamp(payload);
+            if (timestampCheck.isNewer) {
+                debugLog('Timestamp check passed (isNewer: ' + timestampCheck.isNewer + ', skipped: ' + timestampCheck.skipped + '), updating values');
+                updateDateTime(payload, timestampCheck.skipped);
                 updatePayloadValues(payload);
                 updateTelemetry(payload);
+            } else {
+                debugLog('Timestamp check failed, no update performed');
             }
 
         } catch (e) {
@@ -119,36 +122,64 @@ if (client) {
 }
 
 // --- HELPER FUNCTION 1: Check if payload timestamp is newer ---
-function isTimestampNewer(payload) {
-    if (payload.dateTime === undefined) {
-        debugLog('No Timestamp in payload, skipping timestamp check');
-        return true;
+// Returns: { isNewer: bool, skipped: bool }
+function evaluateMessageTimestamp(payload) {
+    // Check if timestamp check should be skipped
+    if (window.MQTT_CONFIG && window.MQTT_CONFIG.skip_timestamp_check === true) {
+        debugLog('Timestamp check skipped (skip_timestamp_check is enabled)');
+        return { isNewer: true, skipped: true };
+    }
+
+    // Get the timestamp field name from config (default: dateTime)
+    var timestampField = (window.MQTT_CONFIG && window.MQTT_CONFIG.message_timestamp_field)
+        ? window.MQTT_CONFIG.message_timestamp_field
+        : 'dateTime';
+
+    if (payload[timestampField] === undefined) {
+        debugLog('No Timestamp in payload field "' + timestampField + '", and NO timestamp check -> no update performed');
+        return { isNewer: false, skipped: false };
     }
 
     var timeSpan = document.getElementById('current-datetime');
-    if (!timeSpan) return false;
+    if (!timeSpan) return { isNewer: false, skipped: false };
 
     var currentUnixTime = parseInt(timeSpan.getAttribute('data-timestamp'), 10);
-    var payloadUnixTime = parseFloat(payload.dateTime);
+    var payloadUnixTime = parseFloat(payload[timestampField]);
 
-    debugLog('Timestamp comparison - Server: ' + currentUnixTime + ', Payload: ' + payloadUnixTime);
+    debugLog('Timestamp comparison - Server: ' + currentUnixTime + ', Payload: ' + payloadUnixTime + ' (field: ' + timestampField + ')');
 
     if (payloadUnixTime > currentUnixTime) {
         debugLog('✓ Payload timestamp is newer');
-        return true;
+        return { isNewer: true, skipped: false };
     } else {
         debugLog('⊗ Payload timestamp is not newer, skipping update');
-        return false;
+        return { isNewer: false, skipped: false };
     }
 }
 
 // --- HELPER FUNCTION 2: Update datetime on page ---
-function updateDateTime(payload) {
+function updateDateTime(payload, skipped) {
     var timeSpan = document.getElementById('current-datetime');
     if (!timeSpan) return;
 
-    var payloadUnixTime = parseFloat(payload.dateTime);
-    var payloadDate = new Date(payloadUnixTime * 1000);
+    var payloadUnixTime;
+    var payloadDate;
+
+    if (skipped) {
+        // If timestamp check was skipped, use current time instead of payload timestamp
+        payloadDate = new Date();
+        payloadUnixTime = payloadDate.getTime() / 1000; // Convert milliseconds to seconds
+        debugLog('Using current time (timestamp check was skipped)');
+    } else {
+        // Use timestamp from payload
+        var timestampField = (window.MQTT_CONFIG && window.MQTT_CONFIG.message_timestamp_field)
+            ? window.MQTT_CONFIG.message_timestamp_field
+            : 'dateTime';
+
+        payloadUnixTime = parseFloat(payload[timestampField]);
+        payloadDate = new Date(payloadUnixTime * 1000);
+        debugLog('Using timestamp from payload field: ' + timestampField);
+    }
 
     // Initialize DATETIME_CONFIG if not present (safety check)
     if (typeof window.DATETIME_CONFIG === 'undefined') {
@@ -171,7 +202,7 @@ function updateDateTime(payload) {
     timeSpan.innerHTML = newDateTime;
     timeSpan.setAttribute('data-timestamp', payloadUnixTime);
 
-    debugLog('✓ Updated datetime to: ' + newDateTime);
+    debugLog('✓ Updated datetime to: ' + newDateTime + ' (Unix: ' + payloadUnixTime + ')');
 
     // Visual feedback - check if flash is enabled
     if (window.MQTT_CONFIG && window.MQTT_CONFIG.flash_on_update !== false) {
