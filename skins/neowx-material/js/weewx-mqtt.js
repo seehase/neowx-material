@@ -120,7 +120,10 @@ if (client) {
 
 // --- HELPER FUNCTION 1: Check if payload timestamp is newer ---
 function isTimestampNewer(payload) {
-    if (payload.dateTime === undefined) return false;
+    if (payload.dateTime === undefined) {
+        debugLog('No Timestamp in payload, skipping timestamp check');
+        return true;
+    }
 
     var timeSpan = document.getElementById('current-datetime');
     if (!timeSpan) return false;
@@ -194,23 +197,23 @@ function detectDateTimeFormat(sampleValue) {
     // Common datetime patterns to detect
     var patterns = [
         // 12-hour formats with AM/PM (check these first)
-        { regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'MM/DD/YYYY hh:mm:ss A' },
-        { regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'MM/DD/YYYY hh:mm A' },
-        { regex: /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'YYYY-MM-DD hh:mm:ss A' },
-        { regex: /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'YYYY-MM-DD hh:mm A' },
-        { regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'DD.MM.YYYY hh:mm:ss A' },
-        { regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'DD.MM.YYYY hh:mm A' },
+        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'MM/DD/YYYY hh:mm:ss A'},
+        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'MM/DD/YYYY hh:mm A'},
+        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'YYYY-MM-DD hh:mm:ss A'},
+        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'YYYY-MM-DD hh:mm A'},
+        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'DD.MM.YYYY hh:mm:ss A'},
+        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'DD.MM.YYYY hh:mm A'},
         // 24-hour formats
-        { regex: /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/, format: 'YYYY-MM-DD HH:mm:ss' },
-        { regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}$/, format: 'DD.MM.YYYY HH:mm:ss' },
-        { regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}$/, format: 'MM/DD/YYYY HH:mm:ss' },
-        { regex: /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/, format: 'YYYY-MM-DD HH:mm' },
-        { regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}$/, format: 'DD.MM.YYYY HH:mm' },
-        { regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}$/, format: 'MM/DD/YYYY HH:mm' },
-        { regex: /^\d{2}:\d{2}:\d{2}$/, format: 'HH:mm:ss' },
-        { regex: /^\d{2}:\d{2}$/, format: 'HH:mm' },
-        { regex: /^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}$/, format: 'ddd DD HH:mm:ss' },
-        { regex: /^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}$/, format: 'ddd DD HH:mm' }
+        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/, format: 'YYYY-MM-DD HH:mm:ss'},
+        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}$/, format: 'DD.MM.YYYY HH:mm:ss'},
+        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}$/, format: 'MM/DD/YYYY HH:mm:ss'},
+        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/, format: 'YYYY-MM-DD HH:mm'},
+        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}$/, format: 'DD.MM.YYYY HH:mm'},
+        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}$/, format: 'MM/DD/YYYY HH:mm'},
+        {regex: /^\d{2}:\d{2}:\d{2}$/, format: 'HH:mm:ss'},
+        {regex: /^\d{2}:\d{2}$/, format: 'HH:mm'},
+        {regex: /^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}$/, format: 'ddd DD HH:mm:ss'},
+        {regex: /^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}$/, format: 'ddd DD HH:mm'}
     ];
 
     for (var i = 0; i < patterns.length; i++) {
@@ -271,7 +274,7 @@ function updatePayloadValues(payload) {
     var mapping = getPayloadMapping();
     var valueCards = document.querySelectorAll('.card-value');
 
-    valueCards.forEach(function(card) {
+    valueCards.forEach(function (card) {
         var cardName = card.getAttribute('data-name');
         var mapEntry = mapping[cardName];
 
