@@ -29,7 +29,8 @@
                     #if $active_nav == 'archive'
                         <span class="font-small"></span>
                     #else
-                        <span class="font-small" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime</span>
+                        #set $datetime_format = $Extras.Formatting.get('datetime', '%a %d %H:%M')
+                        <span class="font-small" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime.format($datetime_format)</span>
                         #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True) and $active_nav == 'current'
                             <span id="mqtt-status" class="font-small" style="margin-left: 8px; display: inline-block;">
                                 <i id="mqtt-indicator" class="fas fa-share-nodes" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title=""></i>

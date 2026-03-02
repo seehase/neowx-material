@@ -406,11 +406,11 @@
                 skip_timestamp_check: $skip_timestamp_check_str
             };
 
-            // DateTime format configuration from skin.conf
-            // Extract the strftime format string used by WeeWX for current datetime display
+            // DateTime format configuration
+            // Pass the strftime format from skin.conf to JavaScript
+            // JavaScript will convert it from Python strftime to JS format tokens
             window.DATETIME_CONFIG = {
-                initial_value: "$current.dateTime",
-                weewx_format: "$current.dateTime.format"  // Python strftime format from WeeWX
+                weewx_format: "$Extras.Formatting.get('datetime', '%a %d %H:%M')"
             };
 
             // MQTT Sensor Mapping Configuration from skin.conf
