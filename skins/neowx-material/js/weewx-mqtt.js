@@ -165,33 +165,34 @@ function updateDateTime(payload, skipped) {
     var payloadUnixTime;
     var payloadDate;
 
-    if (skipped) {
-        // If timestamp check was skipped, use current time instead of payload timestamp
-        payloadDate = new Date();
-        payloadUnixTime = payloadDate.getTime() / 1000; // Convert milliseconds to seconds
-        debugLog('Using current time (timestamp check was skipped)');
-    } else {
-        // Use timestamp from payload
-        var timestampField = (window.MQTT_CONFIG && window.MQTT_CONFIG.message_timestamp_field)
-            ? window.MQTT_CONFIG.message_timestamp_field
-            : 'dateTime';
+    // Get the timestamp field name from config (default: dateTime)
+    var timestampField = (window.MQTT_CONFIG && window.MQTT_CONFIG.message_timestamp_field)
+        ? window.MQTT_CONFIG.message_timestamp_field
+        : 'dateTime';
 
+    // Always try to use timestamp from payload
+    if (payload[timestampField] !== undefined) {
         payloadUnixTime = parseFloat(payload[timestampField]);
         payloadDate = new Date(payloadUnixTime * 1000);
-        debugLog('Using timestamp from payload field: ' + timestampField);
+        debugLog('Using timestamp from payload field "' + timestampField + '": ' + payloadUnixTime +
+                 (skipped ? ' (timestamp check was skipped)' : ''));
+    } else {
+        // Fallback: if timestamp field not in payload, use current time
+        payloadDate = new Date();
+        payloadUnixTime = payloadDate.getTime() / 1000;
+        debugLog('⚠️ Timestamp field "' + timestampField + '" not found in payload, using current time');
     }
 
     // Initialize DATETIME_CONFIG if not present (safety check)
     if (typeof window.DATETIME_CONFIG === 'undefined') {
         window.DATETIME_CONFIG = {
-            initial_value: timeSpan.textContent.trim(),
-            weewx_format: '%Y-%m-%d %H:%M:%S'  // Default fallback
+            weewx_format: '%a %d %H:%M'  // Default fallback
         };
     }
 
     // Convert WeeWX strftime format to JavaScript-compatible format (only once)
     if (!window.DATETIME_CONFIG.js_format) {
-        var strftimeFormat = window.DATETIME_CONFIG.weewx_format || '%Y-%m-%d %H:%M:%S';
+        var strftimeFormat = window.DATETIME_CONFIG.weewx_format || '%a %d %H:%M';
         window.DATETIME_CONFIG.js_format = convertStrftimeToJS(strftimeFormat);
         debugLog('Using WeeWX format: ' + strftimeFormat + ' -> JS format: ' + window.DATETIME_CONFIG.js_format);
     }
@@ -220,6 +221,7 @@ function updateDateTime(payload, skipped) {
         }, 1500);
     }
 }
+
 
 // --- HELPER FUNCTION: Convert Python strftime format to JavaScript-compatible format ---
 // Takes a Python strftime format string (e.g., "%d.%m.%Y %H:%M") and converts it to a custom format
