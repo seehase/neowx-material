@@ -185,19 +185,19 @@ function updateDateTime(payload, skipped) {
     if (typeof window.DATETIME_CONFIG === 'undefined') {
         window.DATETIME_CONFIG = {
             initial_value: timeSpan.textContent.trim(),
-            initial_format: null
+            weewx_format: '%Y-%m-%d %H:%M:%S'  // Default fallback
         };
     }
 
-    // Detect format from initial value if not already detected
-    if (!window.DATETIME_CONFIG.initial_format) {
-        var initialValue = window.DATETIME_CONFIG.initial_value || timeSpan.textContent.trim();
-        window.DATETIME_CONFIG.initial_format = detectDateTimeFormat(initialValue);
-        debugLog('Detected datetime format: ' + window.DATETIME_CONFIG.initial_format);
+    // Convert WeeWX strftime format to JavaScript-compatible format (only once)
+    if (!window.DATETIME_CONFIG.js_format) {
+        var strftimeFormat = window.DATETIME_CONFIG.weewx_format || '%Y-%m-%d %H:%M:%S';
+        window.DATETIME_CONFIG.js_format = convertStrftimeToJS(strftimeFormat);
+        debugLog('Using WeeWX format: ' + strftimeFormat + ' -> JS format: ' + window.DATETIME_CONFIG.js_format);
     }
 
-    // Format the new datetime using the detected format
-    var newDateTime = formatDateTime(payloadDate, window.DATETIME_CONFIG.initial_format);
+    // Format the new datetime using the converted format
+    var newDateTime = formatDateTime(payloadDate, window.DATETIME_CONFIG.js_format);
 
     timeSpan.innerHTML = newDateTime;
     timeSpan.setAttribute('data-timestamp', payloadUnixTime);
@@ -221,54 +221,67 @@ function updateDateTime(payload, skipped) {
     }
 }
 
-// --- HELPER FUNCTION: Detect datetime format from a sample value ---
-function detectDateTimeFormat(sampleValue) {
-    if (!sampleValue) return 'YYYY-MM-DD HH:mm:ss';
+// --- HELPER FUNCTION: Convert Python strftime format to JavaScript-compatible format ---
+// Takes a Python strftime format string (e.g., "%d.%m.%Y %H:%M") and converts it to a custom format
+// that our formatDateTime function can use (e.g., "DD.MM.YYYY HH:mm")
+function convertStrftimeToJS(strftimeFormat) {
+    if (!strftimeFormat) return 'YYYY-MM-DD HH:mm:ss';
 
-    // Common datetime patterns to detect
-    var patterns = [
-        // 12-hour formats with AM/PM (check these first)
-        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'MM/DD/YYYY hh:mm:ss A'},
-        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'MM/DD/YYYY hh:mm A'},
-        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'YYYY-MM-DD hh:mm:ss A'},
-        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'YYYY-MM-DD hh:mm A'},
-        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{1,2}:\d{2}:\d{2}\s+(?:AM|PM)$/i, format: 'DD.MM.YYYY hh:mm:ss A'},
-        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i, format: 'DD.MM.YYYY hh:mm A'},
-        // 24-hour formats
-        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}$/, format: 'YYYY-MM-DD HH:mm:ss'},
-        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}:\d{2}$/, format: 'DD.MM.YYYY HH:mm:ss'},
-        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}$/, format: 'MM/DD/YYYY HH:mm:ss'},
-        {regex: /^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/, format: 'YYYY-MM-DD HH:mm'},
-        {regex: /^\d{2}\.\d{2}\.\d{4}\s+\d{2}:\d{2}$/, format: 'DD.MM.YYYY HH:mm'},
-        {regex: /^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}$/, format: 'MM/DD/YYYY HH:mm'},
-        {regex: /^\d{2}:\d{2}:\d{2}$/, format: 'HH:mm:ss'},
-        {regex: /^\d{2}:\d{2}$/, format: 'HH:mm'},
-        {regex: /^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2}$/, format: 'ddd DD HH:mm:ss'},
-        {regex: /^\w{3}\s+\d{1,2}\s+\d{2}:\d{2}$/, format: 'ddd DD HH:mm'}
-    ];
+    debugLog('Converting strftime format: ' + strftimeFormat);
 
-    for (var i = 0; i < patterns.length; i++) {
-        if (patterns[i].regex.test(sampleValue.trim())) {
-            return patterns[i].format;
-        }
-    }
+    // Map Python strftime codes to our JavaScript format tokens
+    var converted = strftimeFormat
+        // Date components
+        .replace(/%Y/g, 'YYYY')      // 4-digit year
+        .replace(/%y/g, 'YY')        // 2-digit year
+        .replace(/%m/g, 'MM')        // Month as zero-padded number
+        .replace(/%d/g, 'DD')        // Day of month as zero-padded number
+        .replace(/%j/g, 'DDD')       // Day of year
+        // Time components
+        .replace(/%H/g, 'HH')        // Hour (24-hour) zero-padded
+        .replace(/%I/g, 'hh')        // Hour (12-hour) zero-padded
+        .replace(/%M/g, 'mm')        // Minute zero-padded
+        .replace(/%S/g, 'ss')        // Second zero-padded
+        .replace(/%p/g, 'A')         // AM/PM
+        // Weekday
+        .replace(/%A/g, 'dddd')      // Full weekday name
+        .replace(/%a/g, 'ddd')       // Abbreviated weekday name
+        // Month name
+        .replace(/%B/g, 'MMMM')      // Full month name
+        .replace(/%b/g, 'MMM')       // Abbreviated month name
+        // Special formats
+        .replace(/%x/g, 'MM/DD/YYYY') // Locale date representation
+        .replace(/%X/g, 'HH:mm:ss')   // Locale time representation
+        .replace(/%c/g, 'ddd MMM DD HH:mm:ss YYYY'); // Locale datetime
 
-    // Default fallback
-    return 'YYYY-MM-DD HH:mm:ss';
+    debugLog('Converted to JS format: ' + converted);
+    return converted;
 }
 
 // --- HELPER FUNCTION: Format datetime according to detected format ---
 function formatDateTime(date, format) {
     var year = date.getFullYear();
+    var yearShort = String(year).substr(2, 2);
     var month = String(date.getMonth() + 1).padStart(2, '0');
     var day = String(date.getDate()).padStart(2, '0');
+    var dayOfYear = String(Math.ceil((date - new Date(date.getFullYear(), 0, 0)) / 86400000)).padStart(3, '0');
     var hours24 = date.getHours();
     var hours = String(hours24).padStart(2, '0');
     var minutes = String(date.getMinutes()).padStart(2, '0');
     var seconds = String(date.getSeconds()).padStart(2, '0');
 
-    var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    // Day and month names
+    var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var dayNamesShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                      'July', 'August', 'September', 'October', 'November', 'December'];
+    var monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
     var dayName = dayNames[date.getDay()];
+    var dayNameShort = dayNamesShort[date.getDay()];
+    var monthName = monthNames[date.getMonth()];
+    var monthNameShort = monthNamesShort[date.getMonth()];
 
     // Calculate 12-hour format
     var hours12 = hours24 % 12;
@@ -277,17 +290,22 @@ function formatDateTime(date, format) {
     var ampm = hours24 >= 12 ? 'PM' : 'AM';
 
     // Replace format tokens with actual values
-    // Handle 12-hour formats first (hh before HH to avoid conflicts)
+    // Handle longer tokens first to avoid partial replacements (e.g., MMMM before MMM, dddd before ddd)
     var formatted = format
-        .replace('YYYY', year)
-        .replace('MM', month)
-        .replace('DD', day)
-        .replace('hh', hours12Str)  // 12-hour format (must be before HH)
-        .replace('HH', hours)       // 24-hour format
-        .replace('mm', minutes)
-        .replace('ss', seconds)
-        .replace('A', ampm)         // AM/PM
-        .replace('ddd', dayName);
+        .replace(/YYYY/g, year)         // 4-digit year
+        .replace(/YY/g, yearShort)      // 2-digit year
+        .replace(/MMMM/g, monthName)    // Full month name
+        .replace(/MMM/g, monthNameShort) // Abbreviated month name
+        .replace(/MM/g, month)          // Month as zero-padded number
+        .replace(/DDD/g, dayOfYear)     // Day of year
+        .replace(/DD/g, day)            // Day of month as zero-padded number
+        .replace(/dddd/g, dayName)      // Full weekday name
+        .replace(/ddd/g, dayNameShort)  // Abbreviated weekday name
+        .replace(/hh/g, hours12Str)     // 12-hour format (must be before HH)
+        .replace(/HH/g, hours)          // 24-hour format
+        .replace(/mm/g, minutes)        // Minutes
+        .replace(/ss/g, seconds)        // Seconds
+        .replace(/A/g, ampm);           // AM/PM
 
     return formatted;
 }

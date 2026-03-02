@@ -46,6 +46,7 @@ NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
 echo "New version: $NEW_VERSION"
 
 # Copy files, excluding node_modules
+echo "Copying skins/neowx-material directory..."
 rsync -a --exclude 'node_modules' "$SRC_DIR/" "$DEST_DIR/"
 
 # Copy bin/user directory
