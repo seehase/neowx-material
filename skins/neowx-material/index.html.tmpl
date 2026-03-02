@@ -407,10 +407,10 @@
             };
 
             // DateTime format configuration from skin.conf
-            // Store the current datetime value to detect format
+            // Extract the strftime format string used by WeeWX for current datetime display
             window.DATETIME_CONFIG = {
                 initial_value: "$current.dateTime",
-                initial_format: null  // Will be detected from initial_value
+                weewx_format: "$current.dateTime.format"  // Python strftime format from WeeWX
             };
 
             // MQTT Sensor Mapping Configuration from skin.conf
