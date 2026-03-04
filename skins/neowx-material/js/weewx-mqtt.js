@@ -346,15 +346,32 @@ function updatePayloadValues(payload) {
             return;
         }
 
-        var formattedValue = numValue.toFixed(mapEntry.decimals) + mapEntry.unit;
         var h4Element = card.querySelector('h4.h2-responsive');
 
         if (h4Element) {
             // Check if value changed
             var currentText = h4Element.textContent.trim();
+
+            // Detect decimal separator from current text (WeeWX format)
+            var decimalSeparator = '.'; // default
+            var hasComma = /\d,\d/.test(currentText);
+            var hasDot = /\d\.\d/.test(currentText);
+
+            if (hasComma && !hasDot) {
+                decimalSeparator = ',';
+            }
+            debugLog('Detected decimal separator for ' + cardName + ': "' + decimalSeparator + '"');
+
+            // Format value with detected separator
+            var formattedValue = numValue.toFixed(mapEntry.decimals);
+            if (decimalSeparator === ',') {
+                formattedValue = formattedValue.replace('.', ',');
+            }
+            formattedValue += mapEntry.unit;
+
             if (currentText !== formattedValue) {
                 h4Element.innerHTML = formattedValue;
-                debugLog('✓ Updated' + cardName + ' to: ' + formattedValue);
+                debugLog('✓ Updated ' + cardName + ' to: ' + formattedValue);
 
                 // Visual feedback
                 applyGreenFlash(h4Element);
