@@ -1,4 +1,8 @@
-// 1. INIT PAHO CLIENTxxx
+// Weewx MQTT Client Script
+//
+// Version 1.0.1
+//
+// 1. INIT PAHO CLIENT
 // Configuration is injected from index.html.tmpl via window.MQTT_CONFIG
 // Only initialize if MQTT is enabled
 
@@ -91,9 +95,16 @@ function updateMQTTStatusIndicator(connected) {
 // 2. Global Helper Functions
 function getCompass(deg) {
     if (deg === undefined || deg === null || isNaN(deg)) return "";
-    var val = Math.floor((deg / 22.5) + 0.5);
-    var arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-    return arr[(val % 16)];
+    let val = Math.floor((deg / 22.5) + 0.5);
+
+    // Use language-specific directions passed from skin.conf via MQTT_CONFIG,
+    // fall back to English if not available or incomplete (need at least 16 entries)
+    const fallbackDirections = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+    let directions = fallbackDirections;
+    if (window.MQTT_CONFIG && Array.isArray(window.MQTT_CONFIG.directions) && window.MQTT_CONFIG.directions.length >= 16) {
+        directions = window.MQTT_CONFIG.directions;
+    }
+    return directions[(val % 16)];
 }
 
 // 3. MQTT MESSAGE HANDLER
@@ -326,15 +337,15 @@ function updatePayloadValues(payload) {
     var valueCards = document.querySelectorAll('.card-value');
 
     valueCards.forEach(function (card) {
-        var cardName = card.getAttribute('data-name');
-        var mapEntry = mapping[cardName];
+        let cardName = card.getAttribute('data-name');
+        let mapEntry = mapping[cardName];
 
         if (!mapEntry) {
             debugLog('⚠️ No mapping found for card-name: ' + cardName);
             return;
         }
 
-        var payloadValue = payload[mapEntry.payloadAttr];
+        let payloadValue = payload[mapEntry.payloadAttr];
         if (payloadValue === undefined || payloadValue === null) {
             debugLog('⚠️ Payload missing attribute: ' + mapEntry.payloadAttr);
             return;
@@ -350,12 +361,12 @@ function updatePayloadValues(payload) {
 
         if (h4Element) {
             // Check if value changed
-            var currentText = h4Element.textContent.trim();
+            let currentText = h4Element.textContent.trim();
 
             // Detect decimal separator from current text (WeeWX format)
-            var decimalSeparator = '.'; // default
-            var hasComma = /\d,\d/.test(currentText);
-            var hasDot = /\d\.\d/.test(currentText);
+            let decimalSeparator = '.'; // default
+            let hasComma = /\d,\d/.test(currentText);
+            let hasDot = /\d\.\d/.test(currentText);
 
             if (hasComma && !hasDot) {
                 decimalSeparator = ',';
@@ -363,11 +374,38 @@ function updatePayloadValues(payload) {
             debugLog('Detected decimal separator for ' + cardName + ': "' + decimalSeparator + '"');
 
             // Format value with detected separator
-            var formattedValue = numValue.toFixed(mapEntry.decimals);
+            let formattedValue = numValue.toFixed(mapEntry.decimals);
             if (decimalSeparator === ',') {
                 formattedValue = formattedValue.replace('.', ',');
             }
             formattedValue += mapEntry.unit;
+
+            if (cardName === 'windSpeed') {
+                let windDirMapEntry = mapping['windDir'];
+                let windDirValue = payload[windDirMapEntry ? windDirMapEntry.payloadAttr : null];
+                if (windDirValue !== undefined) {
+                    formattedValue += ' ' + getCompass(windDirValue);
+
+                    // Update wind direction icon
+                    let windIcon = document.getElementById('wind-icon');
+                    if (windIcon && (currentText !== formattedValue)) {
+                        let deg = Math.round(parseFloat(windDirValue));
+                        // Remove existing direction class (wi-wind from-NNN-deg)
+                        let existingClasses = windIcon.className.split(' ');
+                        existingClasses = existingClasses.filter(function (c) {
+                            return !/^from-\d+-deg$/.test(c);
+                        });
+                        existingClasses.push('from-' + deg + '-deg');
+                        windIcon.className = existingClasses.join(' ');
+                        windIcon.setAttribute('title', deg + '°');
+                        windIcon.setAttribute('data-original-title', deg + '°');
+                        if (typeof $ !== 'undefined' && $.fn.tooltip) {
+                            $(windIcon).tooltip('dispose').tooltip();
+                        }
+                        debugLog('✓ Updated wind-icon to: from-' + deg + '-deg');
+                    }
+                }
+            }
 
             if (currentText !== formattedValue) {
                 h4Element.innerHTML = formattedValue;
