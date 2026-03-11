@@ -127,7 +127,7 @@
 
                 #else if $name == 'windSpeed'
 
-                    <i class="wi wi-wind from-$current.windDir.formatted-deg"
+                    <i id="wind-icon" class="wi wi-wind from-$current.windDir.formatted-deg"
                     title="$current.windDir.formatted°" data-toggle="tooltip" data-html="true"></i>
 
                 #end if
@@ -403,7 +403,8 @@
                 flash_on_update: $flash_on_update_str,
                 flash_color: "$flash_color",
                 message_timestamp_field: "$message_timestamp_field",
-                skip_timestamp_check: $skip_timestamp_check_str
+                skip_timestamp_check: $skip_timestamp_check_str,
+                directions: [#for $d in $Labels.Generic.directions#"${d.strip()}",#end for#]
             };
 
             // DateTime format configuration
