@@ -224,7 +224,7 @@ All configuration is done in `skin.conf` under `[Extras]`. Here are the key area
 
 ```bash
 # Apply your custom settings
-./config_patcher.py skin.conf.patch skin.conf
+./config_patcher.py skin.conf skin.conf.patch
 ```
 
 📖 **For complete instructions**, see the [Configuration Patcher Guide](CONFIG-PATCHER.md)
