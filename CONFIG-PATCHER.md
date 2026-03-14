@@ -35,10 +35,10 @@ When you update NeoWX Material to a new version, you face a dilemma:
 cd /etc/weewx/skins/neowx-material
 
 # Apply your patch
-./config_patcher.py skin.conf.patch skin.conf
+./config_patcher.py skin.conf skin.conf.patch
 
 # Or with explicit Python interpreter
-python3 config_patcher.py skin.conf.patch skin.conf
+python3 config_patcher.py skin.conf skin.conf.patch
 ```
 
 ### 2. Restart WeeWX
@@ -65,7 +65,7 @@ weectl extension install https://github.com/seehase/neowx-material/archive/refs/
 cd /etc/weewx/skins/neowx-material
 
 # 3. Apply your custom settings
-./config_patcher.py skin.conf.patch skin.conf
+./config_patcher.py skin.conf skin.conf.patch
 
 # 4. Restart WeeWX
 sudo systemctl restart weewx
@@ -299,7 +299,7 @@ Fill in only the values you've changed from defaults:
 cp skin.conf skin.conf.backup
 
 # Apply the patch
-./config_patcher.py skin.conf.patch skin.conf
+./config_patcher.py skin.conf skin.conf.patch
 
 # Check the result
 cat skin.conf | grep "color ="
@@ -388,7 +388,10 @@ cat skin.conf | grep "custom1_label"
             outHumidity = "outHumidity", "%", 0
             barometer = "barometer_mbar", " hPa", 1
             windSpeed = "windSpeed_kph", " km/h", 0
+            windGust = "windGust_kph", " km/h", 1
             rain = "dayRain_cm", " mm", 1
+            rainRate = "rainRate_cm_per_hour", " mm/h", 2
+            UV = "UV", "", 1
 ```
 
 ### Example 5: Custom Navigation and Links
@@ -492,7 +495,7 @@ The patcher will leave all other settings untouched.
 3. **Apply your patch:**
    ```bash
    cd /etc/weewx/skins/neowx-material
-   ./config_patcher.py skin.conf.patch skin.conf
+   ./config_patcher.py skin.conf skin.conf.patch
    ```
 
 4. **Review changes:**
@@ -735,7 +738,7 @@ Here's a complete example patch file with common customizations:
 
 ```bash
 # Apply this patch
-./config_patcher.py skin.conf.patch skin.conf
+./config_patcher.py skin.conf skin.conf.patch
 
 # Restart WeeWX
 sudo systemctl restart weewx
@@ -759,15 +762,15 @@ sudo systemctl restart weewx
 
 ```bash
 # Basic syntax
-./config_patcher.py <patch_file> <target_file>
+./config_patcher.py <source_file> <patch_file>
 
 # With Python interpreter
-python3 config_patcher.py <patch_file> <target_file>
+python3 config_patcher.py <source_file> <patch_file>
 
 # Full paths
 python3 /etc/weewx/skins/neowx-material/config_patcher.py \
-    /path/to/skin.conf.patch \
-    /etc/weewx/skins/neowx-material/skin.conf
+    /etc/weewx/skins/neowx-material/skin.conf \
+    /path/to/skin.conf.patch
 ```
 
 ### Common Sections to Patch
@@ -814,7 +817,7 @@ If you encounter issues:
 The Configuration Patcher enables **effortless updates** while preserving your customizations:
 
 ✅ Create a `skin.conf.patch` file with only your changes
-✅ Run `./config_patcher.py skin.conf.patch skin.conf` after updates
+✅ Run `./config_patcher.py skin.conf skin.conf.patch` after updates
 ✅ Restart WeeWX and enjoy your personalized configuration
 
 **Never manually reconfigure your weather station again!** 🎉
@@ -822,4 +825,3 @@ The Configuration Patcher enables **effortless updates** while preserving your c
 ---
 
 **Made with ❤️ for the WeeWX community**
-
