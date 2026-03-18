@@ -60,9 +60,9 @@
                             $pgettext("Forecast","forecast") - $x[0].format("%A")
                         #end if
                     </h3>
-                    <div class="row flex-fill font-small">
+                    <div id="forecast-table" class="row flex-fill font-small">
                         #if $Extras.Forecast.show_description == "yes"
-                            <div class="col-12 text-center pb-2">$pgettext("Forecast",str($x[1].weather_code))</div>
+                            <div style="padding-bottom: 0 !important;" class="col-12 text-center pb-2">$pgettext("Forecast",str($x[1].weather_code))</div>
                         #end if
                         #if $Extras.Forecast.show_icon == "yes"
                             #if $vars and len($vars) > 0
@@ -145,16 +145,16 @@
                                 <div class="col-6 text-left text-nowrap">
                                     #if $variable == "temperature"
                                         <div class="text-center d-inline-block">
-                                            <i style="width: 20px;" class="wi wi-thermometer $Extras.color-text" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")" data-toggle="tooltip" data-html="true"></i>
+                                            <i style="width: 20px;padding-right: 3px;" class="wi wi-thermometer $Extras.color-text" title="$pgettext("Forecast","min_temp") / $pgettext("Forecast","max_temp")" data-toggle="tooltip" data-html="true"></i>
                                             <span>$x[1].temperature.min.format("%.0f") / $x[1].temperature.max.format("%.0f")</span>
                                         </div>
                                     #end if
                                     #if ($variable == "sun") or ($variable == "uv-sun")
                                         <div class="text-center d-inline-block">
                                             #if ($variable == "sun")
-                                                <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                                                <i style="width: 20px;padding-right: 3px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
                                             #else
-                                                <i class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv") / $pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
+                                                <i style="width: 20px;padding-right: 3px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv") / $pgettext("Forecast","sunshine_duration") / $pgettext("Forecast","daylight_duration")" data-toggle="tooltip" data-html="true"></i>
                                             #end if
                                             #set daylight_hours = int($x[1].sun.daylight_duration.raw / 3600)
                                             #set daylight_minutes = int(($x[1].sun.daylight_duration.raw % 3600) / 60)
@@ -171,25 +171,25 @@
                                             #end if
                                             #if $variable == "precipitation"
                                                 <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;" class="wi wi-umbrella $Extras.color-text" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
+                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-umbrella $Extras.color-text" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
                                                     <span>$x[1].precipitation.sum ($x[1].precipitation.probability)</span>
                                                 </div>
                                             #end if
                                             #if $variable == "uv"
                                                 <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
+                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
                                                     <span>$x[1].sun.uv.format("%.0f")</span>
                                                 </div>
                                             #end if
                                             #if $variable == "evapotranspiration"
                                                 <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;" class="wi wi-hot $Extras.color-text" title="$pgettext("Forecast","evapotranspiration")" data-toggle="tooltip" data-html="true"></i>
+                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-hot $Extras.color-text" title="$pgettext("Forecast","evapotranspiration")" data-toggle="tooltip" data-html="true"></i>
                                                     <span>$x[1].et0_fao_evapotranspiration.format("%.1f")</span>
                                                 </div>
                                             #end if
                                             #if $variable == "wind"
                                                 <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;" class="wi wi-strong-wind $Extras.color-text" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
+                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-strong-wind $Extras.color-text" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
                                                     <span>$x[1].wind.speed.format("%.0f") <i class="wi wi-wind from-$x[1].wind.direction.formatted-deg mr-2" title="$x[1].wind.direction.formatted°" data-toggle="tooltip" data-html="true"></i> ($x[1].wind.gusts.format("%.0f"))</span>
                                                 </div>
                                             #end if
@@ -202,7 +202,7 @@
                                 #set $size = "font-extra-small" if int($Extras.Forecast.hourly_icons_interval) == 1 else "font-small"
                                 #set $hour_line_height = "0.6rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.1rem"
                                 #set $icon_line_height = "0.8rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.4rem"
-                                <table class="text-center w-100 mb-1">
+                                <table id="forecast_hour_icons" class="text-center w-100 mb-1">
                                     <tr style="line-height: $hour_line_height;">
                                         #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
                                             #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
