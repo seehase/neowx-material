@@ -6554,6 +6554,16 @@ header .navbar {
   line-height: 1 !important;
 }
 
+#forecast_hour_icons {
+  margin-bottom: 1px !important;
+  margin-top: 7px !important;
+}
+
+#forecast-table {
+  line-height: 1.3 !important;
+  padding-left: 10px !important;
+}
+
 @media screen and (min-width: 1660px) {
   .temprow {
     display: flex;
