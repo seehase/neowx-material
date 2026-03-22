@@ -550,23 +550,15 @@
             #end if
 
             #if $year.leafTemp1.has_data or $year.leafTemp2.has_data
-                $getChartJsCode("leafTemp", "leafTempchart", "area", "leafTemp1", "leafTemp2", "avg")
+                $getChartJsCode("leafTemp1", "leafTemp1chart", "area", "leafTemp1", "leafTemp2", "avg")
             #end if
 
-            #if $year.soilTemp1.has_data or $year.soilTemp2.has_data
-                $getChartJsCode("soilTempA", "soilTempAchart", "area", "soilTemp1", "soilTemp2", "avg")
+            #if $year.soilTemp1.has_data or $year.soilTemp2.has_data or $year.soilTemp3.has_data or $year.soilTemp4.has_data
+                $getChartJsCode("soilTemp1", "soilTemp1chart", "area", "soilTemp1", "soilTemp2", "avg", "soilTemp3", "soilTemp4")
             #end if
 
-            #if $year.soilTemp3.has_data or $year.soilTemp4.has_data
-                $getChartJsCode("soilTempB", "soilTempBchart", "area", "soilTemp3", "soilTemp4", "avg")
-            #end if
-
-            #if $year.soilMoist1.has_data or $year.soilMoist2.has_data
-                $getChartJsCode("soilMoistA", "soilMoistAchart", "area", "soilMoist1", "soilMoist2", "avg")
-            #end if
-
-            #if $year.soilMoist3.has_data or $year.soilMoist4.has_data
-                $getChartJsCode("soilMoistB", "soilMoistBchart", "area", "soilMoist3", "soilMoist4", "avg")
+            #if $year.soilMoist1.has_data or $year.soilMoist2.has_data or $year.soilMoist3.has_data or $year.soilMoist4.has_data
+                $getChartJsCode("soilMoist1", "soilMoist1chart", "area", "soilMoist1", "soilMoist2", "avg", "soilMoist3", "soilMoist4")
             #end if
 
             #if $year.cloudbase.has_data
