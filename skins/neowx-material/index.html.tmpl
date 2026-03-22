@@ -646,15 +646,15 @@
             #end if
 
             #if $day.leafTemp1.has_data or $day.leafTemp2.has_data
-                $getChartJsCode("leafTemp", "leafTempchart", "area", "leafTemp1", "leafTemp2", "avg")
+                $getChartJsCode("leafTemp1", "leafTempchart", "area", "leafTemp1", "leafTemp2", "avg")
             #end if
 
-            #if $day.soilTemp1.has_data or $day.soilTemp2.has_data
-                $getChartJsCode("soilTemp", "soilTempchart", "area", "soilTemp1", "soilTemp2", "avg", "soilTemp3", "soilTemp4")
+            #if $day.soilTemp1.has_data or $day.soilTemp2.has_data or $day.soilTemp3.has_data or $day.soilTemp4.has_data
+                $getChartJsCode("soilTemp1", "soilTemp1chart", "area", "soilTemp1", "soilTemp2", "avg", "soilTemp3", "soilTemp4")
             #end if
 
-            #if $day.soilMoist1.has_data or $day.soilMoist2.has_data
-                $getChartJsCode("soilMoist", "soilMoistchart", "area", "soilMoist1", "soilMoist2", "avg", "soilMoist3", "soilMoist4")
+            #if $day.soilMoist1.has_data or $day.soilMoist2.has_data or $day.soilMoist3.has_data or $day.soilMoist4.has_data
+                $getChartJsCode("soilMoist1", "soilMoist1chart", "area", "soilMoist1", "soilMoist2", "avg", "soilMoist3", "soilMoist4")
             #end if
 
             #if $day.cloudbase.has_data
