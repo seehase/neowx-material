@@ -302,7 +302,7 @@
                 #set current_interval = int($Extras.Charts.month_windrun_timespan)
             #end if
 
-            #set $records = list($span($month_delta=1,$boundary='midnight').spans(interval=current_interval))
+            #set $records = list($span($day_delta=31,$boundary='midnight').spans(interval=current_interval))
             #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
@@ -529,7 +529,7 @@
             };
 
             var raw_data = [
-                #for $record in $span($month_delta=1,$boundary='midnight').spans(interval=int($Extras.Charts.month_timespan))
+                #for $record in $span($day_delta=31,$boundary='midnight').spans(interval=int($Extras.Charts.month_timespan))
                     {
                         'dir': "$record.wind.vecdir.raw",
                         'speed': "$record.windSpeed.avg.raw",
