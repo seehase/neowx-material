@@ -1,6 +1,6 @@
 // Weewx MQTT Client Script
 //
-// Version 1.0.1
+// Version 1.0.2
 //
 // 1. INIT PAHO CLIENT
 // Configuration is injected from index.html.tmpl via window.MQTT_CONFIG
@@ -40,54 +40,55 @@ var options = null;
         client.connect(options);
     } else {
         debugLog('MQTT disabled - skipping connection');
-        updateMQTTStatusIndicator(null);  // null means disabled
     }
 })();
 
 // --- HELPER FUNCTION: Update MQTT status indicator ---
 function updateMQTTStatusIndicator(connected) {
-    console.log('[MQTT INDICATOR] Function called with:', connected);
-    var indicator = document.getElementById('mqtt-indicator');
+    if (window.MQTT_CONFIG && window.MQTT_CONFIG.enabled) {
+        console.log('[MQTT INDICATOR] Function called with:', connected);
+        var indicator = document.getElementById('mqtt-indicator');
 
-    if (!indicator) {
-        console.log('[MQTT INDICATOR] Element NOT found!');
-        return;
-    }
-
-    console.log('[MQTT INDICATOR] Element found, applying styles...');
-
-    if (connected === true) {
-        // Connected - Green (using !important to override CSS inheritance)
-        indicator.style.cssText = 'color: #00ff00 !important; vertical-align: middle;';
-        console.log('[MQTT INDICATOR] Set color to GREEN');
-        if (window.MQTT_CONFIG && window.MQTT_CONFIG.text_connected) {
-            indicator.setAttribute('title', window.MQTT_CONFIG.text_connected);
-            indicator.setAttribute('data-original-title', window.MQTT_CONFIG.text_connected);
-            // Initialize/update Bootstrap tooltip
-            if (typeof $ !== 'undefined' && $.fn.tooltip) {
-                $(indicator).tooltip('dispose').tooltip();
-            }
-            console.log('[MQTT INDICATOR] Set tooltip:', window.MQTT_CONFIG.text_connected);
+        if (!indicator) {
+            console.log('[MQTT INDICATOR] Element NOT found!');
+            return;
         }
-    } else if (connected === false) {
-        // Failed - Red (using !important to override CSS inheritance)
-        indicator.style.cssText = 'color: #ff4444 !important; vertical-align: middle;';
-        console.log('[MQTT INDICATOR] Set color to RED');
-        if (window.MQTT_CONFIG && window.MQTT_CONFIG.text_failed) {
-            indicator.setAttribute('title', window.MQTT_CONFIG.text_failed);
-            indicator.setAttribute('data-original-title', window.MQTT_CONFIG.text_failed);
-            // Initialize/update Bootstrap tooltip
-            if (typeof $ !== 'undefined' && $.fn.tooltip) {
-                $(indicator).tooltip('dispose').tooltip();
+
+        console.log('[MQTT INDICATOR] Element found, applying styles...');
+
+        if (connected === true) {
+            // Connected - Green (using !important to override CSS inheritance)
+            indicator.style.cssText = 'color: #00ff00 !important; vertical-align: middle;';
+            console.log('[MQTT INDICATOR] Set color to GREEN');
+            if (window.MQTT_CONFIG && window.MQTT_CONFIG.text_connected) {
+                indicator.setAttribute('title', window.MQTT_CONFIG.text_connected);
+                indicator.setAttribute('data-original-title', window.MQTT_CONFIG.text_connected);
+                // Initialize/update Bootstrap tooltip
+                if (typeof $ !== 'undefined' && $.fn.tooltip) {
+                    $(indicator).tooltip('dispose').tooltip();
+                }
+                console.log('[MQTT INDICATOR] Set tooltip:', window.MQTT_CONFIG.text_connected);
             }
-            console.log('[MQTT INDICATOR] Set tooltip:', window.MQTT_CONFIG.text_failed);
-        }
-    } else if (connected === null) {
-        // Disabled - hide status
-        console.log('[MQTT INDICATOR] Hiding indicator (MQTT disabled)');
-        var statusContainer = document.getElementById('mqtt-status');
-        if (statusContainer) {
-            statusContainer.style.display = 'none';
+        } else if (connected === false) {
+            // Failed - Red (using !important to override CSS inheritance)
+            indicator.style.cssText = 'color: #ff4444 !important; vertical-align: middle;';
+            console.log('[MQTT INDICATOR] Set color to RED');
+            if (window.MQTT_CONFIG && window.MQTT_CONFIG.text_failed) {
+                indicator.setAttribute('title', window.MQTT_CONFIG.text_failed);
+                indicator.setAttribute('data-original-title', window.MQTT_CONFIG.text_failed);
+                // Initialize/update Bootstrap tooltip
+                if (typeof $ !== 'undefined' && $.fn.tooltip) {
+                    $(indicator).tooltip('dispose').tooltip();
+                }
+                console.log('[MQTT INDICATOR] Set tooltip:', window.MQTT_CONFIG.text_failed);
+            }
+        } else if (connected === null) {
+            // Disabled - hide status
+            console.log('[MQTT INDICATOR] Hiding indicator (MQTT disabled)');
+            var statusContainer = document.getElementById('mqtt-status');
+            if (statusContainer) {
+                statusContainer.style.display = 'none';
+            }
         }
     }
 }

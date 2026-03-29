@@ -208,24 +208,20 @@ href="img/splash/splash_1536x2048.png"
 
 <style>
     /* Applies hand cursor and smooth transitions to both Value Cards and Graph Cards */
-    .temprow .card,
-    .graphrow .card {
+    .card-value,
+    .card-chart {
         cursor: pointer;
         transition: all 0.2s ease-in-out;
     }
 
     #set $enable_hover = $Extras.Appearance.get('enable_hover_effect', 'true')
     #if $enable_hover == 'true' or $enable_hover == True
-    /* Hover effect for Value Cards (Lift & Shadow) */
-    .temprow .card:hover {
-        box-shadow: 0 8px 15px rgba(0,0,0,0.3) !important;
-        transform: translateY(-3px);
-    }
-
-    /* Hover effect for Graph Cards (Subtle Pop) */
-    .graphrow .card:hover {
-        transform: scale(1.01);
-    }
+        /* Hover effect for Value Cards and Graph Cards (Lift & Shadow) */
+        .temprow .card:not(.card-forecast):hover,
+        .graphrow .card:not(.card-forecast):hover {
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3) !important;
+            transform: translateY(-3px);
+        }
     #end if
 
     /* Prevents "Touch to Search" popups and blue text selection on mobile/desktop */

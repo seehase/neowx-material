@@ -49,7 +49,7 @@
     #end if
     #for $i, $x in $enumerate($forecast.daily)
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card">
+            <div class="card card-forecast">
                 <div class="card-body text-center pb-1">
                     <h3 class="h5-responsive $Extras.color-text">
                         #if $Extras.Forecast.show_today_tomorrow == "yes" and $i == 0
