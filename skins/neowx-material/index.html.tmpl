@@ -361,29 +361,29 @@
         ## +-------------------------------------------------------------------------+
         #set $mqtt_enabled = ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True)
         #if $mqtt_enabled
-        #set $enabled_str = "true"
+            #set $enabled_str = "true"
         #else
-        #set $enabled_str = "false"
+            #set $enabled_str = "false"
         #end if
         #set $mqtt_debug = ($Extras.MQTT.get('debug', 'false') == "true" or $Extras.MQTT.get('debug', False) == True)
         #if $mqtt_debug
-        #set $debug_str = "true"
+            #set $debug_str = "true"
         #else
-        #set $debug_str = "false"
+            #set $debug_str = "false"
         #end if
         #set $flash_on_update = $Extras.MQTT.get('flash_on_update', 'true')
         #if $flash_on_update == 'true' or $flash_on_update == True
-        #set $flash_on_update_str = "true"
+            #set $flash_on_update_str = "true"
         #else
-        #set $flash_on_update_str = "false"
+            #set $flash_on_update_str = "false"
         #end if
         #set $flash_color_raw = $Extras.MQTT.get('flash_color', '#00ff00')
         #set $flash_color = $flash_color_raw.strip('"').strip("'") if $flash_color_raw else '#00ff00'
         #set $skip_timestamp_check = $Extras.MQTT.get('skip_timestamp_check', 'false')
         #if $skip_timestamp_check == 'true' or $skip_timestamp_check == True
-        #set $skip_timestamp_check_str = "true"
+            #set $skip_timestamp_check_str = "true"
         #else
-        #set $skip_timestamp_check_str = "false"
+            #set $skip_timestamp_check_str = "false"
         #end if
         #set $message_timestamp_field = $Extras.MQTT.get('message_timestamp_field', 'dateTime')
         <script type="text/javascript">
@@ -419,14 +419,14 @@
             // ConfigObj automatically parses this as a list
             window.MQTT_SENSOR_MAPPING = {
                 #for $sensor_name in $Extras.MQTT.SensorMapping
-                #set $config = $Extras.MQTT.SensorMapping[$sensor_name]
-                #if isinstance($config, list) and len($config) >= 3
-                '$sensor_name': {
-                    payloadAttr: '$config[0]',
-                    unit: '$config[1]',
-                    decimals: $int($config[2])
-                },
-                #end if
+                    #set $config = $Extras.MQTT.SensorMapping[$sensor_name]
+                    #if isinstance($config, list) and len($config) >= 3
+                        '$sensor_name': {
+                            payloadAttr: '$config[0]',
+                            unit: '$config[1]',
+                            decimals: $int($config[2])
+                        },
+                    #end if
                 #end for
             };
         </script>

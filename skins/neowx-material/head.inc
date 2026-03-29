@@ -216,16 +216,16 @@ href="img/splash/splash_1536x2048.png"
 
     #set $enable_hover = $Extras.Appearance.get('enable_hover_effect', 'true')
     #if $enable_hover == 'true' or $enable_hover == True
-    /* Hover effect for Value Cards (Lift & Shadow) */
-    .temprow .card:not(.card-forecast):hover {
-        box-shadow: 0 8px 15px rgba(0,0,0,0.3) !important;
-        transform: translateY(-3px);
-    }
+        /* Hover effect for Value Cards (Lift & Shadow) */
+        .temprow .card:not(.card-forecast):hover {
+            box-shadow: 0 8px 15px rgba(0,0,0,0.3) !important;
+            transform: translateY(-3px);
+        }
 
-    /* Hover effect for Graph Cards (Subtle Pop) */
-    .graphrow .card:not(.card-forecast):hover {
-        transform: scale(1.01);
-    }
+        /* Hover effect for Graph Cards (Subtle Pop) */
+        .graphrow .card:not(.card-forecast):hover {
+            transform: scale(1.01);
+        }
     #end if
 
     /* Prevents "Touch to Search" popups and blue text selection on mobile/desktop */
