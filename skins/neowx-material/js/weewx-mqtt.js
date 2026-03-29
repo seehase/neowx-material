@@ -1,6 +1,6 @@
 // Weewx MQTT Client Script
 //
-// Version 1.0.1
+// Version 1.0.2
 //
 // 1. INIT PAHO CLIENT
 // Configuration is injected from index.html.tmpl via window.MQTT_CONFIG
