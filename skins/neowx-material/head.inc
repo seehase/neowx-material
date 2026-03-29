@@ -208,8 +208,8 @@ href="img/splash/splash_1536x2048.png"
 
 <style>
     /* Applies hand cursor and smooth transitions to both Value Cards and Graph Cards */
-    .temprow .card,
-    .graphrow .card {
+    .card-value,
+    .card-chart {
         cursor: pointer;
         transition: all 0.2s ease-in-out;
     }
