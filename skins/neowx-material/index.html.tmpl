@@ -404,6 +404,7 @@
                 flash_color: "$flash_color",
                 message_timestamp_field: "$message_timestamp_field",
                 skip_timestamp_check: $skip_timestamp_check_str,
+                message_format: "$Extras.MQTT.get('message_format', 'json')",
                 directions: [#for $d in $Labels.Generic.directions#"${d.strip()}",#end for#]
             };
 
