@@ -1,6 +1,6 @@
 // Weewx MQTT Client Script
 //
-// Version 1.0.2
+// Version 1.0.3
 //
 // 1. INIT PAHO CLIENT
 // Configuration is injected from index.html.tmpl via window.MQTT_CONFIG
@@ -113,7 +113,20 @@ function getCompass(deg) {
 if (client) {
     client.onMessageArrived = function (message) {
         try {
-            var payload = JSON.parse(message.payloadString);
+            var payload;
+            var msgFormat = (window.MQTT_CONFIG && window.MQTT_CONFIG.message_format) || 'json';
+
+            if (msgFormat === 'ecowitt') {
+                debugLog('Ecowitt format detected – using Ecowitt parser');
+                payload = parseEcowittMessage(message.payloadString);
+                if (!payload) {
+                    debugLog('⚠️ Ecowitt parser returned null, skipping update');
+                    return;
+                }
+            } else {
+                payload = JSON.parse(message.payloadString);
+            }
+
             debugLog('Message received: ' + JSON.stringify(payload).substring(0, 100) + '...');
 
             // Check if timestamp is newer, if yes - update page
@@ -500,3 +513,199 @@ if (client) {
         }
     });
 }
+
+// =============================================================================
+// 6. ECOWITT MESSAGE PARSER
+//
+// Converts a raw Ecowitt HTTP POST payload to a weewx-compatible JSON object.
+// Activated when  [[MQTT]] message_format = ecowitt  in skin.conf.
+//
+// Ecowitt sends data as an application/x-www-form-urlencoded body, optionally
+// preceded by HTTP headers.  The payload starts at "PASSKEY=".
+//
+// Field mapping  :  Ecowitt name  →  weewx payload attribute (+ unit conversion)
+// Derived fields :  dewpoint, windchill, heatindex, humidex, appTemp, cloudbase,
+//                   inDewpoint, altimeter (≈ barometer)
+// =============================================================================
+
+/**
+ * Parse a raw Ecowitt HTTP POST message and return a weewx-compatible object.
+ *
+ * @param  {string}      rawMessage  Full HTTP request string from the device
+ * @returns {Object|null}            weewx payload object or null on failure
+ */
+function parseEcowittMessage(rawMessage) {
+    debugLog('Ecowitt: starting parse...');
+
+    // ── Step 1: locate PASSKEY= and extract the form-encoded body ────────────
+    var start = rawMessage.indexOf('PASSKEY=');
+    if (start === -1) {
+        debugLog('⚠️ Ecowitt: PASSKEY= not found – aborting');
+        return null;
+    }
+    var body = rawMessage.substring(start);
+
+    // ── Step 2: split into key/value pairs and URL-decode ────────────────────
+    var params = {};
+    body.split('&').forEach(function (pair) {
+        var eq = pair.indexOf('=');
+        if (eq === -1) return;
+        var k = decodeURIComponent(pair.substring(0, eq).trim());
+        var v = decodeURIComponent(pair.substring(eq + 1).trim());
+        params[k] = v;
+    });
+    debugLog('Ecowitt: parsed ' + Object.keys(params).length + ' raw params');
+
+    // ── Step 3: unit-conversion helpers ──────────────────────────────────────
+    function fToC(v)       { return (parseFloat(v) - 32) * 5 / 9; }
+    function inHgToMbar(v) { return parseFloat(v) * 33.8639; }
+    function mphToKph(v)   { return parseFloat(v) * 1.60934; }
+    function inToCm(v)     { return parseFloat(v) * 2.54; }
+    function pf(v)         { return parseFloat(v); }
+
+    // ── Step 4: map Ecowitt fields → weewx payload attribute names ───────────
+    var r = {};
+
+    // Indoor
+    if (params.tempinf    !== undefined) r.inTemp_C   = fToC(params.tempinf);
+    if (params.humidityin !== undefined) r.inHumidity = pf(params.humidityin);
+
+    // Pressure
+    if (params.baromrelin !== undefined) r.barometer_mbar = inHgToMbar(params.baromrelin);
+    if (params.baromabsin !== undefined) r.pressure_mbar  = inHgToMbar(params.baromabsin);
+
+    // Outdoor temperature / humidity
+    if (params.tempf    !== undefined) r.outTemp_C   = fToC(params.tempf);
+    if (params.humidity !== undefined) r.outHumidity = pf(params.humidity);
+
+    // Wind  (prefer 10-min avg direction over instantaneous)
+    if      (params.winddir_avg10m !== undefined) r.windDir      = pf(params.winddir_avg10m);
+    else if (params.winddir        !== undefined) r.windDir      = pf(params.winddir);
+    if (params.windspeedmph  !== undefined) r.windSpeed_kph = mphToKph(params.windspeedmph);
+    if (params.windgustmph   !== undefined) r.windGust_kph  = mphToKph(params.windgustmph);
+    if (params.maxdailygust  !== undefined) r.maxGust_kph   = mphToKph(params.maxdailygust);
+
+    // Solar / UV
+    if (params.solarradiation !== undefined) r.radiation_Wpm2 = pf(params.solarradiation);
+    if (params.uv             !== undefined) r.UV             = pf(params.uv);
+
+    // Rain  (inches → cm)
+    if (params.rainratein    !== undefined) r.rainRate_cm_per_hour = inToCm(params.rainratein);
+    if (params.eventrainin   !== undefined) r.eventRain_cm         = inToCm(params.eventrainin);
+    if (params.hourlyrainin  !== undefined) r.hourRain_cm          = inToCm(params.hourlyrainin);
+    if (params.last24hrainin !== undefined) r.rain24_cm            = inToCm(params.last24hrainin);
+    if (params.dailyrainin   !== undefined) r.dayRain_cm           = inToCm(params.dailyrainin);
+    if (params.weeklyrainin  !== undefined) r.weekRain_cm          = inToCm(params.weeklyrainin);
+    if (params.monthlyrainin !== undefined) r.monthRain_cm         = inToCm(params.monthlyrainin);
+    if (params.yearlyrainin  !== undefined) r.yearRain_cm          = inToCm(params.yearlyrainin);
+
+    // Extra sensors 1–8
+    for (var i = 1; i <= 8; i++) {
+        if (params['temp'     + i + 'f'] !== undefined) r['extraTemp'  + i + '_C'] = fToC(params['temp' + i + 'f']);
+        if (params['humidity' + i      ] !== undefined) r['extraHumid' + i       ] = pf(params['humidity' + i]);
+        if (params['batt'     + i      ] !== undefined) r['extraBattery' + i     ] = pf(params['batt'    + i]);
+    }
+
+    // Battery / telemetry
+    if (params.console_batt !== undefined) r.consBatteryVoltage_volt = pf(params.console_batt);
+    if (params.wh65batt     !== undefined) r.outTempBatteryStatus    = pf(params.wh65batt);
+
+    // Timestamp  – dateutc arrives as "2026-03-29+20:31:20" after URL-decode
+    if (params.dateutc !== undefined) {
+        try {
+            var iso = params.dateutc.replace(/\+/g, ' ').replace(' ', 'T') + 'Z';
+            r.dateTime = new Date(iso).getTime() / 1000;
+        } catch (e) {
+            r.dateTime = Date.now() / 1000;
+        }
+    } else {
+        r.dateTime = Date.now() / 1000;
+    }
+
+    r.usUnits = 16; // METRICWX
+
+    // ── Step 5: derived meteorological values ────────────────────────────────
+    var T  = r.outTemp_C;
+    var RH = r.outHumidity;
+    var W  = r.windSpeed_kph;
+
+    if (T !== undefined && RH !== undefined) {
+        r.dewpoint_C      = ecowittDewpoint(T, RH);
+        r.heatindex_C     = ecowittHeatindex(T, RH);
+        r.humidex_C       = ecowittHumidex(T, r.dewpoint_C);
+        r.appTemp_C       = ecowittAppTemp(T, RH, W !== undefined ? W / 3.6 : 0);
+        r.cloudbase_meter = ecowittCloudbase(T, r.dewpoint_C);
+    }
+    if (T !== undefined && W !== undefined) {
+        r.windchill_C = ecowittWindchill(T, W);
+    }
+    if (r.inTemp_C !== undefined && r.inHumidity !== undefined) {
+        r.inDewpoint_C = ecowittDewpoint(r.inTemp_C, r.inHumidity);
+    }
+    // Altimeter ≈ sea-level barometric pressure (accurate calc needs station altitude)
+    if (r.barometer_mbar !== undefined) {
+        r.altimeter_mbar = r.barometer_mbar;
+    }
+
+    debugLog('Ecowitt: produced ' + Object.keys(r).length + ' weewx fields');
+    return r;
+}
+
+// ── Meteorological helpers (prefixed ecowitt* to avoid naming conflicts) ─────
+
+/** Dewpoint via Magnus formula.  T in °C, RH in % → °C */
+function ecowittDewpoint(T, RH) {
+    var g = (17.271 * T) / (237.3 + T) + Math.log(RH / 100.0);
+    return (237.3 * g) / (17.271 - g);
+}
+
+/**
+ * Windchill – US/Canada formula (valid only when T ≤ 10 °C and wind ≥ 4.8 kph).
+ * Falls back to T otherwise.
+ */
+function ecowittWindchill(T, windKph) {
+    if (T > 10 || windKph < 4.8) return T;
+    var v = Math.pow(windKph, 0.16);
+    return 13.12 + 0.6215 * T - 11.37 * v + 0.3965 * T * v;
+}
+
+/**
+ * Heat index – Rothfusz equation (valid when T > 26.7 °C).
+ * Falls back to T otherwise.
+ */
+function ecowittHeatindex(T, RH) {
+    if (T < 26.7) return T;
+    var F  = T * 9 / 5 + 32;
+    var HI = -42.379
+             + 2.04901523  * F
+             + 10.14333127 * RH
+             - 0.22475541  * F  * RH
+             - 0.00683783  * F  * F
+             - 0.05391553  * RH * RH
+             + 0.00122874  * F  * F  * RH
+             + 0.00085282  * F  * RH * RH
+             - 0.00000199  * F  * F  * RH * RH;
+    return (HI - 32) * 5 / 9;
+}
+
+/** Humidex (Canadian).  T and Td in °C → °C */
+function ecowittHumidex(T, Td) {
+    var e = 6.112 * Math.exp(17.67 * Td / (Td + 243.5));
+    return T + 0.5555 * (e - 10.0);
+}
+
+/**
+ * Apparent temperature (Australian Bureau of Meteorology).
+ * T in °C, RH in %, wsMs = wind speed in m/s → °C
+ */
+function ecowittAppTemp(T, RH, wsMs) {
+    var e = (RH / 100) * 6.105 * Math.exp(17.27 * T / (237.7 + T));
+    return T + 0.33 * e - 0.70 * wsMs - 4.00;
+}
+
+/** Cloudbase – Lifted Condensation Level approximation.  T and Td in °C → metres */
+function ecowittCloudbase(T, Td) {
+    return 125 * (T - Td);
+}
+
+
