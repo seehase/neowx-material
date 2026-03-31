@@ -6564,6 +6564,14 @@ header .navbar {
   padding-left: 10px !important;
 }
 
+.navbar .nav-flex-icons.header-icons {
+  font-size: 11pt !important;
+}
+
+.datetime-header {
+  font-size: 11pt !important;
+}
+
 @media screen and (min-width: 1660px) {
   .temprow {
     display: flex;
@@ -6657,6 +6665,15 @@ header .navbar {
 
 .yellow {
   background-color: #FBC02D !important;
+}
+
+@media (max-width: 1200px) {
+  .navbar .nav-flex-icons.header-icons {
+    font-size: 10pt !important;
+  }
+  .datetime-header {
+    font-size: 10pt !important;
+  }
 }
 
 /*# sourceMappingURL=style.css.map */

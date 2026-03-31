@@ -5,173 +5,202 @@
 // General classes / adjustments
 // ---------------------------------------------------------------------------
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 body {
-    // ios webapp improvement
-    -webkit-tap-highlight-color: transparent;
+  // ios webapp improvement
+  -webkit-tap-highlight-color: transparent;
 
-    // Some tooltips may create a horizontal scroll bar which we don't want
-    overflow-x: hidden;
+  // Some tooltips may create a horizontal scroll bar which we don't want
+  overflow-x: hidden;
 }
 
 .text-muted {
-    font-weight: 300;
+  font-weight: 300;
 }
 
 .main-bg {
-    background: rgba(158,158,158,0.1);
+  background: rgba(158, 158, 158, 0.1);
 }
+
 header .navbar-brand,
 header h1,
 .navbar-nav .nav-link {
-    white-space: normal !important;
-    word-wrap: break-word !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
 }
 
 header .navbar {
-    height: auto !important;
+  height: auto !important;
 }
 
 .lo-text, .font-small, .hi-text {
-    font-size: 0.8rem !important;
-    line-height: 1.0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.0 !important;
 }
 
 #forecast_hour_icons {
-    margin-bottom: 1px !important;
-    margin-top: 7px !important;
+  margin-bottom: 1px !important;
+  margin-top: 7px !important;
 }
 
 #forecast-table {
-    line-height: 1.3 !important;
-    padding-left: 10px !important;
+  line-height: 1.3 !important;
+  padding-left: 10px !important;
+}
+
+.navbar .nav-flex-icons.header-icons {
+  font-size: 11pt !important;
+}
+
+.datetime-header {
+  font-size: 11pt !important;
 }
 
 // Very large (FHD) layout
 // ---------------------------------------------------------------------------
 
 @media screen and (min-width: 1660px) {
-    .temprow {
-        display: flex;
-        width: 50%;
-        margin: 1rem 0 0 0 !important;
-    }
+  .temprow {
+    display: flex;
+    width: 50%;
+    margin: 1rem 0 0 0 !important;
+  }
 
-    .graphrow {
-        display: flex;
-        width: 50%;
-        margin: 1rem 0 0 0 !important;
-    }
+  .graphrow {
+    display: flex;
+    width: 50%;
+    margin: 1rem 0 0 0 !important;
+  }
 
-    .d-flex-xxl {
-        display: flex !important;
-    }
+  .d-flex-xxl {
+    display: flex !important;
+  }
 
-    .temprow .col-xl-4 {
-        flex: 0 0 50%;
-        max-width: 50%;
-    }
+  .temprow .col-xl-4 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
 
-    .rowdivider {
-        display: none !important;
-    }
+  .rowdivider {
+    display: none !important;
+  }
 }
 
 // Dark mode
 // ---------------------------------------------------------------------------
 
 @media (prefers-color-scheme: dark) {
-    .auto-theme {
-        &.main-bg {
-            background: #2e2e2e !important;
-        }
-
-        .card, .dropdown-menu, .dropdown-menu a {
-            background-color: #444 !important;
-            color: #ddd !important;
-        }
-
-        .text-muted {
-            color: #aaa;
-        }
-
-        // Adjusted colors. Default text is color 500, in dark: 300
-        // Not all colors need this, some look nice on dark bgs.
-
-        .purple-text {
-            color: #BA68C8 !important;
-        }
-        .deep-purple-text {
-            color: #9575CD !important;
-        }
-        .indigo-text {
-            color: #7986CB !important;
-        }
-        .teal-text {
-            color: #4DB6AC !important;
-        }
-        .brown-text {
-            color: #A1887F !important;
-        }
-        .blue-grey-text {
-            color: #90A4AE !important;
-        }
-
-        .text-dark, .table {
-            color: #ccc !important;
-        }
-    }
-}
-
-.dark-theme {
+  .auto-theme {
     &.main-bg {
-        background: #2e2e2e !important;
+      background: #2e2e2e !important;
     }
 
     .card, .dropdown-menu, .dropdown-menu a {
-        background-color: #444 !important;
-        color: #ddd !important;
+      background-color: #444 !important;
+      color: #ddd !important;
     }
 
     .text-muted {
-        color: #aaa;
+      color: #aaa;
     }
 
     // Adjusted colors. Default text is color 500, in dark: 300
     // Not all colors need this, some look nice on dark bgs.
 
     .purple-text {
-        color: #BA68C8 !important;
+      color: #BA68C8 !important;
     }
+
     .deep-purple-text {
-        color: #9575CD !important;
+      color: #9575CD !important;
     }
+
     .indigo-text {
-        color: #7986CB !important;
+      color: #7986CB !important;
     }
+
     .teal-text {
-        color: #4DB6AC !important;
+      color: #4DB6AC !important;
     }
+
     .brown-text {
-        color: #A1887F !important;
+      color: #A1887F !important;
     }
+
     .blue-grey-text {
-        color: #90A4AE !important;
+      color: #90A4AE !important;
     }
 
     .text-dark, .table {
-        color: #ccc !important;
+      color: #ccc !important;
     }
+  }
+}
+
+.dark-theme {
+  &.main-bg {
+    background: #2e2e2e !important;
+  }
+
+  .card, .dropdown-menu, .dropdown-menu a {
+    background-color: #444 !important;
+    color: #ddd !important;
+  }
+
+  .text-muted {
+    color: #aaa;
+  }
+
+  // Adjusted colors. Default text is color 500, in dark: 300
+  // Not all colors need this, some look nice on dark bgs.
+
+  .purple-text {
+    color: #BA68C8 !important;
+  }
+
+  .deep-purple-text {
+    color: #9575CD !important;
+  }
+
+  .indigo-text {
+    color: #7986CB !important;
+  }
+
+  .teal-text {
+    color: #4DB6AC !important;
+  }
+
+  .brown-text {
+    color: #A1887F !important;
+  }
+
+  .blue-grey-text {
+    color: #90A4AE !important;
+  }
+
+  .text-dark, .table {
+    color: #ccc !important;
+  }
 }
 
 // Fix for bright color bgs
 // Normally color 500, darker version: color 700
 
 .lime {
-    background-color: #AFB42B !important;
+  background-color: #AFB42B !important;
 }
+
 .yellow {
-    background-color: #FBC02D !important
+  background-color: #FBC02D !important
+}
+
+@media (max-width: 1200px) {
+  .navbar .nav-flex-icons.header-icons {
+    font-size: 10pt !important;
+  }
+  .datetime-header {
+    font-size: 10pt !important;
+  }
 }

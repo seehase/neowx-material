@@ -30,9 +30,9 @@
                         <span class="font-small"></span>
                     #else
                         #set $datetime_format = $Extras.Formatting.get('datetime', '%a %d %H:%M')
-                        <span class="font-small" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime.format($datetime_format)</span>
+                        <span class="font-small datetime-header" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime.format($datetime_format)</span>
                         #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True) and $active_nav == 'current'
-                            <span id="mqtt-status" class="font-small" style="margin-left: 8px; display: inline-block;">
+                            <span id="mqtt-status" class="font-small datetime-header" style="margin-left: 8px; display: inline-block;">
                                 <i id="mqtt-indicator" class="fas fa-share-nodes" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title=""></i>
                             </span>
                         #end if
@@ -119,7 +119,7 @@
                     #end if
                 #end if
                 #if $active_nav == 'history'
-                    <li class="nav-item active mr-3">
+                    <li class="nav-item mr-3">
                         <a class="nav-link" href="history.html">$gettext("history")</a>
                     </li>
                 #else
@@ -156,7 +156,7 @@
 
         #if $Extras.Header.show_almanac == "yes"
             #if $almanac.hasExtras
-                <ul class="navbar-nav nav-flex-icons" style="line-height: 1.5; padding-top: .5rem; font-size: 11pt">
+                <ul class="navbar-nav nav-flex-icons header-icons" style="line-height: 1.5; padding-top: .5rem;">
                     <li class="nav-item mr-4 text-white">
                         <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sun.rise <br>
                         <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sun.set
@@ -194,7 +194,7 @@
                     </li>
                 </ul>
             #else
-                <ul class="navbar-nav nav-flex-icons" style="line-height: 1.5; padding-top: .5rem; font-size: 11pt">
+                <ul class="navbar-nav nav-flex-icons header-icons" style="line-height: 1.5; padding-top: .5rem;">
                     <li class="nav-item mr-4 text-white">
                         <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sunrise <br>
                         <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sunset
