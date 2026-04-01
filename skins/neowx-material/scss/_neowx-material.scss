@@ -204,3 +204,129 @@ header .navbar {
     font-size: 10pt !important;
   }
 }
+
+@media (max-width: 1036px) {
+  .navbar .nav-flex-icons.header-icons {
+    font-size: 9pt !important;
+  }
+  .datetime-header {
+    font-size: 9pt !important;
+  }
+}
+
+.ml-3, .mx-3 {
+  margin-left: 0 !important;
+  margin-right: 0.5rem !important;
+}
+
+.navbar-brand {
+  margin-right: 0 !important;
+}
+
+.mr-4, .mx-4 {
+  margin-right: 0.5rem !important;
+}
+
+/* Override Bootstrap utility to set a consistent line-height where used
+   and preserve the existing margin-bottom behavior. */
+.mb-3, .my-3 {
+  margin-bottom: 1rem !important;
+  line-height: 18px;
+}
+
+/* Restore spacing (gutters) between footer columns only.
+   Bootstrap normally provides 15px left/right padding on .col-* elements
+   but some custom rules in this stylesheet may override those.
+   Target the footer specifically so other layouts are unaffected. */
+footer.page-footer {
+  .row {
+    margin-left: -15px !important;
+    margin-right: -15px !important;
+  }
+  .row > [class*="col-"] {
+    // Keep consistent gutter padding for footer columns so
+    // left and right match exactly. Avoid using !important
+    // so utility classes can still override if needed.
+    padding-left: 19px;
+    padding-right: 19px;
+    // Some user agents or resets may render these elements as
+    // table-related display types which prevents horizontal
+    // padding from taking effect. Force block-level display so
+    // padding-left/right behave as expected.
+    display: block;
+    // Make all footer columns use the same base font sizing so
+    // the about/table column visually matches the links column.
+    font-size: 14px;
+    // Use light weight to match the links block
+    font-weight: 300;
+    line-height: 18px;
+  }
+
+  // Force a visible gap inside footer tables: set a right padding
+  // on table cells so the columns have spacing even if display
+  // utilities change table layout behavior.
+  table td {
+    // Keep right gutter so table internals align with columns.
+    // Remove vertical padding here to avoid forcing a fixed
+    // row height; vertical spacing is handled by line-height
+    // and surrounding elements so the table column behaves
+    // like the links column (height: auto).
+    padding-left: 19px;
+    height: auto;
+    vertical-align: top;
+  }
+
+  // If the template applies the d-inline utility to the table,
+  // make it behave as an inline-table so table internals (tbody,
+  // tr, td) keep their layout and inherit font sizing correctly.
+  table.d-inline {
+    display: inline-table !important;
+  }
+
+  // Make the first footer column (about block) visually match
+  // the links block by using the same font size and line-height.
+  .row > .col-md-5 {
+    font-size: 14px;
+    // Use the same light weight as the links column
+    font-weight: 300;
+    line-height: 18px;
+
+    // Ensure table cells and other inline elements inherit the sizing
+    table, table td, table th, p, ul, li, a {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 18px;
+    }
+
+    // Ensure the about-column's table cells do not add extra
+    // vertical spacing so this column matches the links column.
+    table td {
+      padding-left: 19px;
+      height: auto;
+      vertical-align: top;
+    }
+  }
+
+  // Make the rightmost (third) footer column explicitly match the
+  // left column's spacing and line-height so both sides look identical.
+  .row > .col-md-3 {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 18px;
+
+    // Ensure inline elements inside the links column inherit sizing
+    p, ul, li, a {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 18px;
+    }
+
+    // Give the links list the requested padding: top/right/bottom = 1rem,
+    // left = 19px so it lines up with the other footer columns.
+    ul {
+      padding: 1px 1px 1px 19px;
+      margin: 0;
+    }
+  }
+}
+

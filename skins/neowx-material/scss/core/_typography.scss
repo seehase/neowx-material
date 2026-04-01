@@ -1,18 +1,24 @@
+@use "bootstrap/variables" as bootstrap-variables;
+@use "colors";
+@use "mixins";
+@use "variables";
+
 // Typography
+@use "sass:map";
 
 // General properties
 body {
-  font-family: $mdb-font-family;
-  font-weight: $font-weight-light;
+  font-family: variables.$mdb-font-family;
+  font-weight: bootstrap-variables.$font-weight-light;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: $font-weight-light;
+  font-weight: bootstrap-variables.$font-weight-light;
 }
 
 // Blockquote
 .blockquote {
-  padding: $blockquote-padding-y $blockquote-padding-x;
+  padding: variables.$blockquote-padding-y variables.$blockquote-padding-x;
   border-left: .25rem solid #eceeef;
   &.text-right {
     border-right: .25rem solid #eceeef;
@@ -20,16 +26,16 @@ h1, h2, h3, h4, h5, h6 {
   }
   .bq-title {
     margin-bottom: 0;
-    font-size: $font-size-large;
+    font-size: variables.$font-size-large;
     font-weight: 400;
   }
   p {
-    padding: $blockquote-p-padding-y 0;
-    font-size: $blockquote-p-font-size;
+    padding: variables.$blockquote-p-padding-y 0;
+    font-size: variables.$blockquote-p-font-size;
   }
 }
 
-@each $name, $color in $basic {
+@each $name, $color in colors.$basic {
   .bq-#{$name} {
     border-left: 3px solid $color !important;
     .bq-title {
@@ -39,9 +45,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 // Responsive headings
-@each $key, $val in $grid-breakpoints {
-  @include media-breakpoint-up($key) {
-    $y: map-get($responsive-headings, $key);
+@each $key, $val in bootstrap-variables.$grid-breakpoints {
+  @include mixins.media-breakpoint-up($key) {
+    $y: map.get(variables.$responsive-headings, $key);
     @each $name, $value in $y {
       .#{$name}-responsive {
         font-size: $value;
@@ -50,16 +56,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-@each $name, $color in $basic-mdb-colors {
-  @include text-emphasis-variant(".text-#{$name}", $color);
+@each $name, $color in colors.$basic-mdb-colors {
+  @include mixins.text-emphasis-variant(".text-#{$name}", $color);
 }
 
 .font-small {
-  font-size: $font-size-small;
+  font-size: variables.$font-size-small;
 }
 
 .font-extra-small {
-  font-size: $font-size-extra-small;
+  font-size: variables.$font-size-extra-small;
 }
 
 strong {

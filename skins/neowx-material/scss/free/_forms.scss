@@ -1,3 +1,7 @@
+@use "core/colors";
+@use "core/mixins";
+@use "core/variables";
+
 // Forms basic
 // Input +  label wrapper styles
 .md-form {
@@ -23,43 +27,43 @@
     box-sizing: content-box;
     background-color: transparent;
     border: none;
-    border-bottom: 1px solid $input-border-color;
+    border-bottom: 1px solid variables.$input-border-color;
     border-radius: 0;
     outline: none;
     box-shadow: none;
-    transition: $input-transition;
+    transition: variables.$input-transition;
 
     // Focused input style
     &:focus:not([readonly]) {
-      border-bottom: 1px solid $input-md-focus-color;
-      box-shadow: 0 1px 0 0 $input-md-focus-color;
+      border-bottom: 1px solid variables.$input-md-focus-color;
+      box-shadow: 0 1px 0 0 variables.$input-md-focus-color;
 
       // Focused label style
       + label {
-        color: $input-md-focus-color;
+        color: variables.$input-md-focus-color;
       }
     }
 
     // Form message shared styles
     + label::after {
       position: absolute;
-      top: $input-label-after-top;
+      top: variables.$input-label-after-top;
       display: block;
       content: "";
       opacity: 0;
-      transition: $input-label-after-transition;
+      transition: variables.$input-label-after-transition;
     }
 
     // Valid input style
     &.valid,
     &:focus.valid {
-      border-bottom: 1px solid $input-success-color;
-      box-shadow: 0 1px 0 0 $input-success-color;
+      border-bottom: 1px solid variables.$input-success-color;
+      box-shadow: 0 1px 0 0 variables.$input-success-color;
     }
 
     &.valid + label:after,
     &:focus.valid + label:after {
-      color: $input-success-color;
+      color: variables.$input-success-color;
       content: attr(data-success);
       opacity: 1;
     }
@@ -67,45 +71,45 @@
     // Invalid input style
     &.invalid,
     &:focus.invalid {
-      border-bottom: 1px solid $input-error-color;
-      box-shadow: 0 1px 0 0 $input-error-color;
+      border-bottom: 1px solid variables.$input-error-color;
+      box-shadow: 0 1px 0 0 variables.$input-error-color;
     }
 
     &.invalid + label:after,
     &:focus.invalid + label:after {
-      color: $input-error-color;
+      color: variables.$input-error-color;
       content: attr(data-error);
       opacity: 1;
     }
 
     &.form-control.valid + label:after,
     &.form-control:focus.valid + label:after {
-      top: $input-label-valid-top;
+      top: variables.$input-label-valid-top;
     }
 
     &.form-control.invalid + label:after,
     &.form-control:focus.invalid + label:after {
-      top: $input-label-invalid-top;
+      top: variables.$input-label-invalid-top;
     }
 
     &.form-control-lg.valid + label:after,
     &.form-control-lg:focus.valid + label:after {
-      top: $input-label-valid-top-lg;
+      top: variables.$input-label-valid-top-lg;
     }
 
     &.form-control-lg.invalid + label:after,
     &.form-control-lg:focus.invalid + label:after {
-      top: $input-label-invalid-top-lg;
+      top: variables.$input-label-invalid-top-lg;
     }
 
     &.form-control-sm.valid + label:after,
     &.form-control-sm:focus.valid + label:after {
-      top: $input-label-valid-top-sm;
+      top: variables.$input-label-valid-top-sm;
     }
 
     &.form-control-sm.invalid + label:after,
     &.form-control-sm:focus.invalid + label:after {
-      top: $input-label-invalid-top-sm;
+      top: variables.$input-label-invalid-top-sm;
     }
   }
 
@@ -125,32 +129,32 @@
     input[type="text"] {
       &:valid {
         + label {
-          color: $input-success-color !important;
+          color: variables.$input-success-color !important;
         }
       }
 
       &:invalid {
         + label {
-          color: $input-error-color !important;
+          color: variables.$input-error-color !important;
         }
       }
     }
 
     .form-control {
       &:valid:focus {
-        box-shadow: 0 1px 0 0 $input-success-color !important;
+        box-shadow: 0 1px 0 0 variables.$input-success-color !important;
       }
 
       &:valid {
-        border-color: $input-success-color !important;
+        border-color: variables.$input-success-color !important;
       }
 
       &:invalid:focus {
-        box-shadow: 0 1px 0 0 $input-error-color !important;
+        box-shadow: 0 1px 0 0 variables.$input-error-color !important;
       }
 
       &:invalid {
-        border-color: $input-error-color !important;
+        border-color: variables.$input-error-color !important;
       }
     }
   }
@@ -158,8 +162,8 @@
   // Input with label
   .form-control {
     height: auto;
-    padding: $input-form-control-padding-top 0 $input-form-control-padding-bottom 0;
-    margin: 0 0 $input-form-control-margin-bottom 0;
+    padding: variables.$input-form-control-padding-top 0 variables.$input-form-control-padding-bottom 0;
+    margin: 0 0 variables.$input-form-control-margin-bottom 0;
     background-color: transparent;
     border-radius: 0;
 
@@ -170,24 +174,24 @@
     &:disabled,
     &[readonly] {
       background-color: transparent;
-      border-bottom: 1px solid $grey-lighten-1;
+      border-bottom: 1px solid colors.$grey-lighten-1;
     }
 
     &.is-valid {
-      border-color: $input-success-color;
+      border-color: variables.$input-success-color;
 
       &:focus {
-        border-color: $input-success-color !important;
-        box-shadow: 0 1px 0 0 $input-success-color !important;
+        border-color: variables.$input-success-color !important;
+        box-shadow: 0 1px 0 0 variables.$input-success-color !important;
       }
     }
 
     &.is-invalid {
-      border-color: $input-error-color;
+      border-color: variables.$input-error-color;
 
       &:focus {
-        border-color: $input-error-color !important;
-        box-shadow: 0 1px 0 0 $input-error-color !important;
+        border-color: variables.$input-error-color !important;
+        box-shadow: 0 1px 0 0 variables.$input-error-color !important;
       }
     }
 
@@ -197,17 +201,17 @@
     }
   }
 
-  @include make-input($input-validate-mb, $input-label-font-size, $input-label-active-font-size, $input-prefix-top, $input-prefix-font-size, $input-prefix-margin-left, $input-prefix-width, $input-form-text-ml);
+  @include mixins.make-input(variables.$input-validate-mb, variables.$input-label-font-size, variables.$input-label-active-font-size, variables.$input-prefix-top, variables.$input-prefix-font-size, variables.$input-prefix-margin-left, variables.$input-prefix-width, variables.$input-form-text-ml);
   position: relative;
-  margin-top: $input-md-form-margin-top;
-  margin-bottom: $input-md-form-margin-bottom;
+  margin-top: variables.$input-md-form-margin-top;
+  margin-bottom: variables.$input-md-form-margin-bottom;
 
   label {
     position: absolute;
     top: 0;
     left: 0;
     font-size: 1rem;
-    color: $input-label-color;
+    color: variables.$input-label-color;
     cursor: text;
     transition: transform .2s ease-out, color .2s ease-out;
     transform: translateY(12px);
@@ -220,19 +224,19 @@
 
   .prefix {
     position: absolute;
-    transition: $input-prefix-transition;
+    transition: variables.$input-prefix-transition;
 
     &.active {
-      color: $input-md-focus-color;
+      color: variables.$input-md-focus-color;
     }
   }
 
   &.form-lg {
-    @include make-input($input-validate-mb-lg, $input-label-font-size-lg, $input-label-active-font-size-lg, $input-prefix-top-lg, $input-prefix-font-size-lg, $input-prefix-margin-left-lg, $input-prefix-width-lg, $input-form-text-ml-lg);
+    @include mixins.make-input(variables.$input-validate-mb-lg, variables.$input-label-font-size-lg, variables.$input-label-active-font-size-lg, variables.$input-prefix-top-lg, variables.$input-prefix-font-size-lg, variables.$input-prefix-margin-left-lg, variables.$input-prefix-width-lg, variables.$input-form-text-ml-lg);
   }
 
   &.form-sm {
-    @include make-input($input-validate-mb-sm, $input-label-font-size-sm, $input-label-active-font-size-sm, $input-prefix-top-sm, $input-prefix-font-size-sm, $input-prefix-margin-left-sm, $input-prefix-width-sm, $input-form-text-ml-sm);
+    @include mixins.make-input(variables.$input-validate-mb-sm, variables.$input-label-font-size-sm, variables.$input-label-active-font-size-sm, variables.$input-prefix-top-sm, variables.$input-prefix-font-size-sm, variables.$input-prefix-margin-left-sm, variables.$input-prefix-width-sm, variables.$input-form-text-ml-sm);
   }
 
   // Textarea
@@ -248,7 +252,7 @@
 
     &.md-textarea-auto {
       padding: 0;
-      padding-top: $textarea-padding;
+      padding-top: variables.$textarea-padding;
 
       & + label {
         top: 0;
@@ -303,14 +307,14 @@
       // Valid input style
       &.valid,
       &:focus.valid {
-        border-color: $input-success-color;
-        box-shadow: inset 0 0 0 1px $input-success-color;
+        border-color: variables.$input-success-color;
+        box-shadow: inset 0 0 0 1px variables.$input-success-color;
       }
 
       &:focus:not([readonly]).valid + label,
       &.valid + label:after,
       &:focus.valid + label:after {
-        color: $input-success-color;
+        color: variables.$input-success-color;
         content: attr(data-success);
         opacity: 1;
       }
@@ -318,14 +322,14 @@
       // Invalid input style
       &.invalid,
       &:focus.invalid {
-        border-color: $input-error-color;
-        box-shadow: inset 0 0 0 1px $input-error-color;
+        border-color: variables.$input-error-color;
+        box-shadow: inset 0 0 0 1px variables.$input-error-color;
       }
 
       &:focus:not([readonly]).invalid + label,
       &.invalid + label:after,
       &:focus.invalid + label:after {
-        color: $input-error-color;
+        color: variables.$input-error-color;
         content: attr(data-error);
         opacity: 1;
       }
@@ -536,7 +540,7 @@
       box-sizing: border-box;
       padding: 10px 5px;
       background: #f5f5f5 no-repeat;
-      background-image: linear-gradient(to bottom, $input-md-focus-color, $input-md-focus-color), linear-gradient(to bottom, $input-border-color, $input-border-color);
+      background-image: linear-gradient(to bottom, variables.$input-md-focus-color, variables.$input-md-focus-color), linear-gradient(to bottom, variables.$input-border-color, variables.$input-border-color);
       background-position: 50% 100%, 50% 100%;
       background-size: 0 2px, 100% 1px;
       border: 0;
@@ -622,7 +626,7 @@
 
 // Custom file input browser support
 @each $lang,
-  $text in $custom-mdb-file-text {
+  $text in variables.$custom-mdb-file-text {
   .custom-file-input {
     &:lang(#{$lang}) {
       & ~ .custom-file-label {
@@ -650,12 +654,12 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    transition: $input-prefix-transition;
+    transition: variables.$input-prefix-transition;
     color: rgba(0,0,0,.87);
     pointer-events: none;
     
     &.active {
-      color: $input-md-focus-color;
+      color: variables.$input-md-focus-color;
     }
   }
 

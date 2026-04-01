@@ -1,13 +1,18 @@
+@use "core/colors";
+@use "core/variables";
+
 // Miscellaneous
+@use "sass:map";
+
 // Edge Headers
 .edge-header {
   display: block;
-  height: $edge-header-height;
-  background-color: $edge-header-background-color;
+  height: variables.$edge-header-height;
+  background-color: variables.$edge-header-background-color;
 }
 
 .free-bird {
-  margin-top: $edge-header-margin-top;
+  margin-top: variables.$edge-header-margin-top;
 }
 
 // Additional gradients
@@ -117,9 +122,9 @@
   }
 }
 
-@each $name, $color in $note {
+@each $name, $color in colors.$note {
   .note-#{$name} {
-    background-color: map-get($color, bgc);
-    border-color: map-get($color, border-color);
+    background-color: map.get($color, bgc);
+    border-color: map.get($color, border-color);
   }
 }

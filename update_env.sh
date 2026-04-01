@@ -32,6 +32,19 @@ if ! echo "$CURRENT_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
     exit 1
 fi
 
+# Run yarn run build
+echo "Running yarn run build..."
+cd skins/neowx-material || {
+    echo "✗ Error: Could not change to skins/neowx-material directory"
+    exit 1
+}
+if yarn run build; then
+    echo "✓ yarn run build completed successfully"
+else
+    echo "✗ Error: yarn run build failed"
+    exit 1
+fi
+
 echo "Current version: $CURRENT_VERSION"
 
 # Parse version components
@@ -56,6 +69,10 @@ rsync -a "/Users/seehausen/Developer/neowx-material/bin/user/" "/Volumes/docker/
 # Copy JS files to web directory
 echo "Copying JS files to /Volumes/web/js..."
 rsync -a "$SRC_DIR/js/" "/Volumes/web/js/"
+
+# Copy JS files to web directory
+echo "Copying CSS files to /Volumes/web/css..."
+rsync -a "$SRC_DIR/css/" "/Volumes/web/css/"
 
 # Run config_patcher.py
 cd "$DEST_DIR"
