@@ -1,10 +1,12 @@
+@use "core/variables";
+
 // List group
 .media {
   .media-left {
-    padding: $list-group-padding;
+    padding: variables.$list-group-padding;
 
     img {
-      box-shadow: $z-depth-1;
+      box-shadow: variables.$z-depth-1;
     }
   }
 }
@@ -12,22 +14,22 @@
 .list-group {
   .list-group-item {
     &:first-child {
-      border-top-left-radius: $border-radius-base;
-      border-top-right-radius: $border-radius-base;
+      border-top-left-radius: variables.$border-radius-base;
+      border-top-right-radius: variables.$border-radius-base;
     }
 
     &:last-child {
-      border-bottom-right-radius: $border-radius-base;
-      border-bottom-left-radius: $border-radius-base;
+      border-bottom-right-radius: variables.$border-radius-base;
+      border-bottom-left-radius: variables.$border-radius-base;
     }
   }
 
   a,
   button {
-    transition: $list-group-transition;
+    transition: variables.$list-group-transition;
 
     &:hover {
-      transition: $list-group-transition;
+      transition: variables.$list-group-transition;
     }
   }
 }

@@ -1,3 +1,5 @@
+@use "variables";
+
 // Masks
 // General properties
 .view {
@@ -28,8 +30,8 @@
       min-width: 100%;
       height: auto;
       min-height: 100%;
-      transition: $intro-video-transition opacity;
-      transform: $intro-video-transform;
+      transition: variables.$intro-video-transition opacity;
+      transform: variables.$intro-video-transform;
     }
   }
 }
@@ -38,7 +40,7 @@
 .overlay {
   .mask {
     opacity: 0;
-    transition: $mask-overlay-transition;
+    transition: variables.$mask-overlay-transition;
     &:hover {
       opacity: 1;
     }
@@ -48,11 +50,11 @@
 // Zoom
 .zoom {
   img, video {
-    transition: $mask-zoom-transition;
+    transition: variables.$mask-zoom-transition;
   }
   &:hover {
     img, video {
-      transform: $mask-zoom-transform;
+      transform: variables.$mask-zoom-transform;
     }
   }
 }
@@ -72,7 +74,7 @@ $patterns: (
 
 @each $no, $filename in $patterns {
   .pattern-#{$no} {
-    background: url("#{$image-path}/overlays/#{$filename}.png");
+    background: url("#{variables.$image-path}/overlays/#{$filename}.png");
     background-attachment: fixed;
   }
 }

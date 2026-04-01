@@ -1,4 +1,9 @@
+@use "bootstrap/variables";
+
 // Colors
+@use "sass:color";
+@use "sass:map";
+
 $mdb-color-lighten-5:  #d0d6e2 !default;
 $mdb-color-lighten-4:  #b1bace !default;
 $mdb-color-lighten-3:  #929fba !default;
@@ -289,7 +294,7 @@ $white-base: #fff !default;
 $foggy-grey: #4f4f4f !default;
 
 $mdb-colors-1: () !default;
-$mdb-colors-1: map-merge(
+$mdb-colors-1: map.merge(
   (
     "mdb-color": (
       "lighten-5":  $mdb-color-lighten-5,
@@ -638,12 +643,12 @@ $unique-color:         #3f729b !default;
 $unique-color-dark:    #1c2331 !default;
 $special-color:        #37474f !default;
 $special-color-dark:   #263238 !default;
-$white:                #fff;
-$black:                #000;
+variables.$white:                #fff;
+variables.$black:                #000;
 $error-color:          $red-base !default;
 
 $material-colors: () !default;
-$material-colors: map-merge(
+$material-colors: map.merge(
   (
     "primary-color":        $primary-color,
     "primary-color-dark":   $primary-color-dark,
@@ -692,7 +697,7 @@ $discord-color: #7289da !default;
 $whatsapp-color:#25d366 !default;
 
 $social-colors: () !default;
-$social-colors: map-merge(
+$social-colors: map.merge(
   (
     "fb":       $fb-color,
     "tw":       $tw-color,
@@ -718,7 +723,7 @@ $social-colors: map-merge(
 
 // MDB buttons colors
 $mdb-colors: () !default;
-$mdb-colors: map-merge(
+$mdb-colors: map.merge(
   (
     "primary":     $primary-color,
     "danger":      $danger-color,
@@ -760,7 +765,7 @@ $mdb-colors: map-merge(
 
 // Basic colors
 $basic: () !default;
-$basic: map-merge(
+$basic: map.merge(
   (
     "primary":  $primary-color,
     "danger":   $danger-color,
@@ -772,7 +777,7 @@ $basic: map-merge(
 );
 
 $basic-mdb-colors: () !default;
-$basic-mdb-colors: map-merge(
+$basic-mdb-colors: map.merge(
   (
     "primary":     $primary-color,
     "danger":      $danger-color,
@@ -788,7 +793,7 @@ $basic-mdb-colors: map-merge(
 );
 
 $pagination-colors: () !default;
-$pagination-colors: map-merge(
+$pagination-colors: map.merge(
   (
     "blue": $primary-color,
     "red": $danger-color,
@@ -803,7 +808,7 @@ $pagination-colors: map-merge(
 );
 
 $ctbc: () !default;
-$ctbc: map-merge(
+$ctbc: map.merge(
   (
     "tabs-cyan": $yellow-base,
     "tabs-orange": $red-darken-1,
@@ -816,12 +821,12 @@ $ctbc: map-merge(
 );
 
 $switch-color-bg:                 $secondary-color !default;
-$switch-color-checked-lever-bg:   desaturate(lighten($secondary-color, 25%), 25%) !default;
+$switch-color-checked-lever-bg:   color.adjust(color.adjust($secondary-color, $lightness: 25%), $saturation: -25%) !default;
 $switch-color-unchecked-bg:       #f1f1f1 !default;
 $switch-color-unchecked-lever-bg: #818181 !default;
 
 $switch-colors: () !default;
-$switch-colors: map-merge(
+$switch-colors: map.merge(
   (
     "bg":                 $switch-color-bg,
     "checked-lever-bg":   $switch-color-checked-lever-bg,
@@ -832,7 +837,7 @@ $switch-colors: map-merge(
 );
 
 $dropdown-colors: () !default;
-$dropdown-colors: map-merge(
+$dropdown-colors: map.merge(
   (
     "primary"  : $primary-color,
     "danger"   : $danger-color-dark,
@@ -841,15 +846,15 @@ $dropdown-colors: map-merge(
     "success"  : $success-color,
     "info"     : $info-color,
     "warning"  : $warning-color,
-    "dark"     : map-get($mdb-colors, "elegant"),
-    "ins"      : map-get($social-colors, "ins")
+    "dark"     : map.get($mdb-colors, "elegant"),
+    "ins"      : map.get($social-colors, "ins")
   ),
   $dropdown-colors
 );
 
 // Gradients
 $gradients: () !default;
-$gradients: map-merge(
+$gradients: map.merge(
   (
     "purple": (
       "start": #ff6ec4,
@@ -873,7 +878,7 @@ $gradients: map-merge(
 
 // Gradients RGBA Version
 $gradients-rgba: () !default;
-$gradients-rgba: map-merge(
+$gradients-rgba: map.merge(
   (
     "purple": (
       "start": rgba(255, 110, 196, .9),
@@ -897,7 +902,7 @@ $gradients-rgba: map-merge(
 
 
 $note: () !default;
-$note: map-merge(
+$note: map.merge(
   (
     "primary": (
       "bgc": #dfeefd,

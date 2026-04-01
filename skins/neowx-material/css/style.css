@@ -1677,18 +1677,18 @@
 }
 
 a {
-  color: #007bff;
+  color: #0275d8;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
 a:hover {
-  color: rgb(0, 86.1, 178.5);
+  color: rgb(1.2981651376, 75.9426605505, 140.2018348624);
   text-decoration: none;
   transition: all 0.2s ease-in-out;
 }
 a.disabled:hover, a:disabled:hover {
-  color: #007bff;
+  color: #0275d8;
 }
 
 a:not([href]):not([tabindex]), a:not([href]):not([tabindex]):focus, a:not([href]):not([tabindex]):hover {
@@ -2581,7 +2581,7 @@ a.waves-effect, a.waves-light {
   border: 0;
   border-radius: 0.125rem;
   box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.05);
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition: all 0.2s ease-in-out;
   padding: 0.84rem 2.14rem;
   font-size: 0.81rem;
 }
@@ -3110,7 +3110,7 @@ table.table a.btn.btn-secondary {
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .btn-elegant:focus, .btn-elegant:active, .btn-elegant.active {
-  background-color: black;
+  background-color: hsl(0, 0%, -1.9607843137%);
 }
 .btn-elegant.dropdown-toggle {
   background-color: #2e2e2e !important;
@@ -3119,7 +3119,7 @@ table.table a.btn.btn-secondary {
   background-color: rgb(58.75, 58.75, 58.75) !important;
 }
 .btn-elegant:not([disabled]):not(.disabled):active, .btn-elegant:not([disabled]):not(.disabled).active, .show > .btn-elegant.dropdown-toggle {
-  background-color: black !important;
+  background-color: hsl(0, 0%, -1.9607843137%) !important;
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .btn-elegant:not([disabled]):not(.disabled):active:focus, .btn-elegant:not([disabled]):not(.disabled).active:focus, .show > .btn-elegant.dropdown-toggle:focus {
@@ -4582,7 +4582,7 @@ table.table a.btn.btn-blue-grey {
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .btn-dark:focus, .btn-dark:active, .btn-dark.active {
-  background-color: black;
+  background-color: hsl(0, 0%, -7.0588235294%);
 }
 .btn-dark.dropdown-toggle {
   background-color: #212121 !important;
@@ -4591,7 +4591,7 @@ table.table a.btn.btn-blue-grey {
   background-color: rgb(45.75, 45.75, 45.75) !important;
 }
 .btn-dark:not([disabled]):not(.disabled):active, .btn-dark:not([disabled]):not(.disabled).active, .show > .btn-dark.dropdown-toggle {
-  background-color: black !important;
+  background-color: hsl(0, 0%, -7.0588235294%) !important;
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .btn-dark:not([disabled]):not(.disabled):active:focus, .btn-dark:not([disabled]):not(.disabled).active:focus, .show > .btn-dark.dropdown-toggle:focus {
@@ -4704,7 +4704,7 @@ table.table a.btn.btn-light {
 }
 .btn-white:hover {
   color: #000;
-  background-color: white;
+  background-color: hsl(0, 0%, 105%);
 }
 .btn-white:focus, .btn-white.focus {
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
@@ -4716,7 +4716,7 @@ table.table a.btn.btn-light {
   background-color: #fff !important;
 }
 .btn-white.dropdown-toggle:hover, .btn-white.dropdown-toggle:focus {
-  background-color: white !important;
+  background-color: hsl(0, 0%, 105%) !important;
 }
 .btn-white:not([disabled]):not(.disabled):active, .btn-white:not([disabled]):not(.disabled).active, .show > .btn-white.dropdown-toggle {
   background-color: #cccccc !important;
@@ -4774,7 +4774,7 @@ table.table a.btn.btn-white {
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .btn-black:focus, .btn-black:active, .btn-black.active {
-  background-color: black;
+  background-color: hsl(0, 0%, -20%);
 }
 .btn-black.dropdown-toggle {
   background-color: #000 !important;
@@ -4783,7 +4783,7 @@ table.table a.btn.btn-white {
   background-color: rgb(12.75, 12.75, 12.75) !important;
 }
 .btn-black:not([disabled]):not(.disabled):active, .btn-black:not([disabled]):not(.disabled).active, .show > .btn-black.dropdown-toggle {
-  background-color: black !important;
+  background-color: hsl(0, 0%, -20%) !important;
   box-shadow: 0 5px 11px 0 rgba(0, 0, 0, 0.18), 0 4px 15px 0 rgba(0, 0, 0, 0.15);
 }
 .btn-black:not([disabled]):not(.disabled):active:focus, .btn-black:not([disabled]):not(.disabled).active:focus, .show > .btn-black.dropdown-toggle:focus {
@@ -4992,10 +4992,10 @@ table.table a.btn.btn-black {
   }
 }
 .navbar.navbar-light .navbar-nav .nav-item .nav-link.disbled {
-  color: rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.5);
 }
 .navbar.navbar-light .navbar-nav .nav-item .nav-link.disbled:hover {
-  color: rgba(0, 0, 0, 0.3);
+  color: rgba(0, 0, 0, 0.5);
 }
 .navbar.navbar-light .navbar-toggler-icon {
   cursor: pointer;
@@ -5008,7 +5008,7 @@ table.table a.btn.btn-black {
 }
 .navbar.navbar-light .breadcrumb .nav-item .nav-link:hover,
 .navbar.navbar-light .navbar-nav .nav-item .nav-link:hover {
-  color: rgba(0, 0, 0, 0.7);
+  color: rgba(0, 0, 0, 0.75);
 }
 .navbar.navbar-light .breadcrumb .nav-item.active > .nav-link,
 .navbar.navbar-light .navbar-nav .nav-item.active > .nav-link {
@@ -5035,10 +5035,10 @@ table.table a.btn.btn-black {
   color: #000;
 }
 .navbar.navbar-dark .navbar-nav .nav-item .nav-link.disbled {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.5);
 }
 .navbar.navbar-dark .navbar-nav .nav-item .nav-link.disbled:hover {
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.5);
 }
 .navbar.navbar-dark .navbar-toggler-icon {
   cursor: pointer;
@@ -5099,8 +5099,8 @@ table.table a.btn.btn-black {
 }
 
 .badge-pill {
-  padding-right: 0.6em;
-  padding-left: 0.6em;
+  padding-right: 0.6rem;
+  padding-left: 0.6rem;
   border-radius: 10rem;
 }
 
@@ -5171,7 +5171,7 @@ table.table a.btn.btn-black {
   border-radius: 0;
   outline: none;
   box-shadow: none;
-  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  transition: all 0.3s;
 }
 .md-form input:not([type]):focus:not([readonly]),
 .md-form input[type=text]:not(.browser-default):focus:not([readonly]),
@@ -6674,6 +6674,87 @@ header .navbar {
   .datetime-header {
     font-size: 10pt !important;
   }
+}
+@media (max-width: 1036px) {
+  .navbar .nav-flex-icons.header-icons {
+    font-size: 9pt !important;
+  }
+  .datetime-header {
+    font-size: 9pt !important;
+  }
+}
+.ml-3, .mx-3 {
+  margin-left: 0 !important;
+  margin-right: 0.5rem !important;
+}
+
+.navbar-brand {
+  margin-right: 0 !important;
+}
+
+.mr-4, .mx-4 {
+  margin-right: 0.5rem !important;
+}
+
+/* Override Bootstrap utility to set a consistent line-height where used
+   and preserve the existing margin-bottom behavior. */
+.mb-3, .my-3 {
+  margin-bottom: 1rem !important;
+  line-height: 18px;
+}
+
+/* Restore spacing (gutters) between footer columns only.
+   Bootstrap normally provides 15px left/right padding on .col-* elements
+   but some custom rules in this stylesheet may override those.
+   Target the footer specifically so other layouts are unaffected. */
+footer.page-footer .row {
+  margin-left: -15px !important;
+  margin-right: -15px !important;
+}
+footer.page-footer .row > [class*=col-] {
+  padding-left: 19px;
+  padding-right: 19px;
+  display: block;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+footer.page-footer table td {
+  padding-left: 19px;
+  height: auto;
+  vertical-align: top;
+}
+footer.page-footer table.d-inline {
+  display: inline-table !important;
+}
+footer.page-footer .row > .col-md-5 {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+footer.page-footer .row > .col-md-5 table, footer.page-footer .row > .col-md-5 table td, footer.page-footer .row > .col-md-5 table th, footer.page-footer .row > .col-md-5 p, footer.page-footer .row > .col-md-5 ul, footer.page-footer .row > .col-md-5 li, footer.page-footer .row > .col-md-5 a {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+footer.page-footer .row > .col-md-5 table td {
+  padding-left: 19px;
+  height: auto;
+  vertical-align: top;
+}
+footer.page-footer .row > .col-md-3 {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+footer.page-footer .row > .col-md-3 p, footer.page-footer .row > .col-md-3 ul, footer.page-footer .row > .col-md-3 li, footer.page-footer .row > .col-md-3 a {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+footer.page-footer .row > .col-md-3 ul {
+  padding: 1px 1px 1px 19px;
+  margin: 0;
 }
 
 /*# sourceMappingURL=style.css.map */

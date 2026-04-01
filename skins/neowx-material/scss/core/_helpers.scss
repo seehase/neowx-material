@@ -1,3 +1,7 @@
+@use "colors";
+@use "mixins";
+@use "variables";
+
 // Helpers
 // MDB helpers
 .img-fluid,
@@ -20,7 +24,7 @@
     text-align: center;
 
     li {
-      margin-bottom: $flex-center-ul-mb;
+      margin-bottom: variables.$flex-center-ul-mb;
 
       &:last-of-type {
         margin-bottom: 0;
@@ -30,11 +34,11 @@
 }
 
 .hr-light {
-  border-top: 1px solid $hr-light;
+  border-top: 1px solid variables.$hr-light;
 }
 
 .hr-dark {
-  border-top: 1px solid $hr-dark;
+  border-top: 1px solid variables.$hr-dark;
 }
 
 
@@ -58,14 +62,14 @@
 }
 
 .jumbotron {
-  background-color: $white-base;
-  border-radius: $border-radius-base;
-  box-shadow: $z-depth-1;
+  background-color: colors.$white-base;
+  border-radius: variables.$border-radius-base;
+  box-shadow: variables.$z-depth-1;
 }
 
 @each $name,
-  $color in $basic-mdb-colors {
-  @include bg-variant(".bg-#{$name}", $color);
+  $color in colors.$basic-mdb-colors {
+  @include mixins.bg-variant(".bg-#{$name}", $color);
 
   .border-#{$name} {
     border-color: $color !important;

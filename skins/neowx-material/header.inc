@@ -32,7 +32,7 @@
                         #set $datetime_format = $Extras.Formatting.get('datetime', '%a %d %H:%M')
                         <span class="font-small datetime-header" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime.format($datetime_format)</span>
                         #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True) and $active_nav == 'current'
-                            <span id="mqtt-status" class="font-small datetime-header" style="margin-left: 8px; display: inline-block;">
+                            <span id="mqtt-status" class="font-small datetime-header" style="margin-left: 1px; display: inline-block;">
                                 <i id="mqtt-indicator" class="fas fa-share-nodes" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title=""></i>
                             </span>
                         #end if

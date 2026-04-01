@@ -1,6 +1,10 @@
+@use "colors";
+@use "mixins";
+@use "variables";
+
 // Globals
 // Full palette of colors
-@each $color_name, $color in $mdb-colors-1 {
+@each $color_name, $color in colors.$mdb-colors-1 {
   @each $color_type, $color_value in $color {
     @if $color_type == "base" {
       .#{$color_name} {
@@ -23,7 +27,7 @@
       }
     }
     @else {
-      @if $enable_full_palette {
+      @if colors.$enable_full_palette {
         .#{$color_name}.#{$color_type} {
           background-color: $color_value !important;
         }
@@ -33,25 +37,25 @@
 }
 
 // Stylish color
-@each $color_name, $color_value in $stylish-rgba {
+@each $color_name, $color_value in colors.$stylish-rgba {
   .#{$color_name} {
     background-color: $color_value;
   }
 }
 
 // Material colors palette
-@each $color_name, $color in $material-colors {
+@each $color_name, $color in colors.$material-colors {
   .#{$color_name} {
     background-color: $color !important;
   }
 }
 
 // Basic gradients
-@each $name, $val in $gradients {
-  @include make-gradient($name, $val);
+@each $name, $val in colors.$gradients {
+  @include mixins.make-gradient($name, $val);
 }
-@each $name, $val in $gradients-rgba {
-  @include make-gradient-rgba($name, $val);
+@each $name, $val in colors.$gradients-rgba {
+  @include mixins.make-gradient-rgba($name, $val);
 }
 
 .dark-grey-text {
@@ -65,10 +69,10 @@
 // Shadow on hover
 .hoverable {
   box-shadow: none;
-  transition: $transition-hoverable;
+  transition: variables.$transition-hoverable;
   &:hover {
-    box-shadow: $z-depth-2;
-    transition: $transition-hoverable;
+    box-shadow: variables.$z-depth-2;
+    transition: variables.$transition-hoverable;
   }
 }
 
@@ -77,22 +81,22 @@
   box-shadow: none !important;
 }
 .z-depth-1 {
-  box-shadow: $z-depth-1 !important;
+  box-shadow: variables.$z-depth-1 !important;
 }
 .z-depth-1-half {
-  box-shadow: $z-depth-1-half !important;
+  box-shadow: variables.$z-depth-1-half !important;
 }
 .z-depth-2 {
-  box-shadow: $z-depth-2 !important;
+  box-shadow: variables.$z-depth-2 !important;
 }
 .z-depth-3 {
-  box-shadow: $z-depth-3 !important;
+  box-shadow: variables.$z-depth-3 !important;
 }
 .z-depth-4 {
-  box-shadow: $z-depth-4 !important;
+  box-shadow: variables.$z-depth-4 !important;
 }
 .z-depth-5 {
-  box-shadow: $z-depth-5 !important;
+  box-shadow: variables.$z-depth-5 !important;
 }
 
 // Disabled cursor
@@ -103,19 +107,19 @@
 
 // Links
 a {
-  color: $link-color;
+  color: variables.$link-color;
   text-decoration: none;
   cursor: pointer;
-  transition: $transition-basic;
+  transition: variables.$transition-basic;
   &:hover {
-    color: $link-hover-color;
+    color: variables.$link-hover-color;
     text-decoration: none;
-    transition: $transition-basic;
+    transition: variables.$transition-basic;
   }
   &.disabled,
   &:disabled {
     &:hover {
-      color: $link-color;
+      color: variables.$link-color;
     }
   }
 }
@@ -131,8 +135,8 @@ a:not([href]):not([tabindex]), a:not([href]):not([tabindex]):focus, a:not([href]
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  margin-top: $divider-margin-y;
-  margin-bottom: $divider-margin-y;
+  margin-top: variables.$divider-margin-y;
+  margin-bottom: variables.$divider-margin-y;
   > h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0;
   }
@@ -140,14 +144,14 @@ a:not([href]):not([tabindex]), a:not([href]):not([tabindex]):focus, a:not([href]
   &:after {
     flex: 1;
     height: 1.5px;
-    height: $divider-height;
+    height: variables.$divider-height;
     content: "";
     background: #c6c6c6;
   }
   &:before {
-    margin: 0 $divider-margin-x 0 0;
+    margin: 0 variables.$divider-margin-x 0 0;
   }
   &:after {
-    margin: 0 0 0 $divider-margin-x;
+    margin: 0 0 0 variables.$divider-margin-x;
   }
 }

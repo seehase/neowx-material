@@ -1,27 +1,32 @@
+@use "core/bootstrap/variables" as bootstrapVariables;
+@use "core/colors";
+@use "core/mixins";
+@use "core/variables";
+
 // Navbars
 .navbar {
-  font-weight: $navbar-font-weight;
-  box-shadow: $z-depth-1;
+  font-weight: variables.$navbar-font-weight;
+  box-shadow: variables.$z-depth-1;
   form {
     .md-form {
       input {
-        margin: 0 $navbar-form-input-mr $navbar-form-input-mb $navbar-form-input-ml;
+        margin: 0 variables.$navbar-form-input-mr variables.$navbar-form-input-mb variables.$navbar-form-input-ml;
       }
     }
   }
   .breadcrumb {
-    padding: $navbar-breadcrumb-padding-top 0 0 $navbar-breadcrumb-padding-left;
+    padding: variables.$navbar-breadcrumb-padding-top 0 0 variables.$navbar-breadcrumb-padding-left;
     margin: 0;
-    font-size: $navbar-double-font-size;
-    font-weight: $navbar-font-weight;
+    font-size: variables.$navbar-double-font-size;
+    font-weight: variables.$navbar-font-weight;
     background-color: inherit;
     .breadcrumb-item {
-      color: $white-base;
+      color: colors.$white-base;
       &.active {
-        color: $navbar-breadcrumb-color;
+        color: variables.$navbar-breadcrumb-color;
       }
       &:before {
-        color: $navbar-breadcrumb-color;
+        color: variables.$navbar-breadcrumb-color;
       }
     }
   }
@@ -33,7 +38,7 @@
     flex-direction: row;
   }
   .container {
-    @media (max-width: $medium-screen) {
+    @media (max-width: variables.$medium-screen) {
       width: 100%;
       .navbar-toggler-right {
         right: 0;
@@ -49,12 +54,12 @@
         }
       }
       .fas, .fab, .far {
-        padding-right: $navbar-flex-icons-padding-lg;
-        padding-left: $navbar-flex-icons-padding-lg;
+        padding-right: variables.$navbar-flex-icons-padding-lg;
+        padding-left: variables.$navbar-flex-icons-padding-lg;
       }
-      @media (max-width: $medium-screen) {
-        padding-right: $navbar-flex-icons-padding-md;
-        padding-left: $navbar-flex-icons-padding-md;
+      @media (max-width: variables.$medium-screen) {
+        padding-right: variables.$navbar-flex-icons-padding-md;
+        padding-left: variables.$navbar-flex-icons-padding-md;
       }
     }
   }
@@ -62,39 +67,39 @@
     position: absolute !important;
     margin-top: 0;
     a {
-      padding: $navbar-dropdown-menu-padding;
-      font-size: $navbar-dropdown-font-size;
-      font-weight: $navbar-font-weight;
+      padding: variables.$navbar-dropdown-menu-padding;
+      font-size: variables.$navbar-dropdown-font-size;
+      font-weight: variables.$navbar-font-weight;
       &:not(.active) {
-        color: $black;
+        color: bootstrapVariables.$black;
       }
     }
     form {
-      @media (max-width: $small-screen) {
+      @media (max-width: variables.$small-screen) {
         width: 17rem;
       }
-      @media (min-width: $small-screen) {
+      @media (min-width: variables.$small-screen) {
         width: 22rem;
       }
     }
   }
   &.navbar-light {
-    @include make-navbar($navbar-light-disabled-color, $navbar-light-toggler-icon, $black, $navbar-light-hover-color, $navbar-light-bg-active-color);
+    @include mixins.make-navbar(variables.$navbar-light-disabled-color, variables.$navbar-light-toggler-icon, bootstrapVariables.$black, variables.$navbar-light-hover-color, variables.$navbar-light-bg-active-color);
   }
   &.navbar-dark {
-    @include make-navbar($navbar-dark-disabled-color, $navbar-dark-toggler-icon, $white, $navbar-dark-hover-color, $navbar-dark-bg-active-color);
+    @include mixins.make-navbar(variables.$navbar-dark-disabled-color, variables.$navbar-dark-toggler-icon, bootstrapVariables.$white, variables.$navbar-dark-hover-color, variables.$navbar-dark-bg-active-color);
   }
   &.scrolling-navbar {
-    @media (min-width: $small-screen) {
-      padding-top: $navbar-scrolling-padding;
-      padding-bottom: $navbar-scrolling-padding;
-      transition: $navbar-scrolling-transition;
+    @media (min-width: variables.$small-screen) {
+      padding-top: variables.$navbar-scrolling-padding;
+      padding-bottom: variables.$navbar-scrolling-padding;
+      transition: variables.$navbar-scrolling-transition;
       .navbar-nav > li {
-        transition-duration: $navbar-scrolling-transition-duration;
+        transition-duration: variables.$navbar-scrolling-transition-duration;
       }
       &.top-nav-collapse {
-        padding-top: $navbar-top-collapse-padding;
-        padding-bottom: $navbar-top-collapse-padding;
+        padding-top: variables.$navbar-top-collapse-padding;
+        padding-bottom: variables.$navbar-top-collapse-padding;
       }
     }
   }
