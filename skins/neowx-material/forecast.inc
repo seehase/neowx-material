@@ -43,7 +43,7 @@
     #end if
 #end if
 
-#if $forecast is not None
+#if $forecast is not None and $forecast.error is None
     #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[0] != "forecast"
         <div class="col-12"><hr class="m-0 mb-4" /></div>
     #end if
@@ -166,82 +166,105 @@
                                                 #else
                                                     $x[1].sun.uv.format("%.0f") / ${sunshine_hours}:${'%02d' % $sunshine_minutes}h / ${daylight_hours}:${'%02d' % $daylight_minutes}h
                                                 #end if
-                                                <span>
-                                                </div>
-                                            #end if
-                                            #if $variable == "precipitation"
-                                                <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-umbrella $Extras.color-text" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
-                                                    <span>$x[1].precipitation.sum ($x[1].precipitation.probability)</span>
-                                                </div>
-                                            #end if
-                                            #if $variable == "uv"
-                                                <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
-                                                    <span>$x[1].sun.uv.format("%.0f")</span>
-                                                </div>
-                                            #end if
-                                            #if $variable == "evapotranspiration"
-                                                <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-hot $Extras.color-text" title="$pgettext("Forecast","evapotranspiration")" data-toggle="tooltip" data-html="true"></i>
-                                                    <span>$x[1].et0_fao_evapotranspiration.format("%.1f")</span>
-                                                </div>
-                                            #end if
-                                            #if $variable == "wind"
-                                                <div class="text-center d-inline-block">
-                                                    <i style="width: 20px;padding-right: 3px;" class="wi wi-strong-wind $Extras.color-text" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
-                                                    <span>$x[1].wind.speed.format("%.0f") <i class="wi wi-wind from-$x[1].wind.direction.formatted-deg mr-2" title="$x[1].wind.direction.formatted°" data-toggle="tooltip" data-html="true"></i> ($x[1].wind.gusts.format("%.0f"))</span>
-                                                </div>
-                                            #end if
+                                            <span>
                                         </div>
-                                    #end for
-                                #end if
-                            </div>
+                                    #end if
+                                    #if $variable == "precipitation"
+                                        <div class="text-center d-inline-block">
+                                            <i style="width: 20px;padding-right: 3px;" class="wi wi-umbrella $Extras.color-text" title="$pgettext("Forecast","precipitation") ($pgettext("Forecast","probability"))" data-toggle="tooltip" data-html="true"></i>
+                                            <span>$x[1].precipitation.sum ($x[1].precipitation.probability)</span>
+                                        </div>
+                                    #end if
+                                    #if $variable == "uv"
+                                        <div class="text-center d-inline-block">
+                                            <i style="width: 20px;padding-right: 3px;" class="wi wi-day-sunny $Extras.color-text" title="$pgettext("Forecast","uv")" data-toggle="tooltip" data-html="true"></i>
+                                            <span>$x[1].sun.uv.format("%.0f")</span>
+                                        </div>
+                                    #end if
+                                    #if $variable == "evapotranspiration"
+                                        <div class="text-center d-inline-block">
+                                            <i style="width: 20px;padding-right: 3px;" class="wi wi-hot $Extras.color-text" title="$pgettext("Forecast","evapotranspiration")" data-toggle="tooltip" data-html="true"></i>
+                                            <span>$x[1].et0_fao_evapotranspiration.format("%.1f")</span>
+                                        </div>
+                                    #end if
+                                    #if $variable == "wind"
+                                        <div class="text-center d-inline-block">
+                                            <i style="width: 20px;padding-right: 3px;" class="wi wi-strong-wind $Extras.color-text" title="$pgettext("Forecast","wind_speed") & $pgettext("Forecast","wind_dir") ($pgettext("Forecast","wind_gust"))" data-toggle="tooltip" data-html="true"></i>
+                                            <span>$x[1].wind.speed.format("%.0f") <i class="wi wi-wind from-$x[1].wind.direction.formatted-deg mr-2" title="$x[1].wind.direction.formatted°" data-toggle="tooltip" data-html="true"></i> ($x[1].wind.gusts.format("%.0f"))</span>
+                                        </div>
+                                    #end if
+                                </div>
+                            #end for
+                        #end if
+                    </div>
 
-                            #if $Extras.Forecast.show_hourly_icons == "yes"
-                                #set $size = "font-extra-small" if int($Extras.Forecast.hourly_icons_interval) == 1 else "font-small"
-                                #set $hour_line_height = "0.6rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.1rem"
-                                #set $icon_line_height = "0.8rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.4rem"
-                                <table id="forecast_hour_icons" class="text-center w-100 mb-1">
-                                    <tr style="line-height: $hour_line_height;">
-                                        #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
-                                            #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
-                                            #set $hour_until = ($hour_index + 1) * int($Extras.Forecast.hourly_icons_interval) - 1
-                                            #if $i == 0 and $hour_until < $forecast.generated.hour
-                                                <th class="$size text-muted">${"%02d" % $hour}</th>
-                                            #else if $i == 0 and $hour <= $forecast.generated.hour and $hour_until >= $forecast.generated.hour
-                                                <th class="$size $Extras.color-text">${"%02d" % $hour}</th>
-                                            #else
-                                                <th class="$size">${"%02d" % $hour}</th>
-                                            #end if
-                                        #end for
-                                    </tr>
-                                    <tr style="line-height: $icon_line_height;">
-                                        #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
-                                            #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
-                                            #set $hour_until = ($hour_index + 1) * int($Extras.Forecast.hourly_icons_interval) - 1
-                                            <td>
-                                                #if $i == 0 and $hour_until < $forecast.generated.hour
-                                                    <i class="$size text-muted wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
-                                                #else if $i == 0 and $hour <= $forecast.generated.hour and $hour_until >= $forecast.generated.hour
-                                                    <i class="$size $Extras.color-text wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
-                                                #else
-                                                    <i class="$size wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
-                                                #end if
-                                            </td>
-                                        #end for
-                                    </tr>
-                                </table>
-                            #end if
+                    #if $Extras.Forecast.show_hourly_icons == "yes"
+                        #set $size = "font-extra-small" if int($Extras.Forecast.hourly_icons_interval) == 1 else "font-small"
+                        #set $hour_line_height = "0.6rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.1rem"
+                        #set $icon_line_height = "0.8rem" if int($Extras.Forecast.hourly_icons_interval) == 1 else "1.4rem"
+                        <table id="forecast_hour_icons" class="text-center w-100 mb-1">
+                            <tr style="line-height: $hour_line_height;">
+                                #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
+                                    #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
+                                    #set $hour_until = ($hour_index + 1) * int($Extras.Forecast.hourly_icons_interval) - 1
+                                    #if $i == 0 and $hour_until < $forecast.generated.hour
+                                        <th class="$size text-muted">${"%02d" % $hour}</th>
+                                    #else if $i == 0 and $hour <= $forecast.generated.hour and $hour_until >= $forecast.generated.hour
+                                        <th class="$size $Extras.color-text">${"%02d" % $hour}</th>
+                                    #else
+                                        <th class="$size">${"%02d" % $hour}</th>
+                                    #end if
+                                #end for
+                            </tr>
+                            <tr style="line-height: $icon_line_height;">
+                                #for $hour_index, $hourly_weather_code in enumerate($x[1].hourly_weather_codes)
+                                    #set $hour = $hour_index * int($Extras.Forecast.hourly_icons_interval)
+                                    #set $hour_until = ($hour_index + 1) * int($Extras.Forecast.hourly_icons_interval) - 1
+                                    <td>
+                                        #if $i == 0 and $hour_until < $forecast.generated.hour
+                                            <i class="$size text-muted wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                                        #else if $i == 0 and $hour <= $forecast.generated.hour and $hour_until >= $forecast.generated.hour
+                                            <i class="$size $Extras.color-text wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                                        #else
+                                            <i class="$size wi $weatherMap.get($hourly_weather_code, "wi-na")" title="$pgettext("Forecast",str($hourly_weather_code))" data-toggle="tooltip" data-html="true"></i>
+                                        #end if
+                                    </td>
+                                #end for
+                            </tr>
+                        </table>
+                    #end if
 
-                            <div class="text-muted font-extra-small text-right">
-                                Forecast by&nbsp;<a class="text-muted" href="https://open-meteo.com/">Open-Meteo.com</a>
-                            </div>
-                        </div>
+                    <div class="text-muted font-extra-small text-right">
+                        Forecast by&nbsp;<a class="text-muted" href="https://open-meteo.com/">Open-Meteo.com</a>
                     </div>
                 </div>
-            #end for
-            #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[-1] != "forecast"
-                <div class="col-12"><hr class="m-0 mb-4" /></div>
-            #end if
-        #end if
+            </div>
+        </div>
+    #end for
+    #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[-1] != "forecast"
+        <div class="col-12"><hr class="m-0 mb-4" /></div>
+    #end if
+#else if $forecast is not None and $forecast.error is not None
+    #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[0] != "forecast"
+        <div class="col-12"><hr class="m-0 mb-4" /></div>
+    #end if
+
+    <div class="col-12 col-md-6 col-xl-4 mb-4">
+        <div class="card card-forecast">
+            <div class="card-body text-center pb-1">
+                <h3 class="h5-responsive $Extras.color-text">
+                    $pgettext("Forecast","forecast") - Error
+                </h3>
+                <div class="row flex-fill font-small">
+                    <div class="col-12 text-center pb-2">
+                        $forecast.error
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    #if $Extras.Forecast.forecast_separator == "yes" and $Extras.Appearance.values_order[-1] != "forecast"
+        <div class="col-12"><hr class="m-0 mb-4" /></div>
+    #end if
+#end if
