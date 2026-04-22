@@ -68,6 +68,7 @@
 import time
 from datetime import datetime, timedelta
 import json
+import html
 import hashlib
 import urllib.request
 import urllib.parse
@@ -378,7 +379,9 @@ def fetch_forecast(
                     "An exception occurred while fetching forecast data from api.open-meteo.com. Enable debug in weewx.conf logs for more details."
                 )
                 log.debug(e)
-                return {"error": f"{str(e)}"}
+                error_msg = str(e)
+                safe_error_msg = html.escape(error_msg)
+                return {"error": f"{safe_error_msg}"}
     return None
 
 
