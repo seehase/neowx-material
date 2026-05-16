@@ -1,155 +1,38 @@
 #encoding UTF-8
+#extends _chart_methods
+#implements respond
 ## +-------------------------------------------------------------------------+
-## |    year-%Y.html.tmpl         Template file for "yearly archive" page    |
+## |    year-%Y.html.tmpl         Template file for "yearly archive" page|
 ## +-------------------------------------------------------------------------+
 
 #attr $active_nav = 'archive'
 
 ## +-------------------------------------------------------------------------+
-## | Template for display card of values (left column)                       |
+## | Per-period globals — consumed by methods inherited from _chart_methods  |
 ## +-------------------------------------------------------------------------+
 
-## Access HistoryReport section from skin.conf
-#set $table_dict = $generator.skin_dict['HistoryReport']
+#set global $period_prefix           = "year"
+#set global $period_datetime_fmt     = $Extras.Formatting.datetime_archive
+#set global $period_card_col_class   = "col-12 col-lg-6 mb-4"
+#set global $period_extra_exclude    = []
+#set global $period_outTemp_minmax   = True
+#set global $period_default_interval = 0
+#set global $period_rain_interval    = 0
+#set global $period_ET_interval      = 0
+#set global $period_windrun_interval = 0
+#set global $period_data_span        = None
+
+#set $table_dict     = $generator.skin_dict['HistoryReport']
 #set $threshold_unit = $table_dict.get('threshold_unit', 'degree_C')
-#set $SummerDay = ($table_dict.get('summer_days_threshold', 25.0),  $threshold_unit)
-#set $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
-#set $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
-#set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
-
-#def valuesCard($name)
-    #if $getVar('year.' + name + '.has_data')
-        <div class="col-12 col-lg-6 mb-4">
-            <div class="card card-value" id="${name}-value" data-name="$name">
-                <div class="card-body text-center">
-                    <h3 class="h5-responsive $Extras.color-text">
-                        $getVar('obs.label.' + name)
-                        #if $name == 'windSpeed'
-
-                            <i class="wi wi-wind from-$year.wind.vecdir.formatted-deg"
-                            title="$year.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-
-                        #end if
-                    </h3>
-
-                    #if $name == 'windSpeed'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small lo-text">
-                                $year.wind.avg <br>
-                                $gettext("avg")
-                            </div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">
-                                    $year.windSpeed.max $year.wind.vecdir.ordinal_compass
-                                </h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text">
-                                $year.wind.max $year.wind.gustdir.ordinal_compass <br>
-                                <i class="wi wi-wind from-$year.wind.gustdir.formatted-deg mr-2"
-                                title="$year.wind.gustdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-                                ($year.wind.maxtime.format($Extras.Formatting.datetime_archive))
-                            </div>
-                        </div>
-
-                    #else if $name == 'rain'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small">
-
-                            </div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$year.rain.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text">
-                                $year.rainRate.max <br>
-                                ($year.rainRate.maxtime.format($Extras.Formatting.datetime_archive))
-                            </div>
-                        </div>
-
-                    #else if $name == 'lightning_strike_count'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$year.lightning_strike_count.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else if $name == 'windrun'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$year.windrun.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else if $name == 'ET'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$year.ET.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small lo-text">
-                                $getVar('year.' + name + '.min') <br>
-                                ($getVar('year.' + name + '.mintime').format($Extras.Formatting.datetime_archive))
-                            </div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$getVar('year.' + name + '.avg')</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text">
-                                $getVar('year.' + name + '.max') <br>
-                                ($getVar('year.' + name + '.maxtime').format($Extras.Formatting.datetime_archive))
-                            </div>
-                        </div>
-
-                    #end if
-
-                </div>
-            </div>
-        </div>
-    #end if
-#end def
+#set $SummerDay      = ($table_dict.get('summer_days_threshold',    25.0), $threshold_unit)
+#set $TropicDay      = ($table_dict.get('tropical_days_threshold',  30.0), $threshold_unit)
+#set $TropicNight    = ($table_dict.get('tropical_nights_threshold', 20.0), $threshold_unit)
+#set $ArcticDay      = ($table_dict.get('arctic_days_threshold',     0.0), $threshold_unit)
 
 ## +-------------------------------------------------------------------------+
-## | Template for display card of a single chart (right column)              |
-## | Chart values are defined in the JS section below                        |
+## | The main page layout (valuesCard/chartCard/getChartData/getChartJsCode  |
+## | methods are inherited from _chart_methods.tmpl)                         |
 ## +-------------------------------------------------------------------------+
-
-#def chartCard($name, $id, $name2 = "XX")
-    #if ($getVar('year.' + name + '.has_data') or $name == "windvec") and $name != "appTemp"
-        <div class="col-12 col-xl-6 mb-4">
-            <div class="card card-chart" id="${name}-chart" data-name="$name">
-                <div class="card-body text-center">
-                    <h5 class="h5-responsive $Extras.color-text">
-                        #if $name2 != "XX"
-                            $getVar('Extras.Charts.Titles.' + name, $getVar('obs.label.' + name)) &
-                            $getVar('Extras.Charts.Titles.' + name2, $getVar('obs.label.' + name2))
-                        #else
-                            $getVar('Extras.Charts.Titles.' + name, $getVar('obs.label.' + name))
-                        #end if
-                    </h5>
-                    <div id="$id"></div>
-                </div>
-            </div>
-        </div>
-    #end if
-#end def
-
-## +-------------------------------------------------------------------------+
-## | The main page layout                                                    |
-## +-------------------------------------------------------------------------+
-
 <!DOCTYPE html>
 <html lang="$lang">
     <head>
@@ -355,175 +238,6 @@
     #end for
 #end def
 
-## +-------------------------------------------------------------------------+
-## | Get JavaScript code for a chart                                         |
-## |                                                                         |
-## | string  $name     the name of the database field   (e.g. outTemp)       |
-## | string  $id       the ID of the chart target       (without hash)       |
-## | string  $type     type of chart                    (area, bar, radar)   |
-## | string  $series1  field name for (1st) series      (e.g. outTemp)       |
-## | string  $series2  opt. field name for 2nd series   (e.g. outTemp or "") |
-## | string  $column   the column of the display value  (e.g. min, max, avg) |
-## | string  $series3  opt. field name for 3rd series   (e.g. outTemp or "") |
-## | string  $series4  opt. field name for 4th series   (e.g. outTemp or "") |
-## | string  $series5  opt. field name for 5th series   (e.g. outTemp or "") |
-## | string  $series6  opt. field name for 6th series   (e.g. outTemp or "") |
-## | string  $series7  opt. field name for 7th series   (e.g. outTemp or "") |
-## | string  $series8  opt. field name for 8th series   (e.g. outTemp or "") |
-## +-------------------------------------------------------------------------+
-
-#def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
-
-    ## Only add JS chart code if in array
-    #if $name in $Extras.Appearance.charts_order
-
-        #if $series1 == "outTemp"
-
-            ## Special diagram for outside temp
-
-            var chartElement = document.querySelector('#$id');
-            if (chartElement) {
-                new ApexCharts(chartElement, {
-                    ...graph_${type}_config,
-                    yaxis: {
-                        labels: {
-                            formatter: function (val) {
-                                return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
-                            }
-                        },
-                    },
-                    series: [
-                        {
-                            name: "$getVar('obs.label.' + series1) $gettext("min")",
-                            data: [ $getChartData(series1, 'min') ]
-                        },
-                        {
-                            name: "$getVar('obs.label.' + series1) $gettext("max")",
-                            data: [ $getChartData(series1, 'max') ]
-                        }
-                        #if $series2 != "" and $getVar('year.' + series2 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series2)",
-                                data: [ $getChartData(series2, column) ]
-                            }
-                        #end if
-                        #if $series3 != "" and $getVar('year.' + series3 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series3)",
-                                data: [ $getChartData(series3, column) ]
-                            }
-                        #end if
-                        #if $series4 != "" and $getVar('year.' + series4 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series4)",
-                                data: [ $getChartData(series4, column) ]
-                            }
-                        #end if
-                        #if $series5 != "" and $getVar('year.' + series5 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series5)",
-                                data: [ $getChartData(series5, column) ]
-                            }
-                        #end if
-                        #if $series6 != "" and $getVar('year.' + series6 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series6)",
-                                data: [ $getChartData(series6, column) ]
-                            }
-                        #end if
-                        #if $series7 != "" and $getVar('year.' + series7 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series7)",
-                                data: [ $getChartData(series7, column) ]
-                            }
-                        #end if
-                        #if $series8 != "" and $getVar('year.' + series8 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series8)",
-                                data: [ $getChartData(series8, column) ]
-                            }
-                        #end if
-                    ]
-                }).render()
-            }
-
-        #else
-
-            var chartElement = document.querySelector('#$id');
-            if (chartElement) {
-                new ApexCharts(chartElement, {
-                    ...graph_${type}_config,
-                    #if $name == "windDir"
-                        yaxis: {
-                            max: 360,
-                            min: 0,
-                            type: 'datetime',
-                            tickAmount: 8,
-                            trim: false,
-                            labels: {
-                                tickAmount: 8,
-                                rotateAlways: false,
-                                hideOverlappingLabels: true,
-                                showDuplicates: false,
-                                trim: false,
-                                formatter: function(val, timestamp) {
-                                    var degrees = Number(val);
-                                    var direction = getOrdinalDirection(degrees);
-                                    return direction;
-                                }
-                            },
-                        },
-                        tooltip: {
-                            enabled: true,
-                            y: {
-                                formatter: function (val) {
-                                    var degrees = Number(val);
-                                    var direction = getOrdinalDirection(degrees);
-                                    return direction + ' (' + degrees.toFixed(0) + '°)';
-                                }
-                            },
-                        },
-                    #else
-                        yaxis: {
-                            labels: {
-                                formatter: function (val) {
-                                    return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
-                                }
-                            },
-                        },
-                    #end if
-                    series: [
-                        {
-                            name: "$getVar('obs.label.' + series1)",
-                            data: [ $getChartData(series1, column) ]
-                        }
-                        #if $series2 != "" and $getVar('year.' + series2 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series2)",
-                                data: [ $getChartData(series2, column) ]
-                            }
-                        #end if
-                        #if $series3 != "" and $getVar('year.' + series3 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series3)",
-                                data: [ $getChartData(series3, column) ]
-                            }
-                        #end if
-                        #if $series4 != "" and $getVar('year.' + series4 + '.has_data')
-                            ,{
-                                name: "$getVar('obs.label.' + series4)",
-                                data: [ $getChartData(series4, column) ]
-                            }
-                        #end if
-                    ]
-                }).render()
-            }
-
-        #end if
-
-    #end if
-
-#end def
 
 ## +-------------------------------------------------------------------------+
 ## | Chart definitions                                                       |

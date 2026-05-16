@@ -1,147 +1,31 @@
 #encoding UTF-8
+#extends _chart_methods
+#implements respond
 ## +-------------------------------------------------------------------------+
-## |    week.html.tmpl                      Template file for "week" page    |
+## |    week.html.tmpl                      Template file for "week" page|
 ## +-------------------------------------------------------------------------+
 
 #attr $active_nav = 'week'
 
 ## +-------------------------------------------------------------------------+
-## | Template for display card of values (left column)                       |
+## | Per-period globals — consumed by methods inherited from _chart_methods  |
 ## +-------------------------------------------------------------------------+
 
-#def valuesCard($name)
-    #if $getVar('week.' + name + '.has_data')
-        <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card card-value" id="${name}-value" data-name="$name">
-                <div class="card-body text-center">
-                    <h3 class="h5-responsive $Extras.color-text">
-                        $getVar('obs.label.' + name)
-                        #if $name == 'windSpeed'
-
-                            <i class="wi wi-wind from-$week.wind.vecdir.formatted-deg"
-                            title="$week.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-
-                        #end if
-                    </h3>
-
-                    #if $name == 'windSpeed'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small lo-text">
-                                $week.wind.avg <br>
-                                $gettext("avg")
-                            </div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">
-                                    $week.windSpeed.max $week.wind.vecdir.ordinal_compass
-                                </h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text">
-                                $week.wind.max $week.wind.gustdir.ordinal_compass <br>
-                                <i class="wi wi-wind from-$week.wind.gustdir.formatted-deg mr-2"
-                                title="$week.wind.gustdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-                                ($week.wind.maxtime.format($Extras.Formatting.datetime))
-                            </div>
-                        </div>
-
-                    #else if $name == 'rain'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small">
-
-                            </div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$week.rain.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text">
-                                $week.rainRate.max <br>
-                                ($week.rainRate.maxtime.format($Extras.Formatting.datetime))
-                            </div>
-                        </div>
-
-                    #else if $name == 'lightning_strike_count'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$week.lightning_strike_count.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else if $name == 'windrun'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$week.windrun.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else if $name == 'ET'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$week.ET.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small lo-text">
-                                $getVar('week.' + name + '.min') <br>
-                                ($getVar('week.' + name + '.mintime').format($Extras.Formatting.datetime))
-                            </div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$getVar('week.' + name + '.avg')</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text">
-                                $getVar('week.' + name + '.max') <br>
-                                ($getVar('week.' + name + '.maxtime').format($Extras.Formatting.datetime))
-                            </div>
-                        </div>
-
-                    #end if
-
-                </div>
-            </div>
-        </div>
-    #end if
-#end def
+#set global $period_prefix           = "week"
+#set global $period_datetime_fmt     = $Extras.Formatting.datetime
+#set global $period_card_col_class   = "col-12 col-md-6 col-xl-4 mb-4"
+#set global $period_extra_exclude    = []
+#set global $period_outTemp_minmax   = False
+#set global $period_default_interval = int($Extras.Charts.week_timespan)
+#set global $period_rain_interval    = int($Extras.Charts.week_rain_timespan)
+#set global $period_ET_interval      = int($Extras.Charts.week_ET_timespan)
+#set global $period_windrun_interval = int($Extras.Charts.week_windrun_timespan)
+#set global $period_data_span        = $span($week_delta=1, $boundary='midnight')
 
 ## +-------------------------------------------------------------------------+
-## | Template for display card of a single chart (right column)              |
-## | Chart values are defined in the JS section below                        |
+## | The main page layout (valuesCard/chartCard/getChartData/getChartJsCode  |
+## | methods are inherited from _chart_methods.tmpl)                         |
 ## +-------------------------------------------------------------------------+
-
-#def chartCard($name, $id, $name2 = "XX")
-    #if ($getVar('week.' + name + '.has_data') or $name == "windvec") and $name != "appTemp"
-        <div class="col-12 col-xl-6 mb-4">
-            <div class="card card-chart" id="${name}-chart" data-name="$name">
-                <div class="card-body text-center">
-                    <h5 class="h5-responsive $Extras.color-text">
-                        #if $name2 != "XX"
-                            $getVar('Extras.Charts.Titles.' + name, $getVar('obs.label.' + name)) &
-                            $getVar('Extras.Charts.Titles.' + name2, $getVar('obs.label.' + name2))
-                        #else
-                            $getVar('Extras.Charts.Titles.' + name, $getVar('obs.label.' + name))
-                        #end if
-                    </h5>
-                    <div id="$id"></div>
-                </div>
-            </div>
-        </div>
-    #end if
-#end def
-
-## +-------------------------------------------------------------------------+
-## | The main page layout                                                    |
-## +-------------------------------------------------------------------------+
-
 <!DOCTYPE html>
 <html lang="$lang">
     <head>
@@ -197,162 +81,6 @@
         #include "footer.inc"
         #include "js.inc"
 
-        ## +-------------------------------------------------------------------------+
-        ## | Chart generation methods (get data for charts + their JS code)          |
-        ## +-------------------------------------------------------------------------+
-
-        ## +-------------------------------------------------------------------------+
-        ## | Get data array for a chart                                              |
-        ## |                                                                         |
-        ## | string  $name    the name of the database field  (e.g. outTemp)         |
-        ## | string  $column  the column of the display value (e.g. min, max, avg)   |
-        ## +-------------------------------------------------------------------------+
-
-        #def getChartData($name, $column)
-            #set current_interval = int($Extras.Charts.week_timespan)
-            #if $name == "rain"
-                #set current_interval = int($Extras.Charts.week_rain_timespan)
-            #end if
-            #if $name == "ET"
-                #set current_interval = int($Extras.Charts.week_ET_timespan)
-            #end if
-            #if $name == "windrun"
-                #set current_interval = int($Extras.Charts.week_windrun_timespan)
-            #end if
-
-            #set $records = list($span($week_delta=1,$boundary='midnight').spans(interval=current_interval))
-            #for idx, record in enumerate($records)
-                #try
-                    #set val = $getattr($record, $name)
-                    #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
-                    #if $data != "null" or $idx == 0 or $idx == len($records) - 1
-                        [$record.start.raw, $data],
-                    #end if
-                #except
-
-                #end try
-            #end for
-        #end def
-
-        ## +-------------------------------------------------------------------------+
-        ## | Get JavaScript code for a chart                                         |
-        ## |                                                                         |
-        ## | string  $name     the name of the database field   (e.g. outTemp)       |
-        ## | string  $id       the ID of the chart target       (without hash)       |
-        ## | string  $type     type of chart                    (area, bar, radar)   |
-        ## | string  $series1  field name for (1st) series      (e.g. outTemp)       |
-        ## | string  $series2  opt. field name for 2nd series   (e.g. outTemp or "") |
-        ## | string  $column   the column of the display value  (e.g. min, max, avg) |
-        ## | string  $series3  opt. field name for 3rd series   (e.g. outTemp or "") |
-        ## | string  $series4  opt. field name for 4th series   (e.g. outTemp or "") |
-        ## | string  $series5  opt. field name for 5th series   (e.g. outTemp or "") |
-        ## | string  $series6  opt. field name for 6th series   (e.g. outTemp or "") |
-        ## | string  $series7  opt. field name for 7th series   (e.g. outTemp or "") |
-        ## | string  $series8  opt. field name for 8th series   (e.g. outTemp or "") |
-        ## +-------------------------------------------------------------------------+
-
-        #def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
-
-            ## Only add JS chart code if in array
-            #if $name in $Extras.Appearance.charts_order
-
-                var chartElement = document.querySelector('#$id');
-                if (chartElement) {
-                    new ApexCharts(chartElement, {
-                        ...graph_${type}_config,
-                        #if $name == "windDir"
-                            yaxis: {
-                                max: 360,
-                                min: 0,
-                                type: 'datetime',
-                                tickAmount: 8,
-                                trim: false,
-                                labels: {
-                                    tickAmount: 8,
-                                    rotateAlways: false,
-                                    hideOverlappingLabels: true,
-                                    showDuplicates: false,
-                                    trim: false,
-                                    formatter: function(val, timestamp) {
-                                        var degrees = Number(val);
-                                        var direction = getOrdinalDirection(degrees);
-                                        return direction;
-                                    }
-                                },
-                            },
-                            tooltip: {
-                                enabled: true,
-                                y: {
-                                    formatter: function (val) {
-                                        var degrees = Number(val);
-                                        var direction = getOrdinalDirection(degrees);
-                                        return direction + ' (' + degrees.toFixed(0) + '°)';
-                                    }
-                                },
-                            },
-                        #else
-                            yaxis: {
-                                labels: {
-                                    formatter: function (val) {
-                                        return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
-                                    }
-                                },
-                            },
-                        #end if
-                        series: [
-                            {
-                                name: "$getVar('obs.label.' + series1)",
-                                data: [ $getChartData(series1, column) ]
-                            }
-                            #if $series2 != "" and $getVar('week.' + series2 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series2)",
-                                    data: [ $getChartData(series2, column) ]
-                                }
-                            #end if
-                            #if $series3 != "" and $getVar('week.' + series3 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series3)",
-                                    data: [ $getChartData(series3, column) ]
-                                }
-                            #end if
-                            #if $series4 != "" and $getVar('week.' + series4 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series4)",
-                                    data: [ $getChartData(series4, column) ]
-                                }
-                            #end if
-                            #if $series5 != "" and $getVar('week.' + series5 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series5)",
-                                    data: [ $getChartData(series5, column) ]
-                                }
-                            #end if
-                            #if $series6 != "" and $getVar('week.' + series6 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series6)",
-                                    data: [ $getChartData(series6, column) ]
-                                }
-                            #end if
-                            #if $series7 != "" and $getVar('week.' + series7 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series7)",
-                                    data: [ $getChartData(series7, column) ]
-                                }
-                            #end if
-                            #if $series8 != "" and $getVar('week.' + series8 + '.has_data')
-                                ,{
-                                    name: "$getVar('obs.label.' + series8)",
-                                    data: [ $getChartData(series8, column) ]
-                                }
-                            #end if
-                        ]
-                    }).render()
-                }
-
-            #end if
-
-        #end def
 
         ## +-------------------------------------------------------------------------+
         ## | Chart definitions                                                       |
