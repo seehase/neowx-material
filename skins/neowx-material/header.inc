@@ -1,4 +1,5 @@
 #encoding UTF-8
+#import time
 ## +-------------------------------------------------------------------------+
 ## |    header.inc                 Header section (nav) for all templates    |
 ## +-------------------------------------------------------------------------+
@@ -26,12 +27,10 @@
                 #end if
                 <span>
                     <strong>$station.location</strong><br>
-                    #if $active_nav == 'archive'
-                        <span class="font-small"></span>
-                    #else
+                    #if $active_nav == 'current'
                         #set $datetime_format = $Extras.Formatting.get('datetime', '%a %d %H:%M')
                         <span class="font-small datetime-header" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime.format($datetime_format)</span>
-                        #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True) and $active_nav == 'current'
+                        #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True)
                             <span id="mqtt-status" class="font-small datetime-header" style="margin-left: 1px; display: inline-block;">
                                 <span id="mqtt-indicator" class="mdi mdi-resistor-nodes" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title=""></span>
                             </span>
@@ -52,6 +51,9 @@
                                 <span class="mdi mdi-wifi" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title="$gettext('System is online')"></span>
                             </span>
                         #end if
+                    #else
+                        #set $date_format = $Extras.Formatting.get('date', '%x')
+                        <span class="font-small datetime-header">$time.strftime($date_format)</span>
                     #end if
                     <span id="status-label" class="font-small red"><strong></strong></span>
                 </span>
