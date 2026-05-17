@@ -1,6 +1,6 @@
 // Weewx MQTT Client Script
 //
-// Version 1.0.3
+// Version 1.0.4
 //
 // 1. INIT PAHO CLIENT
 // Configuration is injected from index.html.tmpl via window.MQTT_CONFIG
@@ -230,6 +230,32 @@ function updateDateTime(payload, skipped) {
 
     debugLog('✓ Updated datetime to: ' + newDateTime + ' (Unix: ' + payloadUnixTime + ')');
 
+    // --- Update split date / time display elements (new 3-column header layout) ---
+    var dateEl = document.getElementById('current-date');
+    var timeEl = document.getElementById('current-time');
+    if (dateEl) {
+        if (window.DATETIME_CONFIG && window.DATETIME_CONFIG.date_format) {
+            if (!window.DATETIME_CONFIG.js_date_format) {
+                window.DATETIME_CONFIG.js_date_format = convertStrftimeToJS(window.DATETIME_CONFIG.date_format);
+            }
+            dateEl.textContent = formatDateTime(payloadDate, window.DATETIME_CONFIG.js_date_format);
+        } else {
+            var _p = function(n) { return String(n).padStart(2, '0'); };
+            dateEl.textContent = _p(payloadDate.getDate()) + '.' + _p(payloadDate.getMonth() + 1) + '.' + payloadDate.getFullYear();
+        }
+    }
+    if (timeEl) {
+        if (window.DATETIME_CONFIG && window.DATETIME_CONFIG.time_format) {
+            if (!window.DATETIME_CONFIG.js_time_format) {
+                window.DATETIME_CONFIG.js_time_format = convertStrftimeToJS(window.DATETIME_CONFIG.time_format);
+            }
+            timeEl.textContent = formatDateTime(payloadDate, window.DATETIME_CONFIG.js_time_format);
+        } else {
+            var _p = function(n) { return String(n).padStart(2, '0'); };
+            timeEl.textContent = _p(payloadDate.getHours()) + ':' + _p(payloadDate.getMinutes()) + ':' + _p(payloadDate.getSeconds());
+        }
+    }
+
     // Visual feedback - check if flash is enabled
     if (window.MQTT_CONFIG && window.MQTT_CONFIG.flash_on_update !== false) {
         // Get flash color from configuration (default to green if not set)
@@ -237,13 +263,18 @@ function updateDateTime(payload, skipped) {
             ? window.MQTT_CONFIG.flash_color
             : "#00ff00";
 
-        timeSpan.style.transition = "color 0.5s, text-shadow 0.5s";
-        timeSpan.style.color = flashColor;
-        timeSpan.style.textShadow = "0 0 8px " + flashColor;
-        setTimeout(function () {
-            timeSpan.style.color = "";
-            timeSpan.style.textShadow = "none";
-        }, 1500);
+        // Flash only the time element (date stays static); fall back to timeSpan if not present
+        var flashTargets = [timeEl].filter(Boolean);
+        if (flashTargets.length === 0) flashTargets = [timeSpan];
+        flashTargets.forEach(function(el) {
+            el.style.transition = "color 0.5s, text-shadow 0.5s";
+            el.style.color = flashColor;
+            el.style.textShadow = "0 0 8px " + flashColor;
+            setTimeout(function () {
+                el.style.color = "#fff"; // restore full white to match station name / nav
+                el.style.textShadow = "none";
+            }, 1500);
+        });
     }
 }
 

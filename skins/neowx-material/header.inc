@@ -14,10 +14,15 @@
 
     <header>
 
-        <nav class="navbar navbar-expand-lg navbar-dark $Extras.color">
-            <span class="navbar-brand d-flex">
+        <nav class="navbar navbar-expand-lg navbar-dark $Extras.color" style="padding: 0.4rem 1rem; min-height: 5.2rem;">
+
+            <!-- ===== COLUMN 1: Brand / Station Info ===== -->
+            <!-- Fixed height = guarantees logo + station name never move between pages -->
+            <div class="d-flex align-items-center flex-shrink-0 mr-3" style="height: 4.5rem;">
+
+                <!-- Sub-col A: Weather icon / logo (vertically centered within fixed height) -->
                 #if $Extras.Header.show_logo == "yes"
-                    <a class="mr-2" href="index.html">
+                    <a class="mr-3" href="index.html" style="display:flex; align-items:center; height:100%; flex-shrink:0;">
                         #if $Extras.Header.custom_logo_url != ""
                             <img src="$Extras.Header.custom_logo_url" style="width: 4rem">
                         #else
@@ -25,201 +30,248 @@
                         #end if
                     </a>
                 #end if
-                <span>
-                    <strong>$station.location</strong><br>
-                    #if $active_nav == 'current'
-                        #set $datetime_format = $Extras.Formatting.get('datetime', '%a %d %H:%M')
-                        <span class="font-small datetime-header" id="current-datetime" data-timestamp="$current.dateTime.raw">$current.dateTime.format($datetime_format)</span>
-                        #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True)
-                            <span id="mqtt-status" class="font-small datetime-header" style="margin-left: 1px; display: inline-block;">
-                                <span id="mqtt-indicator" class="mdi mdi-resistor-nodes" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title=""></span>
-                            </span>
-                        #end if
-                        #if $varExists('onlinecheck')
-                            #set $online_check = $onlinecheck.get_status()
+
+                <!-- Sub-col B: flex-column, centered in fixed height so every row is always at the same Y -->
+                <div style="display:flex; flex-direction:column; justify-content:center; height:100%; line-height:1.2;">
+
+                    <!-- Row 1: Station name -->
+                    <div style="font-size:20px; font-weight:700; color:#fff; white-space:nowrap; margin-bottom:0.3rem;">$station.location</div>
+
+                    <!-- Row 2: Date + icons (icons column always rendered, empty on non-current pages) -->
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                        #if $active_nav == 'current'
+                            <div id="current-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$current.dateTime.format($Extras.Formatting.date)</div>
                         #else
-                            #set $online_check = {'offline': False}
+                            #set $date_format = $Extras.Formatting.get('date', '%x')
+                            <div style="white-space:nowrap; font-size:0.95rem; color:#fff;">$time.strftime($date_format)</div>
                         #end if
-                        #if $online_check.offline
-                            <!-- Show wifi slash icon if online check is offline -->
-                            <span id="online-status" class="font-small datetime-header" style="margin-left: 1px; display: inline-block;">
-                                <span class="mdi mdi-wifi-strength-alert-outline" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title="$gettext('System is offline')"></span>
-                            </span>
-                        #elif $Extras.OnlineCheck.get('always_show_status', False)
-                            <!-- Show online status if enabled -->
-                            <span id="online-status" class="font-small datetime-header" style="margin-left: 1px; display: inline-block;">
-                                <span class="mdi mdi-wifi" data-toggle="tooltip" data-placement="bottom" style="vertical-align: middle;" title="$gettext('System is online')"></span>
-                            </span>
-                        #end if
-                    #else
-                        #set $date_format = $Extras.Formatting.get('date', '%x')
-                        <span class="font-small datetime-header">$time.strftime($date_format)</span>
-                    #end if
-                    <span id="status-label" class="font-small red"><strong></strong></span>
-                </span>
-            </span>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="ml-3 collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ml-auto mr-auto">
+                        <!-- Icon container: position:relative so OFFLINE badge can float below without affecting row height -->
+                        <div style="position:relative; display:flex; flex-direction:column; gap:0.1rem;">
+                            <!-- Icons row -->
+                            <div style="display:flex; align-items:center; gap:0.25rem; font-size:1.1rem;">
+                                #if $active_nav == 'current'
+                                    #if ($Extras.MQTT.enabled == "true" or $Extras.MQTT.enabled == True)
+                                        <div id="mqtt-status" class="text-white">
+                                            <span id="mqtt-indicator" class="mdi mdi-resistor-nodes"
+                                                  data-toggle="tooltip" data-placement="bottom"
+                                                  style="vertical-align:middle;" title=""></span>
+                                        </div>
+                                    #end if
+                                    #if $varExists('onlinecheck')
+                                        #set $online_check = $onlinecheck.get_status()
+                                    #else
+                                        #set $online_check = {'offline': False}
+                                    #end if
+                                    #if $online_check.offline
+                                        <div id="online-status" class="text-white">
+                                            <span class="mdi mdi-wifi-strength-alert-outline"
+                                                  data-toggle="tooltip" data-placement="bottom"
+                                                  style="vertical-align:middle;" title="$gettext('System is offline')"></span>
+                                        </div>
+                                    #elif $Extras.OnlineCheck.get('always_show_status', False)
+                                        <div id="online-status" class="text-white">
+                                            <span class="mdi mdi-wifi"
+                                                  data-toggle="tooltip" data-placement="bottom"
+                                                  style="vertical-align:middle;" title="$gettext('System is online')"></span>
+                                        </div>
+                                    #end if
+                                #else
+                                    <!-- Transparent spacer — keeps icon-column height identical to current page -->
+                                    <span style="font-size:1.1rem; color:transparent;" aria-hidden="true">&#9632;</span>
+                                #end if
+                            </div>
+                            <!-- OFFLINE badge: absolutely positioned below icons, left-aligned with MQTT icon.
+                                 position:absolute means it does NOT affect the flex-row height — no layout shift. -->
+                            <span id="status-label"
+                                  style="display:none; position:absolute; top:100%; left:0; margin-top:3px;
+                                         font-size:0.65rem; font-weight:700; line-height:1.4;
+                                         color:#ffffff; background-color:#f44336;
+                                         padding:1px 4px; border-radius:2px; white-space:nowrap;"></span>
+                        </div>
+                    </div>
 
-                #if $Extras.Header.current_nav_link == "yes"
+                    <!-- Row 3: Time only -->
                     #if $active_nav == 'current'
-                        <li class="nav-item active mr-3">
-                            <a class="nav-link" href="index.html">$gettext("current")</a>
-                        </li>
+                        <div id="current-time" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$current.dateTime.format($Extras.Formatting.time)</div>
+                        <span id="current-datetime" data-timestamp="$current.dateTime.raw" style="display:none;"></span>
                     #else
-                        <li class="nav-item mr-3">
-                            <a class="nav-link" href="index.html">$gettext("current")</a>
-                        </li>
+                        <div style="white-space:nowrap; font-size:0.95rem; color:transparent;" aria-hidden="true">00:00:00</div>
                     #end if
-                #end if
+                </div>
 
-                #if $Extras.Header.yesterday_nav_link == "yes"
-                    #if $active_nav == 'yesterday'
-                        <li class="nav-item active mr-3">
-                            <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
-                        </li>
-                    #else
-                        <li class="nav-item mr-3">
-                            <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
-                        </li>
-                    #end if
-                #end if
 
-                #if $Extras.Header.week_nav_link == "yes"
-                    #if $active_nav == 'week'
-                        <li class="nav-item active mr-3">
-                            <a class="nav-link" href="week.html">$gettext("week")</a>
-                        </li>
-                    #else
-                        <li class="nav-item mr-3">
-                            <a class="nav-link" href="week.html">$gettext("week")</a>
-                        </li>
-                    #end if
-                #end if
+            </div><!-- end column 1 -->
 
-                #if $Extras.Header.month_nav_link == "yes"
-                    #if $active_nav == 'month'
-                        <li class="nav-item active mr-3">
-                            <a class="nav-link" href="month.html">$gettext("month")</a>
-                        </li>
-                    #else
-                        <li class="nav-item mr-3">
-                            <a class="nav-link" href="month.html">$gettext("month")</a>
-                        </li>
-                    #end if
-                #end if
+            <!-- Mobile toggle button -->
+            <button class="navbar-toggler ml-auto" type="button" data-toggle="collapse"
+                    data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                #if $Extras.Header.year_nav_link == "yes"
-                    #if $active_nav == 'year'
-                        <li class="nav-item active mr-3">
-                            <a class="nav-link" href="year.html">$gettext("year")</a>
-                        </li>
-                    #else
-                        <li class="nav-item mr-3">
-                            <a class="nav-link" href="year.html">$gettext("year")</a>
-                        </li>
-                    #end if
-                #end if
+            <!-- ===== COLUMN 2: Navigation (centered, grows to fill space) ===== -->
+            <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent" style="flex: 1 1 auto;">
+                <ul class="navbar-nav">
 
-                #if $Extras.Header.archive_nav_link == "yes"
-                    #if $active_nav == 'archive'
+                    #if $Extras.Header.current_nav_link == "yes"
+                        #if $active_nav == 'current'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="index.html">$gettext("current")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="index.html">$gettext("current")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $Extras.Header.yesterday_nav_link == "yes"
+                        #if $active_nav == 'yesterday'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $Extras.Header.week_nav_link == "yes"
+                        #if $active_nav == 'week'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="week.html">$gettext("week")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="week.html">$gettext("week")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $Extras.Header.month_nav_link == "yes"
+                        #if $active_nav == 'month'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="month.html">$gettext("month")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="month.html">$gettext("month")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $Extras.Header.year_nav_link == "yes"
+                        #if $active_nav == 'year'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="year.html">$gettext("year")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="year.html">$gettext("year")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $Extras.Header.archive_nav_link == "yes"
+                        #if $active_nav == 'archive'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="archive.html">$gettext("archive")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="archive.html">$gettext("archive")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $active_nav == 'history'
                         <li class="nav-item active mr-3">
-                            <a class="nav-link" href="archive.html">$gettext("archive")</a>
+                            <a class="nav-link" href="history.html">$gettext("history")</a>
                         </li>
                     #else
                         <li class="nav-item mr-3">
-                            <a class="nav-link" href="archive.html">$gettext("archive")</a>
+                            <a class="nav-link" href="history.html">$gettext("history")</a>
                         </li>
                     #end if
-                #end if
-                #if $active_nav == 'history'
-                    <li class="nav-item mr-3">
-                        <a class="nav-link" href="history.html">$gettext("history")</a>
-                    </li>
+
+                    #if $Extras.Header.almanac_nav_link == "yes"
+                        #if $active_nav == 'almanac'
+                            <li class="nav-item active mr-3">
+                                <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
+                            </li>
+                        #else
+                            <li class="nav-item mr-3">
+                                <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
+                            </li>
+                        #end if
+                    #end if
+
+                    #if $Extras.Header.custom1_url != ""
+                        <li class="nav-item mr-3">
+                            <a class="nav-link" href="$Extras.Header.custom1_url">$Extras.Header.custom1_label</a>
+                        </li>
+                    #end if
+
+                    #if $Extras.Header.custom2_url != ""
+                        <li class="nav-item mr-3">
+                            <a class="nav-link" href="$Extras.Header.custom2_url">$Extras.Header.custom2_label</a>
+                        </li>
+                    #end if
+
+                </ul>
+            </div><!-- end column 2 -->
+
+            <!-- ===== COLUMN 3: Almanac ===== -->
+            #if $Extras.Header.show_almanac == "yes"
+                #if $almanac.hasExtras
+                    <ul class="navbar-nav nav-flex-icons flex-shrink-0 ml-3" style="line-height: 1.5; padding-top: .25rem;">
+                        <li class="nav-item mr-4 text-white">
+                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sun.rise <br>
+                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sun.set
+                        </li>
+                        <li class="nav-item mr-4 text-white" style="line-height: 1.5">
+                            <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> $almanac.moon.rise <br>
+                            <i class="wi wi-moonset mr-1" style="opacity: .75"></i> $almanac.moon.set
+                        </li>
+                        <li class="nav-item mr-2 text-white text-center" style="line-height: 1.5">
+                            <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
+                                #if $almanac.moon_index == 0
+                                    <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 1
+                                    <i class="wi wi-moon-waxing-crescent-4 mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 2
+                                    <i class="wi wi-moon-first-quarter mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 3
+                                    <i class="wi wi-moon-waxing-gibbous-4 mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 4
+                                    <i class="wi wi-moon-full mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 5
+                                    <i class="wi wi-moon-waning-gibbous-4 mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 6
+                                    <i class="wi wi-moon-third-quarter mr-1" style="opacity: .75"></i>
+                                #else if $almanac.moon_index == 7
+                                    <i class="wi wi-moon-waning-crescent-4 mr-1" style="opacity: .75"></i>
+                                #else
+                                    <i class="wi wi-moon-waning-crescent-3 mr-1" style="opacity: .75"></i>
+                                #end if
+                                $almanac.moon_fullness%
+                            </span><br>
+                            <a href="almanac.html" class="text-white" style="opacity: .6">
+                                $gettext("more")
+                            </a>
+                        </li>
+                    </ul>
                 #else
-                    <li class="nav-item mr-3">
-                        <a class="nav-link" href="history.html">$gettext("history")</a>
-                    </li>
-                #end if
-                #if $Extras.Header.almanac_nav_link == "yes"
-                    #if $active_nav == 'almanac'
-                        <li class="nav-item active mr-3">
-                            <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
+                    <ul class="navbar-nav nav-flex-icons flex-shrink-0 ml-3" style="line-height: 1.5; padding-top: .25rem;">
+                        <li class="nav-item mr-4 text-white">
+                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sunrise <br>
+                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sunset
                         </li>
-                    #else
-                        <li class="nav-item mr-3">
-                            <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
-                        </li>
-                    #end if
+                    </ul>
                 #end if
+            #end if<!-- end column 3 -->
 
-                #if $Extras.Header.custom1_url != ""
-                    <li class="nav-item mr-3">
-                        <a class="nav-link" href="$Extras.Header.custom1_url">$Extras.Header.custom1_label</a>
-                    </li>
-                #end if
+        </nav>
 
-                #if $Extras.Header.custom2_url != ""
-                    <li class="nav-item mr-3">
-                        <a class="nav-link" href="$Extras.Header.custom2_url">$Extras.Header.custom2_label</a>
-                    </li>
-                #end if
-
-            </ul>
-        </div>
-
-        #if $Extras.Header.show_almanac == "yes"
-            #if $almanac.hasExtras
-                <ul class="navbar-nav nav-flex-icons header-icons" style="line-height: 1.5; padding-top: .5rem;">
-                    <li class="nav-item mr-4 text-white">
-                        <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sun.rise <br>
-                        <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sun.set
-                    </li>
-                    <li class="nav-item mr-4 text-white" style="line-height: 1.5">
-                        <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> $almanac.moon.rise <br>
-                        <i class="wi wi-moonset mr-1" style="opacity: .75"></i> $almanac.moon.set
-                    </li>
-                    <li class="nav-item mr-4 text-white text-center" style="line-height: 1.5" >
-                        <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
-                            #if $almanac.moon_index == 0
-                                <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 1
-                                <i class="wi wi-moon-waxing-crescent-4 mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 2
-                                <i class="wi wi-moon-first-quarter mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 3
-                                <i class="wi wi-moon-waxing-gibbous-4 mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 4
-                                <i class="wi wi-moon-full mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 5
-                                <i class="wi wi-moon-waning-gibbous-4 mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 6
-                                <i class="wi wi-moon-third-quarter mr-1" style="opacity: .75"></i>
-                            #else if $almanac.moon_index == 7
-                                <i class="wi wi-moon-waning-crescent-4 mr-1" style="opacity: .75"></i>
-                            #else
-                                <i class="wi wi-moon-waning-crescent-3 mr-1" style="opacity: .75"></i>
-                            #end if
-                            $almanac.moon_fullness%
-                        </span><br>
-                        <a href="almanac.html" class="text-white" style="opacity: .6">
-                            $gettext("more")
-                        </a>
-                    </li>
-                </ul>
-            #else
-                <ul class="navbar-nav nav-flex-icons header-icons" style="line-height: 1.5; padding-top: .5rem;">
-                    <li class="nav-item mr-4 text-white">
-                        <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sunrise <br>
-                        <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sunset
-                    </li>
-                </ul>
-            #end if
-        #end if
-    </nav>
-
-</header>
+    </header>

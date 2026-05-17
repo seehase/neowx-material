@@ -36,9 +36,7 @@
         const statusLabel = document.getElementById("status-label");
         if (statusLabel && diffMinutes > $Extras.Header.offline_threshold_minutes) {
             statusLabel.textContent = "$gettext('OFFLINE')";
-            } else {
-            // enable if you want to show also ONLINE (which should always be the excepted state)
-            // statusLabel.textContent = "$gettext('ONLINE')";
+            statusLabel.style.display = 'inline-block';
         }
     }
 </script>
