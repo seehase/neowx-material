@@ -119,7 +119,29 @@
 ## +-------------------------------------------------------------------------+
 
 #def chartCard($name, $id, $name2 = "XX")
-    #if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "ET" and $name != "windrun"
+    #if $name.startswith('customChart')
+        ## Custom chart: read config from Extras.Appearance
+        #set $cc = $Extras.Appearance.get($name, {})
+        #if $cc
+            #set $cc_title = $cc.get('title', $name)
+            #set $cc_values_raw = $cc.get('values', '')
+            #if isinstance($cc_values_raw, list)
+                #set $cc_first = $cc_values_raw[0].strip() if len($cc_values_raw) > 0 else ""
+            #else
+                #set $cc_first = $cc_values_raw.split(',')[0].strip() if $cc_values_raw else ""
+            #end if
+            #if $cc_first and $getVar('yesterday.' + $cc_first + '.has_data')
+                <div class="col-12 col-xl-6 mb-4">
+                    <div class="card card-chart" id="${name}-chart" data-name="$name">
+                        <div class="card-body text-center">
+                            <h5 class="h5-responsive $Extras.color-text">$cc_title</h5>
+                            <div id="$id"></div>
+                        </div>
+                    </div>
+                </div>
+            #end if
+        #end if
+    #else if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "ET" and $name != "windrun"
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
@@ -271,6 +293,26 @@
                     end_of_yesterday4 = Math.min(series4data.length, $number_of_records);
                 #end if
 
+                #if $series5 != ""
+                    series5data = [ $getChartData(series5, column) ];
+                    end_of_yesterday5 = Math.min(series5data.length, $number_of_records);
+                #end if
+
+                #if $series6 != ""
+                    series6data = [ $getChartData(series6, column) ];
+                    end_of_yesterday6 = Math.min(series6data.length, $number_of_records);
+                #end if
+
+                #if $series7 != ""
+                    series7data = [ $getChartData(series7, column) ];
+                    end_of_yesterday7 = Math.min(series7data.length, $number_of_records);
+                #end if
+
+                #if $series8 != ""
+                    series8data = [ $getChartData(series8, column) ];
+                    end_of_yesterday8 = Math.min(series8data.length, $number_of_records);
+                #end if
+
                 var chartElement = document.querySelector('#$id');
                 if (chartElement) {
                     new ApexCharts(chartElement, {
@@ -309,7 +351,7 @@
                             yaxis: {
                                 labels: {
                                     formatter: function (val) {
-                                        return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
+                                        return formatNumber(val, "$getVar('unit.format.' + series1)") + "$getVar('unit.label.' + series1)";
                                     }
                                 },
                             },
@@ -337,6 +379,30 @@
                                     data: series4data.splice(0,end_of_yesterday4)
                                 }
                             #end if
+                            #if $series5 != "" and $getVar('yesterday.' + series5 + '.has_data')
+                                ,{
+                                    name: "$getVar('obs.label.' + series5)",
+                                    data: series5data.splice(0,end_of_yesterday5)
+                                }
+                            #end if
+                            #if $series6 != "" and $getVar('yesterday.' + series6 + '.has_data')
+                                ,{
+                                    name: "$getVar('obs.label.' + series6)",
+                                    data: series6data.splice(0,end_of_yesterday6)
+                                }
+                            #end if
+                            #if $series7 != "" and $getVar('yesterday.' + series7 + '.has_data')
+                                ,{
+                                    name: "$getVar('obs.label.' + series7)",
+                                    data: series7data.splice(0,end_of_yesterday7)
+                                }
+                            #end if
+                            #if $series8 != "" and $getVar('yesterday.' + series8 + '.has_data')
+                                ,{
+                                    name: "$getVar('obs.label.' + series8)",
+                                    data: series8data.splice(0,end_of_yesterday8)
+                                }
+                            #end if
                         ]
                     }).render()
                 }
@@ -362,6 +428,18 @@
 
             var series4data = null;
             var end_of_yesterday4 = null;
+
+            var series5data = null;
+            var end_of_yesterday5 = null;
+
+            var series6data = null;
+            var end_of_yesterday6 = null;
+
+            var series7data = null;
+            var end_of_yesterday7 = null;
+
+            var series8data = null;
+            var end_of_yesterday8 = null;
 
             // Config templates
 
@@ -661,6 +739,37 @@
             #if $yesterday.lightning_energy.has_data
                 $getChartJsCode("lightning_energy", "lightning_energychart", "area", "lightning_energy")
             #end if
+
+            // Custom charts (dynamically generated from skin.conf [[Appearance]] [[[customChart*]]] sections)
+            #set $seen_custom_charts = set()
+            #for $x in $Extras.Appearance.charts_order
+                #if $x.startswith('customChart') and $x not in $seen_custom_charts
+                    #silent $seen_custom_charts.add($x)
+                    #set $cc = $Extras.Appearance.get($x, {})
+                    #if $cc
+                        #set $cc_type = $cc.get('charttype', 'area')
+                        #set $cc_column = $cc.get('column', 'avg')
+                        #set $cc_values_raw = $cc.get('values', '')
+                        #if isinstance($cc_values_raw, list)
+                            #set $cc_vals = [v.strip() for v in $cc_values_raw if v.strip()]
+                        #else
+                            #set $cc_vals = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
+                        #end if
+                        #if len($cc_vals) > 0
+                            #set $s1 = $cc_vals[0]
+                            #set $s2 = $cc_vals[1] if len($cc_vals) > 1 else ""
+                            #set $s3 = $cc_vals[2] if len($cc_vals) > 2 else ""
+                            #set $s4 = $cc_vals[3] if len($cc_vals) > 3 else ""
+                            #set $s5 = $cc_vals[4] if len($cc_vals) > 4 else ""
+                            #set $s6 = $cc_vals[5] if len($cc_vals) > 5 else ""
+                            #set $s7 = $cc_vals[6] if len($cc_vals) > 6 else ""
+                            #set $s8 = $cc_vals[7] if len($cc_vals) > 7 else ""
+                            #set $cc_id = $x + "chart"
+                            $getChartJsCode($x, $cc_id, $cc_type, $s1, $s2, $cc_column, $s3, $s4, $s5, $s6, $s7, $s8)
+                        #end if
+                    #end if
+                #end if
+            #end for
 
         </script>
 
