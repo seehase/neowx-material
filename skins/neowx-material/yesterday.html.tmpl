@@ -141,7 +141,7 @@
                 </div>
             #end if
         #end if
-    #else if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "ET" and $name != "windrun"
+ET    #else if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "windrun"
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
@@ -503,7 +503,7 @@
             #end if
 
             #if $yesterday.ET.has_data and $yesterday.ET.sum.raw is not None and $yesterday.ET.sum.raw > 0.0
-                $getChartJsCode("ET", "ETchart", "bar", "ET", "", "sum")
+                $getChartJsCode("ET", "ETchart", "area", "ET", "", "sum")
             #end if
 
             #if $yesterday.radiation.has_data
