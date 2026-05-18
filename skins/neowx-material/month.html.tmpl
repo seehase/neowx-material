@@ -597,6 +597,11 @@
                 $getChartJsCode("co2", "co2chart", "area", "co2")
             #end if
 
+            // NOISE
+            #if $month.noise.has_data
+                $getChartJsCode("noise", "noisechart", "area", "noise")
+            #end if
+
             // UV / ET / Radiation
             #if $month.UV.has_data
                 $getChartJsCode("UV", "UVchart", "area", "UV", "", "max")
