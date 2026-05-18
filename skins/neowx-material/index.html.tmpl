@@ -252,11 +252,12 @@
             #set $cc_title = $cc.get('title', $name)
             #set $cc_values_raw = $cc.get('values', '')
             #if isinstance($cc_values_raw, list)
-                #set $cc_first = $cc_values_raw[0].strip() if len($cc_values_raw) > 0 else ""
+                #set $cc_vals_list = [v.strip() for v in $cc_values_raw if v.strip()]
             #else
-                #set $cc_first = $cc_values_raw.split(',')[0].strip() if $cc_values_raw else ""
+                #set $cc_vals_list = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
             #end if
-            #if $cc_first and $getVar('day.' + $cc_first + '.has_data')
+            #set $cc_any_has_data = any($getVar('day.' + v + '.has_data') for v in $cc_vals_list)
+            #if len($cc_vals_list) > 0 and $cc_any_has_data
                 <div class="col-12 col-xl-6 mb-4">
                     <div class="card card-chart" id="${name}-chart" data-name="$name">
                         <div class="card-body text-center">
