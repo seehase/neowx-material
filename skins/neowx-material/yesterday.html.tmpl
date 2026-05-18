@@ -498,6 +498,11 @@ ET    #else if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec"
                 $getChartJsCode("co2", "co2chart", "area", "co2")
             #end if
 
+            // NOISE
+            #if $yesterday.noise.has_data
+                $getChartJsCode("noise", "noisechart", "area", "noise")
+            #end if
+
             // UV / ET / Radiation
             #if $yesterday.UV.has_data
                 $getChartJsCode("UV", "UVchart", "area", "UV", "", "max")

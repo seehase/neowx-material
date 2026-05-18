@@ -75,6 +75,8 @@ grid: {
 
 tooltip: {
     x: {
-        format: "$Extras.Formatting.datetime_graph_tooltip"
+        formatter: function(val) {
+           return moment.unix(val).format("$Extras.Formatting.datetime_graph_tooltip");
+        }
     }
 },

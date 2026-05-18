@@ -24,7 +24,7 @@ xaxis: {
 tooltip: {
     x: {
         formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-            return value
+            return moment.unix(val).format("$Extras.Formatting.datetime_graph_tooltip");
         }
     }
 },
