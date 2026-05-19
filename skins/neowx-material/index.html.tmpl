@@ -99,7 +99,8 @@
     #end def
 
     #def valuesCard($name)
-        #if $getVar('day.' + name + '.has_data')
+        ## ET requires a valid positive sum to be shown
+        #if $getVar('day.' + name + '.has_data') and ($name != 'ET' or ($day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0))
             <div class="col-12 col-md-6 col-xl-4 mb-4">
                 <div class="card card-value" id="${name}-value" data-name="$name">
                     <div class="card-body text-center">
@@ -169,61 +170,33 @@
                     </div>
                 </div>
 
-            #else if $name == 'lightning_strike_count'
+            #else if $name in set(['lightning_strike_count', 'windrun', 'ET'])
 
-                <div class="row">
-                    <div class="col-3 text-muted font-small"></div>
-                    <div class="col-6">
-                        <h4 class="h2-responsive">$day.lightning_strike_count.sum</h4>
-                    </div>
-                    <div class="col-3 text-muted font-small hi-text"></div>
-                </div>
-
-            #else if $name == 'lightning_distance'
-
-                <div class="row">
-                    <div class="col-3 text-muted font-small lo-text">
-                        $getVar('day.' + name + '.min') <br>
-                        ($getVar('day.' + name + '.mintime').format($Extras.Formatting.datetime_today))
-                    </div>
-                    <div class="col-6">
-                        <h4 class="h2-responsive">$day.lightning_distance.avg</h4>
-                    </div>
-                    <div class="col-3 text-muted font-small hi-text">
-                        $getVar('day.' + name + '.max') <br>
-                        ($getVar('day.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
-                    </div>
-                </div>
-
-            #else if $name == 'windrun'
-
+                ## Sum-only display: no min/max context
                 <div class="row">
                     <div class="col-3 text-muted font-small lo-text"></div>
                     <div class="col-6">
-                        <h4 class="h2-responsive">$day.windrun.sum</h4>
-                    </div>
-                    <div class="col-3 text-muted font-small hi-text"></div>
-                </div>
-
-            #else if $name == 'ET'
-
-                <div class="row">
-                    <div class="col-3 text-muted font-small lo-text"></div>
-                    <div class="col-6">
-                        <h4 class="h2-responsive">$day.ET.sum</h4>
+                        <h4 class="h2-responsive">$getVar('day.' + name + '.sum')</h4>
                     </div>
                     <div class="col-3 text-muted font-small hi-text"></div>
                 </div>
 
             #else
 
+                ## Default: min / center / max
+                ## lightning_distance shows day avg in center; all others show current value
+                #if $name == 'lightning_distance'
+                    #set $center_val = $getVar('day.' + name + '.avg')
+                #else
+                    #set $center_val = $getVar('current.' + name)
+                #end if
                 <div class="row">
                     <div class="col-3 text-muted font-small lo-text">
                         $getVar('day.' + name + '.min') <br>
                         ($getVar('day.' + name + '.mintime').format($Extras.Formatting.datetime_today))
                     </div>
                     <div class="col-6">
-                        <h4 class="h2-responsive">$getVar('current.' + name)</h4>
+                        <h4 class="h2-responsive">$center_val</h4>
                     </div>
                     <div class="col-3 text-muted font-small hi-text">
                         $getVar('day.' + name + '.max') <br>
@@ -312,11 +285,7 @@
                     #for $x in $Extras.Appearance.values_order
                         #if $x not in $seen_cards
                             #silent $seen_cards.add($x)
-                            #if $x == "ET"
-                                #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0
-                                    $valuesCard('ET')
-                                #end if
-                            #else if $x == "forecast"
+                            #if $x == "forecast"
                                 #include "forecast.inc"
                             #else
                                 $valuesCard($x)
@@ -630,95 +599,15 @@
                 #include "graph_line_config.inc"
             }
 
-            // altimeter
-            #if $day.altimeter.has_data
-                $getChartJsCode("altimeter", "altimeterchart", "area", "altimeter")
-            #end if
-
-            // outTemp + Dewpoint
-            $getChartJsCode("outTemp", "outTempchart", "area", "outTemp", "dewpoint")
-
-            // Wind chill + Heat index + optional appTemp
-            #if "appTemp" in $Extras.Appearance.charts_order and $day.appTemp.has_data
-                $getChartJsCode("windchill", "windchillchart", "area", "windchill", "heatindex", "avg", "appTemp")
-            #else
-                $getChartJsCode("windchill", "windchillchart", "area", "windchill", "heatindex")
-            #end if
-
-            // Barometer
-            $getChartJsCode("barometer", "barometerchart", "area", "barometer")
-
-            // Pressure
-            $getChartJsCode("pressure", "pressurechart", "area", "pressure")
-
-            // Rain
-            $getChartJsCode("rain", "rainchart", "bar", "rain", "", "sum")
+            // --- Special charts: multi-series or non-default columns ---
+            #set $processed_charts = set()
 
             // Wind
-            $getChartJsCode("windSpeed", "windSpeedchart", "area", "windSpeed", "windGust", "max")
-            $getChartJsCode("windDir", "windDirchart", "line", "wind", "", "vecdir")
-
-            // outHumidity
-            $getChartJsCode("outHumidity", "outHumiditychart", "area", "outHumidity")
-
-            // PM2.5
-            #if $day.pm2_5.has_data
-                $getChartJsCode("pm2_5", "pm2_5chart", "area", "pm2_5", "avg")
+            #if $day.windSpeed.has_data
+                $getChartJsCode("windSpeed", "windSpeedchart", "area", "windSpeed", "windGust", "max")
             #end if
+            #silent $processed_charts.add("windSpeed")
 
-            // CO2
-            #if $day.co2.has_data
-                $getChartJsCode("co2", "co2chart", "area", "co2")
-            #end if
-
-            // NOISE
-            #if $day.noise.has_data
-                $getChartJsCode("noise", "noisechart", "area", "noise")
-            #end if
-
-            // UV / ET / Radiation
-            #if $day.UV.has_data
-                $getChartJsCode("UV", "UVchart", "area", "UV", "", "max")
-            #end if
-
-            #if $day.ET.has_data and $day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0
-                $getChartJsCode("ET", "ETchart", "area", "ET", "", "sum")
-            #end if
-
-            #if $day.radiation.has_data
-                $getChartJsCode("radiation", "radiationchart", "area", "radiation", "", "max")
-            #end if
-
-            #if $day.luminosity.has_data
-                $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
-            #end if
-
-            // inTemp
-            $getChartJsCode("inTemp", "inTempchart", "area", "inTemp", "inDewpoint")
-
-            // inHumidity
-            $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
-
-            // Other sensors
-            #if $day.snowDepth.has_data
-                $getChartJsCode("snowDepth", "snowDepthchart", "bar", "snowDepth", "", "sum")
-            #end if
-
-            #if $day.leafTemp1.has_data or $day.leafTemp2.has_data
-                $getChartJsCode("leafTemp1", "leafTemp1chart", "area", "leafTemp1", "leafTemp2", "avg")
-            #end if
-
-            #if $day.soilTemp1.has_data or $day.soilTemp2.has_data or $day.soilTemp3.has_data or $day.soilTemp4.has_data or $day.soilTemp5.has_data or $day.soilTemp6.has_data or $day.soilTemp7.has_data or $day.soilTemp8.has_data
-                $getChartJsCode("soilTemp1", "soilTemp1chart", "area", "soilTemp1", "soilTemp2", "avg", "soilTemp3", "soilTemp4", "soilTemp5", "soilTemp6", "soilTemp7", "soilTemp8")
-            #end if
-
-            #if $day.soilMoist1.has_data or $day.soilMoist2.has_data or $day.soilMoist3.has_data or $day.soilMoist4.has_data or $day.soilMoist5.has_data or $day.soilMoist6.has_data or $day.soilMoist7.has_data or $day.soilMoist8.has_data
-                $getChartJsCode("soilMoist1", "soilMoist1chart", "area", "soilMoist1", "soilMoist2", "avg", "soilMoist3", "soilMoist4", "soilMoist5", "soilMoist6", "soilMoist7", "soilMoist8")
-            #end if
-
-            #if $day.cloudbase.has_data
-                $getChartJsCode("cloudbase", "cloudbasechart", "area", "cloudbase", "avg")
-            #end if
 
             // Build wind vector chart
             var vector_data = {
@@ -826,95 +715,29 @@
                     ]
                 }).render()
             }
+            #silent $processed_charts.add("windvec")
 
-            // extraTemp 1-8
+            // --- Default single-series charts: loop over charts_order ---
+            // Charts added to $processed_charts above are skipped here
+            // Chart type overrides for charts that are not 'area' (default)
+            #set $default_chart_types = {'windDir': 'line', 'rain': 'bar', 'snowDepth': 'bar', 'lightning_strike_count': 'bar', 'lightning_noise_count': 'bar', 'lightning_disturber_count': 'bar', 'lightning_distance': 'bar'}
+            // Aggregate column overrides for charts that are not 'avg' (default)
+            #set $default_chart_columns = {'windDir': 'vecdir', 'ET': 'sum', 'rain': 'sum', 'UV': 'max', 'radiation': 'max', 'luminosity': 'max', 'snowDepth': 'sum', 'lightning_strike_count': 'sum'}
+            // Series1 field overrides for charts where the series field name differs from the chart name
+            #set $default_chart_series = {'windDir': 'wind'}
 
-            #if $day.extraTemp1.has_data
-                $getChartJsCode("extraTemp1", "extraTemp1chart", "area", "extraTemp1")
-            #end if
-
-            #if $day.extraTemp2.has_data
-                $getChartJsCode("extraTemp2", "extraTemp2chart", "area", "extraTemp2")
-            #end if
-
-            #if $day.extraTemp3.has_data
-                $getChartJsCode("extraTemp3", "extraTemp3chart", "area", "extraTemp3")
-            #end if
-
-            #if $day.extraTemp4.has_data
-                $getChartJsCode("extraTemp4", "extraTemp4chart", "area", "extraTemp4")
-            #end if
-
-            #if $day.extraTemp5.has_data
-                $getChartJsCode("extraTemp5", "extraTemp5chart", "area", "extraTemp5")
-            #end if
-
-            #if $day.extraTemp6.has_data
-                $getChartJsCode("extraTemp6", "extraTemp6chart", "area", "extraTemp6")
-            #end if
-
-            #if $day.extraTemp7.has_data
-                $getChartJsCode("extraTemp7", "extraTemp7chart", "area", "extraTemp7")
-            #end if
-
-            #if $day.extraTemp8.has_data
-                $getChartJsCode("extraTemp8", "extraTemp8chart", "area", "extraTemp8")
-            #end if
-
-            // extraHumid 1-8
-
-            #if $day.extraHumid1.has_data
-                $getChartJsCode("extraHumid1", "extraHumid1chart", "area", "extraHumid1")
-            #end if
-
-            #if $day.extraHumid2.has_data
-                $getChartJsCode("extraHumid2", "extraHumid2chart", "area", "extraHumid2")
-            #end if
-
-            #if $day.extraHumid3.has_data
-                $getChartJsCode("extraHumid3", "extraHumid3chart", "area", "extraHumid3")
-            #end if
-
-            #if $day.extraHumid4.has_data
-                $getChartJsCode("extraHumid4", "extraHumid4chart", "area", "extraHumid4")
-            #end if
-
-            #if $day.extraHumid5.has_data
-                $getChartJsCode("extraHumid5", "extraHumid5chart", "area", "extraHumid5")
-            #end if
-
-            #if $day.extraHumid6.has_data
-                $getChartJsCode("extraHumid6", "extraHumid6chart", "area", "extraHumid6")
-            #end if
-
-            #if $day.extraHumid7.has_data
-                $getChartJsCode("extraHumid7", "extraHumid7chart", "area", "extraHumid7")
-            #end if
-
-            #if $day.extraHumid8.has_data
-                $getChartJsCode("extraHumid8", "extraHumid8chart", "area", "extraHumid8")
-            #end if
-
-            // Lightning
-            #if $day.lightning_strike_count.has_data
-                $getChartJsCode("lightning_strike_count", "lightning_strike_countchart", "bar", "lightning_strike_count", "", "sum")
-            #end if
-
-            #if $day.lightning_noise_count.has_data
-                $getChartJsCode("lightning_noise_count", "lightning_noise_countchart", "bar", "lightning_noise_count")
-            #end if
-
-            #if $day.lightning_disturber_count.has_data
-                $getChartJsCode("lightning_disturber_count", "lightning_disturber_countchart", "bar", "lightning_disturber_count")
-            #end if
-
-            #if $day.lightning_distance.has_data
-                $getChartJsCode("lightning_distance", "lightning_distancechart", "bar", "lightning_distance")
-            #end if
-
-            #if $day.lightning_energy.has_data
-                $getChartJsCode("lightning_energy", "lightning_energychart", "area", "lightning_energy")
-            #end if
+            #for $x in $Extras.Appearance.charts_order
+                #if not $x.startswith('customChart') and $x not in $processed_charts
+                    #silent $processed_charts.add($x)
+                    #if $getVar('day.' + $x + '.has_data')
+                        #set $c_type = $default_chart_types.get($x, 'area')
+                        #set $c_col = $default_chart_columns.get($x, 'avg')
+                        #set $c_series = $default_chart_series.get($x, $x)
+                        #set $c_id = $x + 'chart'
+                        $getChartJsCode($x, $c_id, $c_type, $c_series, "", $c_col)
+                    #end if
+                #end if
+            #end for
 
             // Custom charts (dynamically generated from skin.conf [[Appearance]] [[[customChart*]]] sections)
             #set $seen_custom_charts = set()

@@ -16,11 +16,11 @@ This actively maintained fork brings NeoWX Material into the modern era with **r
 
 This is an **actively maintained** continuation of the NeoWX Material skin. The original repository has not been maintained for years, so this fork provides:
 
-✅ **Active development and bug fixes**
-✅ **New major features** (MQTT real-time updates, weather forecasts, telemetry)
-✅ **Complete multi-language support** (11 languages, all keys translated and sorted)
-✅ **Modern features** (configurable UI, improved charts, better mobile experience)
-✅ **Community-driven improvements**
+✅ **Active development and bug fixes**  
+✅ **New major features** (MQTT real-time updates, weather forecasts, telemetry)  
+✅ **Complete multi-language support** (11 languages, all keys translated and sorted)  
+✅ **Modern features** (configurable UI, improved charts, better mobile experience)  
+✅ **Community-driven improvements**  
 
 ---
 
@@ -169,17 +169,18 @@ Set your preferred language in `weewx.conf`:
 ```
 
 **Available Languages:**
-- 🇬🇧 English (`en`)
+- Catalan (`ca`)
+- 🇩🇰 Dänisch (`da`)
 - 🇩🇪 German (`de`)
+- 🇬🇧 English (`en`)
 - 🇪🇸 Spanish (`es`)
+- 🇫🇮 Finnish (`fi`)
 - 🇫🇷 French (`fr`)
 - 🇮🇹 Italian (`it`)
 - 🇳🇱 Dutch (`nl`)
 - 🇵🇱 Polish (`pl`)
 - 🇸🇪 Swedish (`se`)
 - 🇸🇰 Slovak (`sk`)
-- 🇫🇮 Finnish (`fi`)
-- Plus Catalan (`ca`) for regional support
 
 ### Time & Date Formats
 
