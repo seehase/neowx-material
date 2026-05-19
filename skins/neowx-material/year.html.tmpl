@@ -111,9 +111,10 @@
                 #set $cc_vals_list = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
             #end if
             #set $cc_any_has_data = any($getVar('year.' + v + '.has_data') for v in $cc_vals_list)
+            #set $cc_sensors_str = chr(44).join($cc_vals_list)
             #if len($cc_vals_list) > 0 and $cc_any_has_data
                 <div class="col-12 col-xl-6 mb-4">
-                    <div class="card card-chart" id="${name}-chart" data-name="$name">
+                    <div class="card card-chart" id="${name}-chart" data-name="$name" data-sensors="$cc_sensors_str">
                         <div class="card-body text-center">
                             <h5 class="h5-responsive $Extras.color-text">$cc_title</h5>
                             <div id="$id"></div>
@@ -380,10 +381,18 @@
         #end def
 
         <script type="text/javascript">
-            var graph_area_config = { #include "graph_area_config.inc" }
-            var graph_bar_config = { #include "graph_bar_config.inc" }
-            var graph_radar_config = { #include "graph_radar_config.inc" }
-            var graph_line_config = { #include "graph_line_config.inc" }
+            var graph_area_config = {
+                #include "graph_area_config.inc"
+            }
+            var graph_bar_config = {
+                #include "graph_bar_config.inc"
+            }
+            var graph_radar_config = {
+                #include "graph_radar_config.inc"
+            }
+            var graph_line_config = {
+                #include "graph_line_config.inc"
+            }
 
             // --- Special charts: multi-series or non-default columns ---
             #set $processed_charts = set()
