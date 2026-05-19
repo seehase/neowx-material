@@ -5,10 +5,6 @@
 
 #attr $active_nav = 'year'
 
-## +-------------------------------------------------------------------------+
-## | Template for display card of values (left column)                       |
-## +-------------------------------------------------------------------------+
-
 ## Access HistoryReport section from skin.conf
 #set $table_dict = $generator.skin_dict['HistoryReport']
 #set $threshold_unit = $table_dict.get('threshold_unit', 'degree_C')
@@ -18,7 +14,8 @@
 #set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
 
 #def valuesCard($name)
-    #if $getVar('year.' + name + '.has_data')
+    ## ET requires a valid positive sum to be shown
+    #if $getVar('year.' + name + '.has_data') and ($name != 'ET' or ($year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0))
         <div class="col-12 col-md-6 col-xl-4 mb-4">
             <div class="card card-value" id="${name}-value" data-name="$name">
                 <div class="card-body text-center">
@@ -67,32 +64,13 @@
                             </div>
                         </div>
 
-                    #else if $name == 'lightning_strike_count'
+                    #else if $name in set(['lightning_strike_count', 'windrun', 'ET'])
 
+                        ## Sum-only display: no min/max context
                         <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
+                            <div class="col-3 text-muted font-small lo-text"></div>
                             <div class="col-6">
-                                <h4 class="h2-responsive">$year.lightning_strike_count.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else if $name == 'windrun'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$year.windrun.sum</h4>
-                            </div>
-                            <div class="col-3 text-muted font-small hi-text"></div>
-                        </div>
-
-                    #else if $name == 'ET'
-
-                        <div class="row">
-                            <div class="col-3 text-muted font-small"></div>
-                            <div class="col-6">
-                                <h4 class="h2-responsive">$year.ET.sum</h4>
+                                <h4 class="h2-responsive">$getVar('year.' + name + '.sum')</h4>
                             </div>
                             <div class="col-3 text-muted font-small hi-text"></div>
                         </div>
@@ -121,14 +99,8 @@
     #end if
 #end def
 
-## +-------------------------------------------------------------------------+
-## | Template for display card of a single chart (right column)              |
-## | Chart values are defined in the JS section below                        |
-## +-------------------------------------------------------------------------+
-
 #def chartCard($name, $id, $name2 = "XX")
     #if $name.startswith('customChart')
-        ## Custom chart: read config from Extras.Appearance
         #set $cc = $Extras.Appearance.get($name, {})
         #if $cc
             #set $cc_title = $cc.get('title', $name)
@@ -150,7 +122,7 @@
                 </div>
             #end if
         #end if
-    #else if ($getVar('year.' + name + '.has_data') or $name == "windvec") and $name != "appTemp"
+    #else if ($getVar('year.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and ($name != 'ET' or ($year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0))
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
@@ -168,10 +140,6 @@
         </div>
     #end if
 #end def
-
-## +-------------------------------------------------------------------------+
-## | The main page layout                                                    |
-## +-------------------------------------------------------------------------+
 
 <!DOCTYPE html>
 <html lang="$lang">
@@ -193,24 +161,14 @@
                     #for $x in $Extras.Appearance.values_order
                         #if $x not in $seen_cards
                             #silent $seen_cards.add($x)
-                            #if $x == "ET"
-                                #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
-                                    $valuesCard('ET')
-                                #end if
-                            #else if $x == "temperatureThresholdDays"
+                            #if $x == "temperatureThresholdDays"
                                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                                     <div class="card">
                                         <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("summer_days")
-                                            </h3>
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("summer_days")</h3>
                                             <div class="row">
                                                 <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $year.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
+                                                <div class="col-6"><h4 class="h2-responsive">$year.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")</h4></div>
                                                 <div class="col-3 text-muted font-small hi-text"></div>
                                             </div>
                                         </div>
@@ -219,16 +177,10 @@
                                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                                     <div class="card">
                                         <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("tropical_days")
-                                            </h3>
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_days")</h3>
                                             <div class="row">
                                                 <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $year.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
+                                                <div class="col-6"><h4 class="h2-responsive">$year.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")</h4></div>
                                                 <div class="col-3 text-muted font-small hi-text"></div>
                                             </div>
                                         </div>
@@ -237,16 +189,10 @@
                                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                                     <div class="card">
                                         <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("tropical_nights")
-                                            </h3>
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_nights")</h3>
                                             <div class="row">
                                                 <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $year.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
+                                                <div class="col-6"><h4 class="h2-responsive">$year.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")</h4></div>
                                                 <div class="col-3 text-muted font-small hi-text"></div>
                                             </div>
                                         </div>
@@ -255,16 +201,10 @@
                                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                                     <div class="card">
                                         <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("arctic_days")
-                                            </h3>
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("arctic_days")</h3>
                                             <div class="row">
                                                 <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $year.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
+                                                <div class="col-6"><h4 class="h2-responsive">$year.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")</h4></div>
                                                 <div class="col-3 text-muted font-small hi-text"></div>
                                             </div>
                                         </div>
@@ -284,13 +224,7 @@
                     #for $x in $Extras.Appearance.charts_order
                         #if $x not in $seen_charts
                             #silent $seen_charts.add($x)
-                            #if $x == "ET"
-                                #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
-                                    $chartCard($x, $x + 'chart')
-                                #end if
-                            #else
-                                $chartCard($x, $x + 'chart')
-                            #end if
+                            $chartCard($x, $x + 'chart')
                         #end if
                     #end for
                 </div>
@@ -300,17 +234,6 @@
 
         #include "footer.inc"
         #include "js.inc"
-
-        ## +-------------------------------------------------------------------------+
-        ## | Chart generation methods (get data for charts + their JS code)          |
-        ## +-------------------------------------------------------------------------+
-
-        ## +-------------------------------------------------------------------------+
-        ## | Get data array for a chart                                              |
-        ## |                                                                         |
-        ## | string  $name    the name of the database field  (e.g. outTemp)         |
-        ## | string  $column  the column of the display value (e.g. min, max, avg)   |
-        ## +-------------------------------------------------------------------------+
 
         #def getChartData($name, $column)
             #set current_interval = int($Extras.Charts.year_timespan)
@@ -338,31 +261,11 @@
             #end for
         #end def
 
-        ## +-------------------------------------------------------------------------+
-        ## | Get JavaScript code for a chart                                         |
-        ## |                                                                         |
-        ## | string  $name     the name of the database field   (e.g. outTemp)       |
-        ## | string  $id       the ID of the chart target       (without hash)       |
-        ## | string  $type     type of chart                    (area, bar, radar)   |
-        ## | string  $series1  field name for (1st) series      (e.g. outTemp)       |
-        ## | string  $series2  opt. field name for 2nd series   (e.g. outTemp or "") |
-        ## | string  $column   the column of the display value  (e.g. min, max, avg) |
-        ## | string  $series3  opt. field name for 3rd series   (e.g. outTemp or "") |
-        ## | string  $series4  opt. field name for 4th series   (e.g. outTemp or "") |
-        ## | string  $series5  opt. field name for 5th series   (e.g. outTemp or "") |
-        ## | string  $series6  opt. field name for 6th series   (e.g. outTemp or "") |
-        ## | string  $series7  opt. field name for 7th series   (e.g. outTemp or "") |
-        ## | string  $series8  opt. field name for 8th series   (e.g. outTemp or "") |
-        ## +-------------------------------------------------------------------------+
-
         #def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
 
-            ## Only add JS chart code if in array
             #if $name in $Extras.Appearance.charts_order
 
                 #if $name == "outTemp"
-
-                    ## Special diagram for outside temp
 
                     var chartElement = document.querySelector('#$id');
                     if (chartElement) {
@@ -385,46 +288,25 @@
                                     data: [ $getChartData(series1, 'max') ]
                                 }
                                 #if $series2 != "" and $getVar('year.' + series2 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series2)",
-                                        data: [ $getChartData(series2, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series2)", data: [ $getChartData(series2, column) ] }
                                 #end if
                                 #if $series3 != "" and $getVar('year.' + series3 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series3)",
-                                        data: [ $getChartData(series3, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series3)", data: [ $getChartData(series3, column) ] }
                                 #end if
                                 #if $series4 != "" and $getVar('year.' + series4 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series4)",
-                                        data: [ $getChartData(series4, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series4)", data: [ $getChartData(series4, column) ] }
                                 #end if
                                 #if $series5 != "" and $getVar('year.' + series5 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series5)",
-                                        data: [ $getChartData(series5, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series5)", data: [ $getChartData(series5, column) ] }
                                 #end if
                                 #if $series6 != "" and $getVar('year.' + series6 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series6)",
-                                        data: [ $getChartData(series6, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series6)", data: [ $getChartData(series6, column) ] }
                                 #end if
                                 #if $series7 != "" and $getVar('year.' + series7 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series7)",
-                                        data: [ $getChartData(series7, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series7)", data: [ $getChartData(series7, column) ] }
                                 #end if
                                 #if $series8 != "" and $getVar('year.' + series8 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series8)",
-                                        data: [ $getChartData(series8, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series8)", data: [ $getChartData(series8, column) ] }
                                 #end if
                             ]
                         }).render()
@@ -438,89 +320,54 @@
                             ...graph_${type}_config,
                             #if $name == "windDir"
                                 yaxis: {
-                                    max: 360,
-                                    min: 0,
-                                    type: 'datetime',
-                                    tickAmount: 8,
-                                    trim: false,
+                                    max: 360, min: 0, type: 'datetime', tickAmount: 8, trim: false,
                                     labels: {
-                                        tickAmount: 8,
-                                        rotateAlways: false,
-                                        hideOverlappingLabels: true,
-                                        showDuplicates: false,
-                                        trim: false,
+                                        tickAmount: 8, rotateAlways: false, hideOverlappingLabels: true,
+                                        showDuplicates: false, trim: false,
                                         formatter: function(val, timestamp) {
                                             var degrees = Number(val);
-                                            var direction = getOrdinalDirection(degrees);
-                                            return direction;
+                                            return getOrdinalDirection(degrees);
                                         }
                                     },
                                 },
                                 tooltip: {
                                     enabled: true,
-                                    y: {
+                                    y: { formatter: function (val) {
+                                        var degrees = Number(val);
+                                        return getOrdinalDirection(degrees) + ' (' + degrees.toFixed(0) + '°)';
+                                    }},
+                                },
+                            #else
+                                yaxis: {
+                                    labels: {
                                         formatter: function (val) {
-                                            var degrees = Number(val);
-                                            var direction = getOrdinalDirection(degrees);
-                                            return direction + ' (' + degrees.toFixed(0) + '°)';
+                                            return formatNumber(val, "$getVar('unit.format.' + series1)") + "$getVar('unit.label.' + series1)";
                                         }
                                     },
                                 },
-                        #else
-                            yaxis: {
-                                labels: {
-                                    formatter: function (val) {
-                                        return formatNumber(val, "$getVar('unit.format.' + series1)") + "$getVar('unit.label.' + series1)";
-                                    }
-                                },
-                            },
-                        #end if
+                            #end if
                             series: [
-                                {
-                                    name: "$getVar('obs.label.' + series1)",
-                                    data: [ $getChartData(series1, column) ]
-                                }
+                                { name: "$getVar('obs.label.' + series1)", data: [ $getChartData(series1, column) ] }
                                 #if $series2 != "" and $getVar('year.' + series2 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series2)",
-                                        data: [ $getChartData(series2, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series2)", data: [ $getChartData(series2, column) ] }
                                 #end if
                                 #if $series3 != "" and $getVar('year.' + series3 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series3)",
-                                        data: [ $getChartData(series3, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series3)", data: [ $getChartData(series3, column) ] }
                                 #end if
                                 #if $series4 != "" and $getVar('year.' + series4 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series4)",
-                                        data: [ $getChartData(series4, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series4)", data: [ $getChartData(series4, column) ] }
                                 #end if
                                 #if $series5 != "" and $getVar('year.' + series5 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series5)",
-                                        data: [ $getChartData(series5, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series5)", data: [ $getChartData(series5, column) ] }
                                 #end if
                                 #if $series6 != "" and $getVar('year.' + series6 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series6)",
-                                        data: [ $getChartData(series6, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series6)", data: [ $getChartData(series6, column) ] }
                                 #end if
                                 #if $series7 != "" and $getVar('year.' + series7 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series7)",
-                                        data: [ $getChartData(series7, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series7)", data: [ $getChartData(series7, column) ] }
                                 #end if
                                 #if $series8 != "" and $getVar('year.' + series8 + '.has_data')
-                                    ,{
-                                        name: "$getVar('obs.label.' + series8)",
-                                        data: [ $getChartData(series8, column) ]
-                                    }
+                                    ,{ name: "$getVar('obs.label.' + series8)", data: [ $getChartData(series8, column) ] }
                                 #end if
                             ]
                         }).render()
@@ -532,118 +379,19 @@
 
         #end def
 
-        ## +-------------------------------------------------------------------------+
-        ## | Chart definitions                                                       |
-        ## +-------------------------------------------------------------------------+
-
         <script type="text/javascript">
-            // Config templates
+            var graph_area_config = { #include "graph_area_config.inc" }
+            var graph_bar_config = { #include "graph_bar_config.inc" }
+            var graph_radar_config = { #include "graph_radar_config.inc" }
+            var graph_line_config = { #include "graph_line_config.inc" }
 
-            var graph_area_config = {
-                #include "graph_area_archive_config.inc"
-            }
-            var graph_bar_config = {
-                #include "graph_bar_archive_config.inc"
-            }
-            var graph_radar_config = {
-                #include "graph_radar_config.inc"
-            }
-            var graph_line_config = {
-                #include "graph_line_config.inc"
-            }
+            // --- Special charts: multi-series or non-default columns ---
+            #set $processed_charts = set()
 
-            // altimeter
-            #if $year.altimeter.has_data
-                $getChartJsCode("altimeter", "altimeterchart", "area", "altimeter")
+            #if $year.windSpeed.has_data
+                $getChartJsCode("windSpeed", "windSpeedchart", "area", "windSpeed", "windGust", "max")
             #end if
-
-            // outTemp + Dewpoint
-            $getChartJsCode("outTemp", "outTempchart", "area", "outTemp", "dewpoint")
-
-            // Wind chill + Heat index + optional appTemp
-            #if "appTemp" in $Extras.Appearance.charts_order and $year.appTemp.has_data
-                $getChartJsCode("windchill", "windchillchart", "area", "windchill", "heatindex", "avg", "appTemp")
-            #else
-                $getChartJsCode("windchill", "windchillchart", "area", "windchill", "heatindex")
-            #end if
-
-            // Barometer
-            $getChartJsCode("barometer", "barometerchart", "area", "barometer")
-
-            // Pressure
-            $getChartJsCode("pressure", "pressurechart", "area", "pressure")
-
-            // Rain
-            $getChartJsCode("rain", "rainchart", "bar", "rain", "", "sum")
-
-            // Wind
-            $getChartJsCode("windSpeed", "windSpeedchart", "area", "windSpeed", "windGust", "max")
-            $getChartJsCode("windDir", "windDirchart", "line", "wind", "", "vecdir")
-
-            // WindRun
-            $getChartJsCode("windrun", "windrunchart", "bar", "windrun", "", "sum")
-
-            // outHumidity
-            $getChartJsCode("outHumidity", "outHumiditychart", "area", "outHumidity")
-
-            // PM2.5
-            #if $year.pm2_5.has_data
-                $getChartJsCode("pm2_5", "pm2_5chart", "area", "pm2_5", "avg")
-            #end if
-
-            // CO2
-            #if $year.co2.has_data
-                $getChartJsCode("co2", "co2chart", "area", "co2")
-            #end if
-
-            // NOISE
-            #if $year.noise.has_data
-                $getChartJsCode("noise", "noisechart", "area", "noise")
-            #end if
-
-            // UV / ET / Radiation
-            #if $year.UV.has_data
-                $getChartJsCode("UV", "UVchart", "area", "UV", "", "max")
-            #end if
-
-            #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
-                $getChartJsCode("ET", "ETchart", "bar", "ET", "", "sum")
-            #end if
-
-            #if $year.radiation.has_data
-                $getChartJsCode("radiation", "radiationchart", "area", "radiation", "", "max")
-            #end if
-
-            #if $year.luminosity.has_data
-                $getChartJsCode("luminosity", "luminositychart", "area", "luminosity", "", "max")
-            #end if
-
-            // inTemp
-            $getChartJsCode("inTemp", "inTempchart", "area", "inTemp", "inDewpoint")
-
-            // inHumidity
-            $getChartJsCode("inHumidity", "inHumiditychart", "area", "inHumidity")
-
-            // Other sensors
-            #if $year.snowDepth.has_data
-                $getChartJsCode("snowDepth", "snowDepthchart", "bar", "snowDepth", "", "sum")
-            #end if
-
-            #if $year.leafTemp1.has_data or $year.leafTemp2.has_data
-                $getChartJsCode("leafTemp1", "leafTemp1chart", "area", "leafTemp1", "leafTemp2", "avg")
-            #end if
-
-            #if $day.soilTemp1.has_data or $day.soilTemp2.has_data or $day.soilTemp3.has_data or $day.soilTemp4.has_data or $day.soilTemp5.has_data or $day.soilTemp6.has_data or $day.soilTemp7.has_data or $day.soilTemp8.has_data
-                $getChartJsCode("soilTemp1", "soilTemp1chart", "area", "soilTemp1", "soilTemp2", "avg", "soilTemp3", "soilTemp4", "soilTemp5", "soilTemp6", "soilTemp7", "soilTemp8")
-            #end if
-
-            #if $day.soilMoist1.has_data or $day.soilMoist2.has_data or $day.soilMoist3.has_data or $day.soilMoist4.has_data or $day.soilMoist5.has_data or $day.soilMoist6.has_data or $day.soilMoist7.has_data or $day.soilMoist8.has_data
-                $getChartJsCode("soilMoist1", "soilMoist1chart", "area", "soilMoist1", "soilMoist2", "avg", "soilMoist3", "soilMoist4", "soilMoist5", "soilMoist6", "soilMoist7", "soilMoist8")
-            #end if
-
-            #if $year.cloudbase.has_data
-                $getChartJsCode("cloudbase", "cloudbasechart", "area", "cloudbase", "avg")
-            #end if
+            #silent $processed_charts.add("windSpeed")
 
             // Build wind vector chart
             var vector_data = {
@@ -656,192 +404,70 @@
                 'W': {'sum': 0.0, 'amt': 0, 'avg': 0.0, 'max': 0.0},
                 'NW': {'sum': 0.0, 'amt': 0, 'avg': 0.0, 'max': 0.0},
             };
-
             var raw_data = [
                 #for $record in $span($year_delta=1,$boundary='midnight').spans(interval=int($Extras.Charts.year_timespan))
-                    {
-                        'dir': "$record.wind.vecdir.raw",
-                        'speed': "$record.windSpeed.avg.raw",
-                        'max': "$record.windGust.max.raw"
-                    },
+                    { 'dir': "$record.wind.vecdir.raw", 'speed': "$record.windSpeed.avg.raw", 'max': "$record.windGust.max.raw" },
                 #end for
             ];
-
             raw_data.forEach(function(item) {
                 var vec_dir = parseInt(item.dir);
                 var vec_speed = parseFloat(item.speed);
                 var max_speed = parseFloat(item.max);
-
                 if(typeof vec_dir === 'number') {
                     var vec_key = false;
-
-                    // Detect key based on vec direction (0-360). 45° steps, using the middle +- 45/2=22.5
-                    if(vec_dir > 337.5 || vec_dir <= 22.5) {
-                        vec_key = 'N';
-                    }
-                    if(vec_dir > 22.5 && vec_dir <= 67.5) {
-                        vec_key = 'NE';
-                    }
-                    if(vec_dir > 67.5 && vec_dir <= 112.5) {
-                        vec_key = 'E';
-                    }
-                    if(vec_dir > 112.5 && vec_dir <= 157.5) {
-                        vec_key = 'SE';
-                    }
-                    if(vec_dir > 157.5 && vec_dir <= 202.5) {
-                        vec_key = 'S';
-                    }
-                    if(vec_dir > 202.5 && vec_dir <= 247.5) {
-                        vec_key = 'SW';
-                    }
-                    if(vec_dir > 247.5 && vec_dir <= 292.5) {
-                        vec_key = 'W';
-                    }
-                    if(vec_dir > 292.5 && vec_dir <= 337.5) {
-                        vec_key = 'NW';
-                    }
-
+                    if(vec_dir > 337.5 || vec_dir <= 22.5) { vec_key = 'N'; }
+                    if(vec_dir > 22.5 && vec_dir <= 67.5) { vec_key = 'NE'; }
+                    if(vec_dir > 67.5 && vec_dir <= 112.5) { vec_key = 'E'; }
+                    if(vec_dir > 112.5 && vec_dir <= 157.5) { vec_key = 'SE'; }
+                    if(vec_dir > 157.5 && vec_dir <= 202.5) { vec_key = 'S'; }
+                    if(vec_dir > 202.5 && vec_dir <= 247.5) { vec_key = 'SW'; }
+                    if(vec_dir > 247.5 && vec_dir <= 292.5) { vec_key = 'W'; }
+                    if(vec_dir > 292.5 && vec_dir <= 337.5) { vec_key = 'NW'; }
                     if(vec_key !== false) {
                         vector_data[vec_key]['sum'] += vec_speed;
                         vector_data[vec_key]['amt']++;
-
-                        if(max_speed > vector_data[vec_key]['max']) {
-                            vector_data[vec_key]['max'] = max_speed;
-                        }
+                        if(max_speed > vector_data[vec_key]['max']) { vector_data[vec_key]['max'] = max_speed; }
                     }
-
                 }
             });
-
-            // Finally build arrays for chart
             var avg_values = [];
             var max_values = [];
             Object.keys(vector_data).forEach(function (item) {
-                if(vector_data[item]['amt'] > 0) {
-                    avg_values.push(vector_data[item]['sum'] / vector_data[item]['amt']);
-                    } else {
-                    avg_values.push(0);
-                }
-
-                max_values.push(vector_data[item]['max'])
+                avg_values.push(vector_data[item]['amt'] > 0 ? vector_data[item]['sum'] / vector_data[item]['amt'] : 0);
+                max_values.push(vector_data[item]['max']);
             });
-
-            // Display wind vector chart
-
             var windvecchart = document.querySelector('#windvecchart');
             if (windvecchart) {
                 new ApexCharts(windvecchart, {
                     ...graph_radar_config,
-                    yaxis: {
-                        labels: {
-                            formatter: function (val) {
-                                return formatNumber(val, "$unit.format.windSpeed") + "$unit.label.windSpeed";
-                            }
-                        }
-                    },
+                    yaxis: { labels: { formatter: function (val) { return formatNumber(val, "$unit.format.windSpeed") + "$unit.label.windSpeed"; } } },
                     series: [
-                        {
-                            name: "$obs.label.windSpeed",
-                            data: avg_values
-                        },
-                        {
-                            name: "$obs.label.windGust",
-                            data: max_values
-                        },
+                        { name: "$obs.label.windSpeed", data: avg_values },
+                        { name: "$obs.label.windGust",  data: max_values },
                     ]
                 }).render()
             }
+            #silent $processed_charts.add("windvec")
 
-            // extraTemp 1-8
+            // --- Default single-series charts: loop over charts_order ---
+            #set $default_chart_types = {'windDir': 'line', 'rain': 'bar', 'ET': 'bar', 'windrun': 'bar', 'snowDepth': 'bar', 'lightning_strike_count': 'bar', 'lightning_noise_count': 'bar', 'lightning_disturber_count': 'bar', 'lightning_distance': 'bar'}
+            #set $default_chart_columns = {'windDir': 'vecdir', 'ET': 'sum', 'rain': 'sum', 'windrun': 'sum', 'UV': 'max', 'radiation': 'max', 'luminosity': 'max', 'snowDepth': 'sum', 'lightning_strike_count': 'sum'}
+            #set $default_chart_series = {'windDir': 'wind'}
 
-            #if $year.extraTemp1.has_data
-                $getChartJsCode("extraTemp1", "extraTemp1chart", "area", "extraTemp1")
-            #end if
+            #for $x in $Extras.Appearance.charts_order
+                #if not $x.startswith('customChart') and $x not in $processed_charts
+                    #silent $processed_charts.add($x)
+                    #if $getVar('year.' + $x + '.has_data')
+                        #set $c_type = $default_chart_types.get($x, 'area')
+                        #set $c_col = $default_chart_columns.get($x, 'avg')
+                        #set $c_series = $default_chart_series.get($x, $x)
+                        #set $c_id = $x + 'chart'
+                        $getChartJsCode($x, $c_id, $c_type, $c_series, "", $c_col)
+                    #end if
+                #end if
+            #end for
 
-            #if $year.extraTemp2.has_data
-                $getChartJsCode("extraTemp2", "extraTemp2chart", "area", "extraTemp2")
-            #end if
-
-            #if $year.extraTemp3.has_data
-                $getChartJsCode("extraTemp3", "extraTemp3chart", "area", "extraTemp3")
-            #end if
-
-            #if $year.extraTemp4.has_data
-                $getChartJsCode("extraTemp4", "extraTemp4chart", "area", "extraTemp4")
-            #end if
-
-            #if $year.extraTemp5.has_data
-                $getChartJsCode("extraTemp5", "extraTemp5chart", "area", "extraTemp5")
-            #end if
-
-            #if $year.extraTemp6.has_data
-                $getChartJsCode("extraTemp6", "extraTemp6chart", "area", "extraTemp6")
-            #end if
-
-            #if $year.extraTemp7.has_data
-                $getChartJsCode("extraTemp7", "extraTemp7chart", "area", "extraTemp7")
-            #end if
-
-            #if $year.extraTemp8.has_data
-                $getChartJsCode("extraTemp8", "extraTemp8chart", "area", "extraTemp8")
-            #end if
-
-            // extraHumid 1-8
-
-            #if $year.extraHumid1.has_data
-                $getChartJsCode("extraHumid1", "extraHumid1chart", "area", "extraHumid1")
-            #end if
-
-            #if $year.extraHumid2.has_data
-                $getChartJsCode("extraHumid2", "extraHumid2chart", "area", "extraHumid2")
-            #end if
-
-            #if $year.extraHumid3.has_data
-                $getChartJsCode("extraHumid3", "extraHumid3chart", "area", "extraHumid3")
-            #end if
-
-            #if $year.extraHumid4.has_data
-                $getChartJsCode("extraHumid4", "extraHumid4chart", "area", "extraHumid4")
-            #end if
-
-            #if $year.extraHumid5.has_data
-                $getChartJsCode("extraHumid5", "extraHumid5chart", "area", "extraHumid5")
-            #end if
-
-            #if $year.extraHumid6.has_data
-                $getChartJsCode("extraHumid6", "extraHumid6chart", "area", "extraHumid6")
-            #end if
-
-            #if $year.extraHumid7.has_data
-                $getChartJsCode("extraHumid7", "extraHumid7chart", "area", "extraHumid7")
-            #end if
-
-            #if $year.extraHumid8.has_data
-                $getChartJsCode("extraHumid8", "extraHumid8chart", "area", "extraHumid8")
-            #end if
-
-            // Lightning
-            #if $year.lightning_strike_count.has_data
-                $getChartJsCode("lightning_strike_count", "lightning_strike_countchart", "bar", "lightning_strike_count", "", "sum")
-            #end if
-
-            #if $year.lightning_noise_count.has_data
-                $getChartJsCode("lightning_noise_count", "lightning_noise_countchart", "bar", "lightning_noise_count")
-            #end if
-
-            #if $year.lightning_disturber_count.has_data
-                $getChartJsCode("lightning_disturber_count", "lightning_disturber_countchart", "bar", "lightning_disturber_count")
-            #end if
-
-            #if $year.lightning_distance.has_data
-                $getChartJsCode("lightning_distance", "lightning_distancechart", "bar", "lightning_distance")
-            #end if
-
-            #if $year.lightning_energy.has_data
-                $getChartJsCode("lightning_energy", "lightning_energychart", "area", "lightning_energy")
-            #end if
-
-            // Custom charts (dynamically generated from skin.conf [[Appearance]] [[[customChart*]]] sections)
+            // Custom charts
             #set $seen_custom_charts = set()
             #for $x in $Extras.Appearance.charts_order
                 #if $x.startswith('customChart') and $x not in $seen_custom_charts
