@@ -1,3 +1,4 @@
+// v1.0.1
 // Tooltip support
 $(function () {
     $('[data-toggle="tooltip"]').tooltip()
@@ -67,12 +68,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 chartSensorName = 'windchill';
             }
 
-            // Find the corresponding chart card by data-name
-            const chartCard = document.querySelector('.card-chart[data-name="' + chartSensorName + '"]');
+            // Find the corresponding chart card by data-name (direct match first)
+            let chartCard = document.querySelector('.card-chart[data-name="' + chartSensorName + '"]');
+
+            // Fallback: search custom charts whose data-sensors attribute contains this sensor
+            if (!chartCard) {
+                const customCharts = document.querySelectorAll('.card-chart[data-sensors]');
+                for (const cc of customCharts) {
+                    const sensors = cc.getAttribute('data-sensors').split(',').map(function(s) { return s.trim(); });
+                    if (sensors.indexOf(chartSensorName) !== -1) {
+                        chartCard = cc;
+                        break;
+                    }
+                }
+            }
 
             if (chartCard) {
                 scrollToElement(chartCard, true);
-                debugLog('✓ Jumped from value card "' + sensorName + '" to chart "' + chartSensorName + '"');
+                debugLog('✓ Jumped from value card "' + sensorName + '" to chart "' + chartCard.getAttribute('data-name') + '"');
             } else {
                 debugLog('⚠️ No chart card found for sensor: ' + chartSensorName);
             }
@@ -102,12 +115,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 valueSensorName = 'windSpeed';
             }
 
-            // Find the corresponding value card by data-name
-            const valueCard = document.querySelector('.card-value[data-name="' + valueSensorName + '"]');
+            // Find the corresponding value card by data-name (direct match first)
+            let valueCard = document.querySelector('.card-value[data-name="' + valueSensorName + '"]');
+
+            // Fallback: if this is a custom chart, use data-sensors to find first existing value card
+            if (!valueCard) {
+                const dataSensors = chartCard.getAttribute('data-sensors');
+                if (dataSensors) {
+                    const sensors = dataSensors.split(',').map(function(s) { return s.trim(); });
+                    for (const sensor of sensors) {
+                        const candidate = document.querySelector('.card-value[data-name="' + sensor + '"]');
+                        if (candidate) {
+                            valueCard = candidate;
+                            break;
+                        }
+                    }
+                }
+            }
 
             if (valueCard) {
                 scrollToElement(valueCard, true);
-                debugLog('✓ Jumped from chart "' + sensorName + '" to value card "' + valueSensorName + '"');
+                debugLog('✓ Jumped from chart "' + sensorName + '" to value card "' + valueCard.getAttribute('data-name') + '"');
                 e.preventDefault();
             } else {
                 debugLog('⚠️ No value card found for sensor: ' + valueSensorName);
