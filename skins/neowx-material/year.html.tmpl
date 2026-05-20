@@ -488,24 +488,87 @@
                     #set $cc = $Extras.Appearance.get($x, {})
                     #if $cc
                         #set $cc_type = $cc.get('charttype', 'area')
-                        #set $cc_column = $cc.get('column', 'avg')
-                        #set $cc_values_raw = $cc.get('values', '')
+                        ## Page-specific override subsection (key = "year" for this page).
+                        ## Keys absent from the subsection fall back to the top-level default.
+                        #set $cc_page = $cc.get('year', {})
+                        ## Resolve default column list: page → top-level → 'avg'
+                        #set $cc_column_raw = $cc_page.get('column', $cc.get('column', 'avg'))
+                        #if isinstance($cc_column_raw, list)
+                            #set $cc_cols = [c.strip() for c in $cc_column_raw if c.strip()]
+                        #else
+                            #set $cc_cols = [c.strip() for c in $cc_column_raw.split(',') if c.strip()]
+                        #end if
+                        #if len($cc_cols) == 0
+                            #set $cc_cols = ['avg']
+                        #end if
+                        ## Resolve default values list: page → top-level
+                        #set $cc_values_raw = $cc_page.get('values', $cc.get('values', ''))
                         #if isinstance($cc_values_raw, list)
                             #set $cc_vals = [v.strip() for v in $cc_values_raw if v.strip()]
                         #else
                             #set $cc_vals = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
                         #end if
-                        #if len($cc_vals) > 0
-                            #set $s1 = $cc_vals[0]
-                            #set $s2 = $cc_vals[1] if len($cc_vals) > 1 else ""
-                            #set $s3 = $cc_vals[2] if len($cc_vals) > 2 else ""
-                            #set $s4 = $cc_vals[3] if len($cc_vals) > 3 else ""
-                            #set $s5 = $cc_vals[4] if len($cc_vals) > 4 else ""
-                            #set $s6 = $cc_vals[5] if len($cc_vals) > 5 else ""
-                            #set $s7 = $cc_vals[6] if len($cc_vals) > 6 else ""
-                            #set $s8 = $cc_vals[7] if len($cc_vals) > 7 else ""
+                        ##
+                        ## Build cc_series_pairs: list of (field, [columns])
+                        ## Reserved keys that are NOT field→column mappings:
+                        #set $CC_RESERVED = set(['column', 'values', 'title', 'charttype'])
+                        #set $cc_field_map = {k: v for k, v in $cc_page.items() if k not in $CC_RESERVED and isinstance(v, (str, list))}
+                        #if len($cc_field_map) > 0
+                            ## Per-field column assignment: fieldName = col1, col2
+                            #set $cc_series_pairs = []
+                            #for $field_k, $col_v in $cc_field_map.items()
+                                #if isinstance($col_v, list)
+                                    #set $cols_k = [c.strip() for c in $col_v if c.strip()]
+                                #else
+                                    #set $cols_k = [c.strip() for c in $col_v.split(',') if c.strip()]
+                                #end if
+                                #if $cols_k
+                                    #silent $cc_series_pairs.append(($field_k, $cols_k))
+                                #end if
+                            #end for
+                        #else
+                            ## No field-name keys: every field gets the same column list
+                            #set $cc_series_pairs = [($v, $cc_cols) for $v in $cc_vals]
+                        #end if
+                        ##
+                        ## Render the chart JS
+                        ##
+                        #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
                             #set $cc_id = $x + "chart"
-                            $getChartJsCode($x, $cc_id, $cc_type, $s1, $s2, $cc_column, $s3, $s4, $s5, $s6, $s7, $s8)
+                            var chartElement = document.querySelector('#$cc_id');
+                            if (chartElement) {
+                                new ApexCharts(chartElement, {
+                                    ...graph_${cc_type}_config,
+                                    yaxis: {
+                                        labels: {
+                                            formatter: function (val) {
+                                                return formatNumber(val, "$getVar('unit.format.' + cc_series_pairs[0][0])") + "$getVar('unit.label.' + cc_series_pairs[0][0])";
+                                            }
+                                        },
+                                    },
+                                    series: [
+                                        #for $val, $cols in $cc_series_pairs
+                                            #if $getVar('year.' + val + '.has_data')
+                                                #if len($cols) == 1
+                                                    ## Single column → no column label suffix
+                                                    {
+                                                        name: "$getVar('obs.label.' + val)",
+                                                        data: [ $getChartData(val, cols[0]) ]
+                                                    },
+                                                #else
+                                                    ## Multiple columns → append column label to series name
+                                                    #for $col in $cols
+                                                        {
+                                                            name: "$getVar('obs.label.' + val) $gettext($col)",
+                                                            data: [ $getChartData(val, col) ]
+                                                        },
+                                                    #end for
+                                                #end if
+                                            #end if
+                                        #end for
+                                    ]
+                                }).render()
+                            }
                         #end if
                     #end if
                 #end if
