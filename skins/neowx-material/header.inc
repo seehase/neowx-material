@@ -39,10 +39,10 @@
 
                     <!-- Row 2: Date + icons (icons column always rendered, empty on non-current pages) -->
                     <div style="display:flex; align-items:center; gap:0.4rem;">
+                        #set $date_format = $Extras.Formatting.get('date', '%x')
                         #if $active_nav == 'current'
-                            <div id="current-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$current.dateTime.format($Extras.Formatting.date)</div>
+                            <div id="current-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$current.dateTime.format($date_format)</div>
                         #else
-                            #set $date_format = $Extras.Formatting.get('date', '%x')
                             <div style="white-space:nowrap; font-size:0.95rem; color:#fff;">$time.strftime($date_format)</div>
                         #end if
                         <!-- Icon container: position:relative so OFFLINE badge can float below without affecting row height -->
@@ -270,7 +270,8 @@
                         </li>
                     </ul>
                 #end if
-            #end if<!-- end column 3 -->
+            #end if
+            ## end column 3
 
         </nav>
 

@@ -162,7 +162,11 @@
                     #for $x in $Extras.Appearance.values_order
                         #if $x not in $seen_cards
                             #silent $seen_cards.add($x)
-                            #if $x == "temperatureThresholdDays"
+                            #if $x == "ET"
+                                #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
+                                    $valuesCard('ET')
+                                #end if
+                            #else if $x == "temperatureThresholdDays"
                                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                                     <div class="card">
                                         <div class="card-body text-center">
