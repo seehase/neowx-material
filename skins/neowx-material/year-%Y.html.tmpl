@@ -146,7 +146,7 @@
 <html lang="$lang">
     <head>
         <title>
-            $year_name | $station.location
+            $gettext("year") $year_name | $station.location
         </title>
         #include "head.inc"
     </head>
@@ -160,14 +160,67 @@
             <div class="row mt-3 temprow align-content-start">
 
                 <div class="col-12 mb-4 text-center">
-                    <h2 class="h2-responsive text-dark">$year_name</h2>
+                    <h2 class="h2-responsive text-dark">$gettext("year") $year_name</h2>
                 </div>
+
+                #for $month in $year.months
+                    #if $month.outTemp.has_data
+                        <div class="col-12 col-lg-6 mb-4 text-center">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="h4-responsive $Extras.color-text">$month.dateTime.format("%B")</h4>
+                                    <div class="row text-dark my-2">
+                                        <div class="col-4">
+                                            <i class="wi wi-thermometer h5-responsive"></i><br>
+                                            $month.outTemp.min<br>$month.outTemp.max
+                                        </div>
+                                        <div class="col-4">
+                                            <i class="wi wi-strong-wind h5-responsive"></i><br>
+                                            $month.wind.max<br>
+                                            $month.wind.vecdir.ordinal_compass
+                                            <i class="wi wi-wind from-$month.wind.vecdir.formatted-deg mr-2"
+                                            title="$month.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
+                                        </div>
+                                        <div class="col-4">
+                                            <i class="wi wi-showers h5-responsive"></i><br>
+                                            $month.rain.sum
+                                        </div>
+                                    </div>
+                                    <div class="row d-flex align-items-center">
+                                        <div class="col-6">
+                                            <a href="month-${year_name}-${month.dateTime.format('%m')}.html"
+                                            class="btn btn-$Extras.color btn-block">
+                                            $gettext("more")
+                                            </a>
+                                        </div>
+                                        <div class="col-6">
+                                            <a href="archive/NOAA-${year_name}-${month.dateTime.format('%m')}.txt"
+                                            class="btn btn-primary btn-block">
+                                            $gettext("noaa_export")
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    #end if
+                #end for
+
+            </div>
+
+            <hr class="m-0 mb-4 rowdivider">
+
+            <div class="row mt-3 graphrow align-content-start">
 
                 #set seen_cards = set()
                 #for $x in $Extras.Appearance.values_order
                     #if $x not in $seen_cards
                         #silent $seen_cards.add($x)
-                        #if $x == "temperatureThresholdDays"
+                        #if $x == "ET"
+                            #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
+                                $valuesCard('ET')
+                            #end if
+                        #else if $x == "temperatureThresholdDays"
                             <div class="col-12 col-lg-6 mb-4">
                                 <div class="card">
                                     <div class="card-body text-center">
@@ -216,7 +269,7 @@
                                     </div>
                                 </div>
                             </div>
-                        #else
+                        #else if $x != "forecast"
                             $valuesCard($x)
                         #end if
                     #end if

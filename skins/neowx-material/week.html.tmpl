@@ -18,15 +18,11 @@
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
                         #if $name == 'windSpeed'
-
                             <i class="wi wi-wind from-$week.wind.vecdir.formatted-deg"
                             title="$week.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-
                         #end if
                     </h3>
-
                     #if $name == 'windSpeed'
-
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $week.wind.avg <br>
@@ -44,13 +40,9 @@
                                 ($week.wind.maxtime.format($Extras.Formatting.datetime))
                             </div>
                         </div>
-
                     #else if $name == 'rain'
-
                         <div class="row">
-                            <div class="col-3 text-muted font-small">
-
-                            </div>
+                            <div class="col-3 text-muted font-small"></div>
                             <div class="col-6">
                                 <h4 class="h2-responsive">$week.rain.sum</h4>
                             </div>
@@ -59,10 +51,7 @@
                                 ($week.rainRate.maxtime.format($Extras.Formatting.datetime))
                             </div>
                         </div>
-
                     #else if $name in set(['lightning_strike_count', 'windrun', 'ET'])
-
-                        ## Sum-only display: no min/max context
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text"></div>
                             <div class="col-6">
@@ -70,9 +59,7 @@
                             </div>
                             <div class="col-3 text-muted font-small hi-text"></div>
                         </div>
-
                     #else
-
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $getVar('week.' + name + '.min') <br>
@@ -86,9 +73,7 @@
                                 ($getVar('week.' + name + '.maxtime').format($Extras.Formatting.datetime))
                             </div>
                         </div>
-
                     #end if
-
                 </div>
             </div>
         </div>
@@ -97,12 +82,10 @@
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of a single chart (right column)              |
-## | Chart values are defined in the JS section below                        |
 ## +-------------------------------------------------------------------------+
 
-#def chartCard($name, $id, $name2 = "XX")
+#def chartCard($name, $id, $name2="XX")
     #if $name.startswith('customChart')
-        ## Custom chart: read config from Extras.Appearance
         #set $cc = $Extras.Appearance.get($name, {})
         #if $cc
             #set $cc_title = $cc.get('title', $name)
@@ -144,6 +127,14 @@
     #end if
 #end def
 
+## Access HistoryReport section from skin.conf
+#set $table_dict = $generator.skin_dict['HistoryReport']
+#set $threshold_unit = $table_dict.get('threshold_unit', 'degree_C')
+#set $SummerDay = ($table_dict.get('summer_days_threshold', 25.0),  $threshold_unit)
+#set $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
+#set $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
+#set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
+
 ## +-------------------------------------------------------------------------+
 ## | The main page layout                                                    |
 ## +-------------------------------------------------------------------------+
@@ -168,8 +159,59 @@
                     #for $x in $Extras.Appearance.values_order
                         #if $x not in $seen_cards
                             #silent $seen_cards.add($x)
-                            #if $x == "forecast"
-                                #include "forecast.inc"
+                            #if $x == "ET"
+                                #if $week.ET.has_data and $week.ET.sum.raw is not None and $week.ET.sum.raw > 0.0
+                                    $valuesCard('ET')
+                                #end if
+                            #else if $x == "temperatureThresholdDays"
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("summer_days")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$week.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_days")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$week.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_nights")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$week.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("arctic_days")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$week.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             #else
                                 $valuesCard($x)
                             #end if

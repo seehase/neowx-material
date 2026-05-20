@@ -3,11 +3,11 @@
 ## |    yesterday.html.tmpl            Template file for "yesterday" page    |
 ## +-------------------------------------------------------------------------+
 
+#attr $active_nav = 'yesterday'
+
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
-
-#set global $number_of_records = int(86400 / int($Extras.Charts.current_timespan)) + 1 ## Number of records corresponding to 24 hours
 
 #def valuesCard($name)
     ## ET requires a valid positive sum to be shown
@@ -18,15 +18,11 @@
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
                         #if $name == 'windSpeed'
-
                             <i class="wi wi-wind from-$yesterday.wind.vecdir.formatted-deg"
                             title="$yesterday.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-
                         #end if
                     </h3>
-
                     #if $name == 'windSpeed'
-
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $yesterday.wind.avg <br>
@@ -44,13 +40,9 @@
                                 ($yesterday.wind.maxtime.format($Extras.Formatting.datetime_today))
                             </div>
                         </div>
-
                     #else if $name == 'rain'
-
                         <div class="row">
-                            <div class="col-3 text-muted font-small">
-
-                            </div>
+                            <div class="col-3 text-muted font-small"></div>
                             <div class="col-6">
                                 <h4 class="h2-responsive">$yesterday.rain.sum</h4>
                             </div>
@@ -59,10 +51,7 @@
                                 ($yesterday.rainRate.maxtime.format($Extras.Formatting.datetime_today))
                             </div>
                         </div>
-
                     #else if $name in set(['lightning_strike_count', 'windrun', 'ET'])
-
-                        ## Sum-only display: no min/max context
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text"></div>
                             <div class="col-6">
@@ -70,9 +59,7 @@
                             </div>
                             <div class="col-3 text-muted font-small hi-text"></div>
                         </div>
-
                     #else
-
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $getVar('yesterday.' + name + '.min') <br>
@@ -86,9 +73,7 @@
                                 ($getVar('yesterday.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
                             </div>
                         </div>
-
                     #end if
-
                 </div>
             </div>
         </div>
@@ -97,12 +82,10 @@
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of a single chart (right column)              |
-## | Chart values are defined in the JS section below                        |
 ## +-------------------------------------------------------------------------+
 
-#def chartCard($name, $id, $name2 = "XX")
+#def chartCard($name, $id, $name2="XX")
     #if $name.startswith('customChart')
-        ## Custom chart: read config from Extras.Appearance
         #set $cc = $Extras.Appearance.get($name, {})
         #if $cc
             #set $cc_title = $cc.get('title', $name)
@@ -125,7 +108,7 @@
                 </div>
             #end if
         #end if
-    #else if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec") and $name != "appTemp" and $name != "windrun" and ($name != 'ET' or ($yesterday.ET.sum.raw is not None and $yesterday.ET.sum.raw > 0.0))
+    #else if ($getVar('yesterday.' + name + '.has_data') or $name == "windvec") and $name not in ["appTemp", "windrun"] and ($name != 'ET' or ($yesterday.ET.sum.raw is not None and $yesterday.ET.sum.raw > 0.0))
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
@@ -144,6 +127,16 @@
     #end if
 #end def
 
+## Access HistoryReport section from skin.conf
+#set $table_dict = $generator.skin_dict['HistoryReport']
+#set $threshold_unit = $table_dict.get('threshold_unit', 'degree_C')
+#set $SummerDay = ($table_dict.get('summer_days_threshold', 25.0),  $threshold_unit)
+#set $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
+#set $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
+#set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
+
+#set global $number_of_records = int(86400 / int($Extras.Charts.current_timespan)) + 1 ## Number of records corresponding to 24 hours
+
 ## +-------------------------------------------------------------------------+
 ## | The main page layout                                                    |
 ## +-------------------------------------------------------------------------+
@@ -158,7 +151,6 @@
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
 
-        #attr $active_nav = 'yesterday'
         #include "header.inc"
 
         <main>
@@ -169,8 +161,59 @@
                     #for $x in $Extras.Appearance.values_order
                         #if $x not in $seen_cards
                             #silent $seen_cards.add($x)
-                            #if $x == "forecast"
-                                #include "forecast.inc"
+                            #if $x == "ET"
+                                #if $yesterday.ET.has_data and $yesterday.ET.sum.raw is not None and $yesterday.ET.sum.raw > 0.0
+                                    $valuesCard('ET')
+                                #end if
+                            #else if $x == "temperatureThresholdDays"
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("summer_days")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$yesterday.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_days")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$yesterday.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_nights")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$yesterday.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-xl-4 mb-4">
+                                    <div class="card">
+                                        <div class="card-body text-center">
+                                            <h3 class="h5-responsive $Extras.color-text">$gettext("arctic_days")</h3>
+                                            <div class="row">
+                                                <div class="col-3 text-muted font-small"></div>
+                                                <div class="col-6"><h4 class="h2-responsive">$yesterday.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")</h4></div>
+                                                <div class="col-3 text-muted font-small hi-text"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             #else
                                 $valuesCard($x)
                             #end if
@@ -557,7 +600,7 @@
             // Chart type overrides for charts that are not 'area' (default)
             #set $default_chart_types = {'windDir': 'line', 'rain': 'bar', 'snowDepth': 'bar', 'lightning_strike_count': 'bar', 'lightning_noise_count': 'bar', 'lightning_disturber_count': 'bar', 'lightning_distance': 'bar'}
             // Aggregate column overrides for charts that are not 'avg' (default)
-            #set $default_chart_columns = {'windDir': 'vecdir', 'ET': 'sum', 'rain': 'sum', 'UV': 'max', 'radiation': 'max', 'luminosity': 'max', 'snowDepth': 'sum', 'lightning_strike_count': 'sum'}
+            #set $default_chart_columns = {'windDir':'vecdir', 'ET':'sum', 'rain':'sum', 'UV':'max', 'radiation':'max', 'luminosity':'max', 'snowDepth':'sum', 'lightning_strike_count':'sum'}
             // Series1 field overrides for charts where the series field name differs from the chart name
             #set $default_chart_series = {'windDir': 'wind'}
 

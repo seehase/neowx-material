@@ -1,14 +1,9 @@
-#errorCatcher Echo
 #encoding UTF-8
 ## +-------------------------------------------------------------------------+
 ## |    month.html.tmpl                    Template file for "month" page    |
 ## +-------------------------------------------------------------------------+
 
 #attr $active_nav = 'month'
-
-## +-------------------------------------------------------------------------+
-## | Template for display card of values (left column)                       |
-## +-------------------------------------------------------------------------+
 
 ## Access HistoryReport section from skin.conf
 #set $table_dict = $generator.skin_dict['HistoryReport']
@@ -17,6 +12,10 @@
 #set $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
 #set $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
 #set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
+
+## +-------------------------------------------------------------------------+
+## | Template for display card of values (left column)                       |
+## +-------------------------------------------------------------------------+
 
 #def valuesCard($name)
     ## ET requires a valid positive sum to be shown
@@ -27,15 +26,11 @@
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
                         #if $name == 'windSpeed'
-
                             <i class="wi wi-wind from-$month.wind.vecdir.formatted-deg"
                             title="$month.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-
                         #end if
                     </h3>
-
                     #if $name == 'windSpeed'
-
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $month.wind.avg <br>
@@ -53,13 +48,9 @@
                                 ($month.wind.maxtime.format($Extras.Formatting.datetime))
                             </div>
                         </div>
-
                     #else if $name == 'rain'
-
                         <div class="row">
-                            <div class="col-3 text-muted font-small">
-
-                            </div>
+                            <div class="col-3 text-muted font-small"></div>
                             <div class="col-6">
                                 <h4 class="h2-responsive">$month.rain.sum</h4>
                             </div>
@@ -68,10 +59,7 @@
                                 ($month.rainRate.maxtime.format($Extras.Formatting.datetime))
                             </div>
                         </div>
-
                     #else if $name in set(['lightning_strike_count', 'windrun', 'ET'])
-
-                        ## Sum-only display: no min/max context
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text"></div>
                             <div class="col-6">
@@ -79,9 +67,7 @@
                             </div>
                             <div class="col-3 text-muted font-small hi-text"></div>
                         </div>
-
                     #else
-
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $getVar('month.' + name + '.min') <br>
@@ -95,9 +81,7 @@
                                 ($getVar('month.' + name + '.maxtime').format($Extras.Formatting.datetime))
                             </div>
                         </div>
-
                     #end if
-
                 </div>
             </div>
         </div>
@@ -106,12 +90,10 @@
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of a single chart (right column)              |
-## | Chart values are defined in the JS section below                        |
 ## +-------------------------------------------------------------------------+
 
-#def chartCard($name, $id, $name2 = "XX")
+#def chartCard($name, $id, $name2="XX")
     #if $name.startswith('customChart')
-        ## Custom chart: read config from Extras.Appearance
         #set $cc = $Extras.Appearance.get($name, {})
         #if $cc
             #set $cc_title = $cc.get('title', $name)
@@ -153,6 +135,7 @@
     #end if
 #end def
 
+
 ## +-------------------------------------------------------------------------+
 ## | The main page layout                                                    |
 ## +-------------------------------------------------------------------------+
@@ -177,7 +160,11 @@
                     #for $x in $Extras.Appearance.values_order
                         #if $x not in $seen_cards
                             #silent $seen_cards.add($x)
-                            #if $x == "temperatureThresholdDays"
+                            #if $x == "ET"
+                                #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
+                                    $valuesCard('ET')
+                                #end if
+                            #else if $x == "temperatureThresholdDays"
                                 <div class="col-12 col-md-6 col-xl-4 mb-4">
                                     <div class="card">
                                         <div class="card-body text-center">
