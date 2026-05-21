@@ -493,10 +493,11 @@
                         #set $cc_page = $cc.get('year', {})
                         ## Resolve default column list: page → top-level → 'avg'
                         #set $cc_column_raw = $cc_page.get('column', $cc.get('column', 'avg'))
+                        #set $cc_cols = ['avg']
                         #if isinstance($cc_column_raw, list)
                             #set $cc_cols = [c.strip() for c in $cc_column_raw if c.strip()]
                         #else
-                            #set $cc_cols = [c.strip() for c in $cc_column_raw.split(',') if c.strip()]
+                            #set $cc_cols = [c.strip() for c in str($cc_column_raw).split(',') if c.strip()]
                         #end if
                         #if len($cc_cols) == 0
                             #set $cc_cols = ['avg']
@@ -506,13 +507,13 @@
                         #if isinstance($cc_values_raw, list)
                             #set $cc_vals = [v.strip() for v in $cc_values_raw if v.strip()]
                         #else
-                            #set $cc_vals = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
+                            #set $cc_vals = [v.strip() for v in str($cc_values_raw).split(',') if v.strip()]
                         #end if
                         ##
                         ## Build cc_series_pairs: list of (field, [columns])
                         ## Reserved keys that are NOT field→column mappings:
-                        #set $CC_RESERVED = set(['column', 'values', 'title', 'charttype'])
-                        #set $cc_field_map = {k: v for k, v in $cc_page.items() if k not in $CC_RESERVED and isinstance(v, (str, list))}
+                        #set $CC_RESERVED = ['column', 'values', 'title', 'charttype']
+                        #set $cc_field_map = dict((k, v) for k, v in $cc_page.items() if k not in ['column', 'values', 'title', 'charttype'] and isinstance(v, (str, list)))
                         #if len($cc_field_map) > 0
                             ## Per-field column assignment: fieldName = col1, col2
                             #set $cc_series_pairs = []
