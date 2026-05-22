@@ -29,7 +29,7 @@ If helpful, attach screenshots or paste image links here.
 ## Public website (optional)
 If your WeeWX instance is publicly accessible and you are willing to share it, include the URL here. This helps debugging visual/template problems quickly.
 
-URL: 
+URL:
 
 ## Attach `skin.conf`
 Please attach the active `skins/neowx-material/skin.conf` file or paste the relevant `[[[customChart*]]]` section. This file does not contain secrets in normal usage and it helps us reproduce configuration-dependent issues.
@@ -41,9 +41,9 @@ Paste skin.conf (or relevant excerpt) here
 ## Steps to reproduce
 Provide a step-by-step list of actions required to reproduce the issue. Be explicit about commands, config changes, and which template/page is affected.
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Expected behavior
 What you expected to happen.
