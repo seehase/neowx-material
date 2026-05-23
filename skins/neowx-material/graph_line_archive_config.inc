@@ -74,7 +74,9 @@ xaxis: {
         showDuplicates: false,
         trim: true,
         formatter: function(val, timestamp) {
-            return moment.unix(timestamp).format("$Extras.Formatting.datetime_graph_archive");
+            var fmt = "$Extras.Formatting.datetime_graph_archive";
+            fmt = fmt.replace(/:MM/g, ':mm');
+            return moment.unix(timestamp).format(fmt);
         }
     }
 },
@@ -98,7 +100,9 @@ grid: {
 tooltip: {
     x: {
         formatter: function(val) {
-            return moment.unix(val).format("$Extras.Formatting.datetime_graph_tooltip");
+            var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            fmt = fmt.replace(/:MM/g, ':mm');
+            return moment.unix(val).format(fmt);
         }
     }
 },
