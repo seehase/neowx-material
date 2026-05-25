@@ -7,38 +7,63 @@
 ## | Template for display card of telemetry values                           |
 ## +-------------------------------------------------------------------------+
 
+
+#def formatBatteryValue($value)
+#if $value is None
+    –
+#else
+    #try
+        ${"%.0f" % float(str($value).replace(",", "."))}
+    #except
+        $value
+    #end try
+#end if
+#end def
+
 #def valuesCard($name)
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-lg-6 mb-4">
             <div class="card">
                 <div class="card-body text-center">
-                    <h5 class="h5-responsive $Extras.color-text">$getVar('obs.label.' + name)</h5>
+                    <h5 class="h5-responsive $Extras.color-text">
+                        $getVar('obs.label.' + name)
+                    </h5>
 
-                    <div class="row">
-                        <div class="col-3 text-muted font-small lo-text">
-                            #set min_val = $getVar('day.' + name + '.min')
-                            #set min_mapped = $mapBatteryValue($name, $min_val)
-                            $min_mapped <br>
-                            ($getVar('day.' + name + '.mintime').format($Extras.Formatting.datetime_today))
-                        </div>
+<div class="row justify-content-center">
+    <div class="col-6 text-center">
+        #set current_value = $getVar('current.' + name)
+        #set display_value = $mapBatteryValue($name, $current_value)
+        #set display_percent = $formatBatteryValue($display_value)
 
-                        <div class="col-6">
-                            #set current_value = $getVar('current.' + name)
-                            #set display_value = $mapBatteryValue($name, $current_value)
-                            <h4 class="h2-responsive">$display_value</h4>
-                        </div>
+        <h4 class="h2-responsive mb-2">
+            $display_percent%
+        </h4>
 
-                        <div class="col-3 text-muted font-small hi-text">
-                            #set max_val = $getVar('day.' + name + '.max')
-                            #set max_mapped = $mapBatteryValue($name, $max_val)
-                            $max_mapped <br>
-                            ($getVar('day.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
-                        </div>
+        <!-- Visuelle Batterieanzeige -->
+        <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 20px; margin: 0 auto; position: relative;">
+            <div class="battery-fill" 
+                 style="
+                     background-color: #4caf50; 
+                     width: $display_percent%; 
+                     height: 100%; 
+                     border-radius: 2px;
+                     transition: width 0.3s ease;
+                 ">
+            </div>
+            <div style="
+                     position: absolute; 
+                     top: 0; 
+                     left: 100%; 
+                     width: 6px; 
+                     height: 12px; 
+                     background: #555;
+                     border-radius: 2px;
+                     margin-left: 2px;
+                 "></div>
+        </div>
+    </div>
+</div>
 
-                        <div class="col-12 mt-4">
-                            <div id="$name-chart"></div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
