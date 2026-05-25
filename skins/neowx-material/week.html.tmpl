@@ -612,7 +612,12 @@
                             #end for
                         #else
                             ## No field-name keys: every field gets the same column list
-                            #set $cc_series_pairs = [($v, $cc_cols) for $v in $cc_vals]
+                            ## Use #for loop instead of list comprehension to avoid Cheetah/Python 3
+                            ## scope issue where $cc_cols cannot be resolved inside a comprehension.
+                            #set $cc_series_pairs = []
+                            #for $v in $cc_vals
+                                #silent $cc_series_pairs.append(($v, $cc_cols))
+                            #end for
                         #end if
                         ##
                         ## Render the chart JS
