@@ -497,12 +497,7 @@
                         #if isinstance($cc_column_raw, list)
                             #set $cc_cols = [c.strip() for c in $cc_column_raw if c.strip()]
                         #else
-                            ## Use #for loop instead of list comprehension to avoid Cheetah/Python 3
-                            ## scope issue where $cc_cols cannot be resolved inside a comprehension.
-                            #set $cc_series_pairs = []
-                            #for $v in $cc_vals
-                                #silent $cc_series_pairs.append(($v, $cc_cols))
-                            #end for
+                            #set $cc_cols = [c.strip() for c in str($cc_column_raw).split(',') if c.strip()]
                         #end if
                         #if len($cc_cols) == 0
                             #set $cc_cols = ['avg']
