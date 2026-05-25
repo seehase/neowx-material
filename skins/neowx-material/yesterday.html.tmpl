@@ -688,13 +688,13 @@
                                                 #if len($cols) == 1
                                                     {
                                                         name: "$getVar('obs.label.' + val)",
-                                                        data: [ $getChartData(val, cols[0]) ]
+                                                        data: [ $getChartData(val, cols[0]) ].slice(0, $number_of_records)
                                                     },
                                                 #else
                                                     #for $col in $cols
                                                         {
                                                             name: "$getVar('obs.label.' + val) $gettext($col)",
-                                                            data: [ $getChartData(val, col) ]
+                                                            data: [ $getChartData(val, col) ].slice(0, $number_of_records)
                                                         },
                                                     #end for
                                                 #end if
