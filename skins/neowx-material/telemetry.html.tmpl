@@ -7,12 +7,30 @@
 ## | Template for display card of telemetry values                           |
 ## +-------------------------------------------------------------------------+
 
-#def valuesCard($name)
+#def formatBatteryValue($value)
+    #if $value is None
+        –
+    #else
+        #try
+            ${"%.0f" % float(str($value).replace(",", "."))}
+        #except
+            $value
+        #end try
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Template for display card of battery symbol values (top section)        |
+## +-------------------------------------------------------------------------+
+
+#def batteryCard($name)
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
-        <div class="col-12 col-lg-6 mb-4">
-            <div class="card">
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
+            <div class="card card-value">
                 <div class="card-body text-center">
-                    <h5 class="h5-responsive $Extras.color-text">$getVar('obs.label.' + name)</h5>
+                    <h3 class="h5-responsive $Extras.color-text">
+                        $getVar('obs.label.' + name)
+                    </h3>
 
                     <div class="row">
                         <div class="col-3 text-muted font-small lo-text">
@@ -25,7 +43,21 @@
                         <div class="col-6">
                             #set current_value = $getVar('current.' + name)
                             #set display_value = $mapBatteryValue($name, $current_value)
-                            <h4 class="h2-responsive">$display_value</h4>
+
+                            ## Calculate actual battery percentage based on voltage
+                            #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
+                            #set battery_color = $getBatteryColor($name, $battery_percentage)
+
+                            <h4 class="h2-responsive mb-2">
+                                $display_value
+                            </h4>
+
+                            <!-- Visual battery gauge -->
+                            <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 20px; margin: 0 auto; position: relative;">
+                                <div class="battery-fill" style="background-color: $battery_color;width: $battery_percentage%;height: 100%;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
+                                <div style="position: absolute;top: 0;left: 100%;width: 6px;height: 12px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
+                            </div>
+                            <div class="text-muted font-small mt-1">$battery_percentage%</div>
                         </div>
 
                         <div class="col-3 text-muted font-small hi-text">
@@ -34,11 +66,26 @@
                             $max_mapped <br>
                             ($getVar('day.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
                         </div>
-
-                        <div class="col-12 mt-4">
-                            <div id="$name-chart"></div>
-                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Template for display card of chart (bottom section)                     |
+## +-------------------------------------------------------------------------+
+
+#def chartCard($name)
+    #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
+        <div class="col-12 col-xl-6 mb-4">
+            <div class="card card-chart" id="${name}-chart-card" data-name="$name">
+                <div class="card-body text-center">
+                    <h5 class="h5-responsive $Extras.color-text">
+                        $getVar('obs.label.' + name)
+                    </h5>
+                    <div id="$name-chart"></div>
                 </div>
             </div>
         </div>
@@ -62,13 +109,41 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Check if a battery field is voltage-based (has max_voltage configured)  |
+## +-------------------------------------------------------------------------+
+#def isVoltageBased($name)
+    #try
+        #set max_v = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_voltage', None)
+        #if $max_v is not None and str($max_v).strip() != '' and str($max_v) != 'None'
+            #try
+                #set test_float = float($max_v)
+                #return True
+            #except
+                #return False
+            #end try
+        #else
+            #return False
+        #end if
+    #except
+        #return False
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Helper function to map battery values                                   |
+## | Only maps status-based sensors, not voltage-based sensors               |
 ## +-------------------------------------------------------------------------+
 #def mapBatteryValue($name, $value)
     #if not $isBatteryFieldEnabled($name)
         #return $value
     #end if
 
+    ## Don't map voltage-based sensors - return raw value
+    #if $isVoltageBased($name)
+        #return $value
+    #end if
+
+    ## Only map status-based sensors
     #try
         #set raw_val = str($value).strip()
         #set key = "0"
@@ -88,14 +163,92 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Helper function to calculate battery percentage                         |
+## | Returns percentage (0-100) based on current voltage vs max voltage      |
+## +-------------------------------------------------------------------------+
+#def calculateBatteryPercentage($name, $value)
+    #try
+        ## Try to get max_voltage - if it exists, this is a voltage-based sensor
+        #set max_voltage_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_voltage', None)
+
+        ## Check if max_voltage is configured
+        #if $max_voltage_str is None or str($max_voltage_str).strip() == '' or str($max_voltage_str) == 'None'
+            ## Not a voltage sensor, return 100 (full)
+            #return 100
+        #end if
+
+        ## Parse the raw value - need to get numeric value from string like "4,5 V"
+        #import re
+        #set value_str = str($value).strip()
+        ## Extract only numbers, comma, decimal point, and minus sign
+        #set numeric_str = re.sub(r'[^0-9,.\-]', '', value_str)
+        ## Replace comma with period for decimal point
+        #set numeric_str = numeric_str.replace(',', '.')
+        #set raw_val = float(numeric_str)
+
+        #set max_voltage = float(str($max_voltage_str).strip())
+        #set min_voltage_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.min_voltage', '0')
+        #set min_voltage = float(str($min_voltage_str).strip())
+
+        ## Calculate percentage within range
+        #if $max_voltage > $min_voltage
+            #set percentage = (($raw_val - $min_voltage) / ($max_voltage - $min_voltage)) * 100
+            ## Clamp between 0 and 100
+            #if $percentage < 0
+                #set percentage = 0
+            #elif $percentage > 100
+                #set percentage = 100
+            #end if
+            #return int($percentage)
+        #else
+            #return 100
+        #end if
+    #except
+        #return 100
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper function to determine battery gauge color                        |
+## | Returns color code based on threshold                                   |
+## +-------------------------------------------------------------------------+
+#def getBatteryColor($name, $percentage)
+    #try
+        ## Check if this is a voltage-based sensor (has max_voltage configured)
+        #set max_v = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_voltage', None)
+        #if $max_v is None or str($max_v).strip() == '' or str($max_v) == 'None'
+            ## Not voltage-based, return default green
+            #return "#4caf50"
+        #end if
+
+        ## Get threshold
+        #set threshold = float($getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_threshold', '20'))
+        #if float($percentage) < $threshold
+            #return "#f44336"  ## Red
+        #else
+            #return "#4caf50"  ## Green
+        #end if
+    #except
+        #return "#4caf50"  ## Default green
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Helper function to get chart value for battery fields                   |
 ## | Returns the numeric chart position based on mapping order               |
+## | For voltage-based sensors, returns the raw value                        |
 ## +-------------------------------------------------------------------------+
 #def getBatteryChartValue($name, $raw_value)
     #if not $isBatteryFieldEnabled($name)
         #return $raw_value
     #end if
 
+    ## Don't convert voltage-based sensors - use raw voltage in charts
+    #if $isVoltageBased($name)
+        #return $raw_value
+    #end if
+
+    ## Only convert status-based sensors to chart positions
     #try
         #set key = str(int(float($raw_value) + 0.000001))
 
@@ -143,18 +296,30 @@
         #include "header.inc"
 
         <main>
-            <div class="container">
-                <div class="row my-4 align-content-start">
+            <div class="container-fluid d-flex-xxl">
+
+                <div class="row my-4 temprow align-content-start">
 
                     <div class="col-12 mb-4 text-center">
                         <h2 class="h2-responsive text-dark">$gettext("telemetry")</h2>
                     </div>
 
                     #for $x in $Extras.Appearance.telemetry_order
-                        $valuesCard($x)
+                        $batteryCard($x)
                     #end for
 
                 </div>
+
+                <hr class="m-0 mb-4 rowdivider">
+
+                <div class="row mt-3 graphrow align-content-start">
+
+                    #for $x in $Extras.Appearance.telemetry_order
+                        $chartCard($x)
+                    #end for
+
+                </div>
+
             </div>
         </main>
 
@@ -220,11 +385,13 @@
 
                 ## Check if this is an enabled battery field for custom Y-axis
                 #set is_battery = $isBatteryFieldEnabled($name)
+                #set is_voltage = $isVoltageBased($name)
 
                 new ApexCharts(document.querySelector('#$name-chart'), {
                     ...graph_area_config,
                     yaxis: {
-                        #if $is_battery
+                        #if $is_battery and not $is_voltage
+                            ## Status-based battery: use custom position labels
                             #try
                                 #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
                             #except
@@ -276,6 +443,7 @@
                                 }
                             }
                         #else
+                            ## Voltage-based or regular sensor: use normal numeric labels
                             labels: {
                                 formatter: function (val) {
                                     return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
