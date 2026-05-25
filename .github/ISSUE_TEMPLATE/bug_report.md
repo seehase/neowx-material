@@ -6,8 +6,6 @@ labels: bug
 assignees: ''
 ---
 
-- [ ] I attached or pasted `skins/neowx-material/skin.conf` (safe to include)
-
 ## Short description
 A one-sentence summary of the problem.
 
