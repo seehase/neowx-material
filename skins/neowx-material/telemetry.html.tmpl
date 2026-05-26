@@ -346,7 +346,16 @@
                 #set chart_days = 1
             #end try
 
-            #set current_interval = int($Extras.Charts.current_timespan)
+			## Dynamic interval based on chart timespan
+			#if $chart_days <= 7
+				#set current_interval = 3600
+			#elif $chart_days <= 30
+				#set current_interval = 21600
+			#elif $chart_days <= 365
+				#set current_interval = 86400
+			#else
+				#set current_interval = 604800
+			#end if
 
             ## Check if this is an enabled battery field
             #set is_battery = $isBatteryFieldEnabled($name)
