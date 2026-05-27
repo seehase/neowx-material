@@ -282,6 +282,12 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 1: Ecowitt Battery (0=Normal, 9=Low)
 
 ```ini
+[[Appearance]]
+    # Card display order
+    telemetry_order = batteryStatus1, rxCheckPercent
+    # Chart display order (only sensors you want to track historically)
+    telemetry_chart_order = batteryStatus1
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
@@ -300,6 +306,10 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 2: Simple Battery (0=OK, 1=Change)
 
 ```ini
+[[Appearance]]
+    telemetry_order = outTempBatteryStatus, rxCheckPercent
+    telemetry_chart_order = outTempBatteryStatus
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
@@ -318,6 +328,10 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 3: Multi-Level Battery (0-4)
 
 ```ini
+[[Appearance]]
+    telemetry_order = extraBatteryStatus1, rxCheckPercent
+    telemetry_chart_order = extraBatteryStatus1
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 7
@@ -342,6 +356,10 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 4: Voltage-Based Battery (0V to 4.5V with percentage gauge)
 
 ```ini
+[[Appearance]]
+    telemetry_order = consBatteryVoltage, outTempBatteryVoltage, rxCheckPercent
+    telemetry_chart_order = consBatteryVoltage, outTempBatteryVoltage
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
@@ -369,6 +387,12 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 5: Mixed Configuration (Status + Voltage sensors)
 
 ```ini
+[[Appearance]]
+    # Display voltage sensor first, then status sensor
+    telemetry_order = consBatteryVoltage, batteryStatus1, rxCheckPercent
+    # Show both in charts
+    telemetry_chart_order = consBatteryVoltage, batteryStatus1
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
@@ -394,6 +418,46 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 
 ---
 
+## Organizing Telemetry Display
+
+You can control the display order of both telemetry **cards** and **charts** on the telemetry page using two configuration options in `skin.conf`:
+
+### telemetry_order (Cards)
+Controls the order of telemetry value cards displayed on the left side of the telemetry page. These show current sensor values.
+
+```ini
+[[Appearance]]
+    telemetry_order = rxCheckPercent, txBatteryStatus, windBatteryStatus, rainBatteryStatus, outTempBatteryStatus, inTempBatteryStatus, consBatteryVoltage, heatingVoltage, supplyVoltage, referenceVoltage, extraBattery1, extraBattery2, extraBattery3, extraBattery4, extraBattery5, extraBattery6, extraBattery7, extraBattery8
+```
+
+### telemetry_chart_order (Charts)
+Controls the order of telemetry historical charts. These show battery trends over time (configurable via `chart_days`).
+
+```ini
+[[Appearance]]
+    telemetry_chart_order = outTempBatteryStatus, inTempBatteryStatus, consBatteryVoltage, supplyVoltage, referenceVoltage
+```
+
+**Usage tips:**
+- List sensors in the order you want them to appear
+- Only configured and enabled sensors will be displayed
+- Sensors not in the list won't be shown
+- Separate sensor names with commas
+
+**Example:**
+If you want to prioritize voltage sensors, you can reorder them:
+
+```ini
+[[Appearance]]
+    # Show voltage sensors first in cards
+    telemetry_order = consBatteryVoltage, supplyVoltage, referenceVoltage, outTempBatteryStatus, inTempBatteryStatus, rxCheckPercent
+    
+    # Show only critical voltage charts
+    telemetry_chart_order = consBatteryVoltage, supplyVoltage
+```
+
+---
+
 ## Quick Reference
 
 ### Text-Based Status Configuration
@@ -411,6 +475,13 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 | `max_voltage` | Maximum voltage (100%) | `4.5` (for 4.5V max) |
 | `min_voltage` | Minimum voltage (0%) | `0.0` (typically 0) |
 | `low_threshold` | Percentage to turn red | `50` (below 50% = red) |
+
+### Telemetry Display Order
+| Setting | Purpose | Location in skin.conf |
+|---------|---------|---------------------|
+| `telemetry_order` | Order of value cards | `[[Appearance]]` section |
+| `telemetry_chart_order` | Order of historical charts | `[[Appearance]]` section |
+| `chart_days` | Days of history to show in charts | `[[Telemetry]]` section (default: 30) |
 
 **Note:** For voltage-based sensors, you don't need text labels or chart positions. The gauge automatically calculates the percentage and applies color coding.
 

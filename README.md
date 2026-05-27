@@ -46,8 +46,9 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
 ### 📊 Advanced Telemetry & Battery Monitoring
 - Dedicated telemetry page for station health
 - Battery status tracking for all sensors
-- Historical battery trend charts
+- Historical battery trend charts with configurable display order
 - Signal quality monitoring
+- Customizable card and chart ordering
 
 ### 🎨 Beautiful Material Design
 - Modern, clean interface
@@ -100,6 +101,7 @@ Monitor all your weather station sensors:
 - Telemetry page setup
 - Custom sensor configuration
 - Low battery alerts and monitoring
+- Configurable display order for cards and charts
 
 **Quick Links:**
 - [Installation](#-installation) • [Configuration](#️-configuration) • [Troubleshooting](#-contribution--support) • [Contributing](#-contribution--support)

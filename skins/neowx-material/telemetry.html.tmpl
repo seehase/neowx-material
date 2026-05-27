@@ -314,7 +314,7 @@
 
                 <div class="row mt-3 graphrow align-content-start">
 
-                    #for $x in $Extras.Appearance.telemetry_order
+                    #for $x in $Extras.Appearance.telemetry_chart_order
                         $chartCard($x)
                     #end for
 
@@ -483,7 +483,7 @@
                 #include "graph_area_config.inc"
             }
 
-            #for $x in $Extras.Appearance.telemetry_order
+            #for $x in $Extras.Appearance.telemetry_chart_order
                 $getChartJsCode($x, $x)
             #end for
         </script>
