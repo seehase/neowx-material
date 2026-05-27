@@ -45,7 +45,81 @@ chart_days = 1
             
             # 4. FLIP: Whether to flip the chart upside-down
             flip_values = no
+            
+            # 5. VOLTAGE-BASED GAUGE (Optional): For voltage sensors (e.g., 0-5V)
+            max_voltage = 4.5      # Maximum voltage (100%)
+            min_voltage = 0.0      # Minimum voltage (0%)
+            low_threshold = 50     # Below this percentage, gauge turns red
 ```
+
+---
+
+### Voltage-Based Battery Gauge (For Voltage Sensors)
+
+If your battery sensor reports actual voltage values (e.g., 4.5V, 3.6V, 2.0V) instead of status codes, you can configure the battery gauge to show a **percentage-based visual indicator** with color coding:
+
+#### Configuration Options:
+
+```ini
+[[[[consBatteryVoltage]]]]
+    enabled = yes
+    
+    # Voltage range configuration
+    max_voltage = 4.5      # Full battery voltage (100%)
+    min_voltage = 0.0      # Empty battery voltage (0%)
+    low_threshold = 50     # Below 50%, gauge turns red
+```
+
+#### How It Works:
+
+1. **max_voltage**: The voltage that represents 100% battery
+2. **min_voltage**: The voltage that represents 0% battery (usually 0)
+3. **low_threshold**: Percentage below which the gauge turns red (default: 20%)
+
+#### Example Scenarios:
+
+**Scenario 1: Console Battery (0V to 4.5V)**
+```ini
+[[[[consBatteryVoltage]]]]
+    enabled = yes
+    max_voltage = 4.5
+    min_voltage = 0.0
+    low_threshold = 50
+```
+- Current: 4.5V → Shows 100% (green)
+- Current: 3.6V → Shows 80% (green)
+- Current: 2.0V → Shows 44% (red, below threshold)
+
+**Scenario 2: 12V Battery System**
+```ini
+[[[[batteryVoltage12v]]]]
+    enabled = yes
+    max_voltage = 14.4     # Fully charged 12V battery
+    min_voltage = 10.5     # Discharged 12V battery
+    low_threshold = 30
+```
+- Current: 14.4V → Shows 100% (green)
+- Current: 12.45V → Shows 50% (green)
+- Current: 11.0V → Shows 12% (red, below 30%)
+
+**Scenario 3: 3.3V LiPo Battery**
+```ini
+[[[[lipoBattery]]]]
+    enabled = yes
+    max_voltage = 4.2      # Fully charged LiPo
+    min_voltage = 3.0      # Minimum safe voltage
+    low_threshold = 25
+```
+
+#### Visual Display:
+
+The battery gauge will:
+- Display the actual voltage value (e.g., "3.6 V")
+- Show a visual gauge filled to the calculated percentage
+- Change from **green** to **red** when below the threshold
+- Display the percentage below the gauge (e.g., "80%")
+
+**Note:** For status-based sensors (0=OK, 9=Low), leave out the voltage options and use the standard text label configuration instead.
 
 ---
 
@@ -208,6 +282,12 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 1: Ecowitt Battery (0=Normal, 9=Low)
 
 ```ini
+[[Appearance]]
+    # Card display order
+    telemetry_order = batteryStatus1, rxCheckPercent
+    # Chart display order (only sensors you want to track historically)
+    telemetry_chart_order = batteryStatus1
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
@@ -226,6 +306,10 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 2: Simple Battery (0=OK, 1=Change)
 
 ```ini
+[[Appearance]]
+    telemetry_order = outTempBatteryStatus, rxCheckPercent
+    telemetry_chart_order = outTempBatteryStatus
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
@@ -244,6 +328,10 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 ### Example 3: Multi-Level Battery (0-4)
 
 ```ini
+[[Appearance]]
+    telemetry_order = extraBatteryStatus1, rxCheckPercent
+    telemetry_chart_order = extraBatteryStatus1
+
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 7
@@ -265,10 +353,114 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             flip_values = no
 ```
 
+### Example 4: Voltage-Based Battery (0V to 4.5V with percentage gauge)
+
+```ini
+[[Appearance]]
+    telemetry_order = consBatteryVoltage, outTempBatteryVoltage, rxCheckPercent
+    telemetry_chart_order = consBatteryVoltage, outTempBatteryVoltage
+
+[[Telemetry]]
+    allow_zero_values = yes
+    chart_days = 1
+    
+    [[[BatteryFields]]]
+        [[[[consBatteryVoltage]]]]
+            enabled = yes
+            # Voltage range for percentage calculation
+            max_voltage = 4.5
+            min_voltage = 0.0
+            low_threshold = 50
+        
+        [[[[outTempBatteryVoltage]]]]
+            enabled = yes
+            max_voltage = 4.5
+            min_voltage = 0.0
+            low_threshold = 30
+```
+
+**Result:**
+- When voltage = 4.5V → Displays "4.5 V" with 100% green gauge
+- When voltage = 3.6V → Displays "3.6 V" with 80% green gauge
+- When voltage = 2.0V → Displays "2.0 V" with 44% red gauge (below 50% threshold)
+
+### Example 5: Mixed Configuration (Status + Voltage sensors)
+
+```ini
+[[Appearance]]
+    # Display voltage sensor first, then status sensor
+    telemetry_order = consBatteryVoltage, batteryStatus1, rxCheckPercent
+    # Show both in charts
+    telemetry_chart_order = consBatteryVoltage, batteryStatus1
+
+[[Telemetry]]
+    allow_zero_values = yes
+    chart_days = 1
+    
+    [[[BatteryFields]]]
+        # Status-based sensor (0=OK, 1=Low)
+        [[[[batteryStatus1]]]]
+            enabled = yes
+            0 = Normal
+            1 = Low
+            chart_position_0 = 1
+            chart_position_1 = 0
+            max_chart_position = 1
+            flip_values = no
+        
+        # Voltage-based sensor
+        [[[[consBatteryVoltage]]]]
+            enabled = yes
+            max_voltage = 4.5
+            min_voltage = 0.0
+            low_threshold = 50
+```
+
+---
+
+## Organizing Telemetry Display
+
+You can control the display order of both telemetry **cards** and **charts** on the telemetry page using two configuration options in `skin.conf`:
+
+### telemetry_order (Cards)
+Controls the order of telemetry value cards displayed on the left side of the telemetry page. These show current sensor values.
+
+```ini
+[[Appearance]]
+    telemetry_order = rxCheckPercent, txBatteryStatus, windBatteryStatus, rainBatteryStatus, outTempBatteryStatus, inTempBatteryStatus, consBatteryVoltage, heatingVoltage, supplyVoltage, referenceVoltage, extraBattery1, extraBattery2, extraBattery3, extraBattery4, extraBattery5, extraBattery6, extraBattery7, extraBattery8
+```
+
+### telemetry_chart_order (Charts)
+Controls the order of telemetry historical charts. These show battery trends over time (configurable via `chart_days`).
+
+```ini
+[[Appearance]]
+    telemetry_chart_order = outTempBatteryStatus, inTempBatteryStatus, consBatteryVoltage, supplyVoltage, referenceVoltage
+```
+
+**Usage tips:**
+- List sensors in the order you want them to appear
+- Only configured and enabled sensors will be displayed
+- Sensors not in the list won't be shown
+- Separate sensor names with commas
+
+**Example:**
+If you want to prioritize voltage sensors, you can reorder them:
+
+```ini
+[[Appearance]]
+    # Show voltage sensors first in cards
+    telemetry_order = consBatteryVoltage, supplyVoltage, referenceVoltage, outTempBatteryStatus, inTempBatteryStatus, rxCheckPercent
+    
+    # Show only critical voltage charts
+    telemetry_chart_order = consBatteryVoltage, supplyVoltage
+```
+
 ---
 
 ## Quick Reference
 
+### Text-Based Status Configuration
 | Setting | Purpose | Example |
 |---------|---------|---------|
 | `enabled` | Turn mapping on/off | `yes` or `no` |
@@ -276,6 +468,22 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 | `chart_position_X` | Y-axis position for value X | `chart_position_0 = 1` |
 | `max_chart_position` | Highest position used | `1` for 2 levels, `2` for 3 levels, etc. |
 | `flip_values` | Invert chart display | `yes` or `no` |
+
+### Voltage-Based Percentage Configuration
+| Setting | Purpose | Example |
+|---------|---------|---------|
+| `max_voltage` | Maximum voltage (100%) | `4.5` (for 4.5V max) |
+| `min_voltage` | Minimum voltage (0%) | `0.0` (typically 0) |
+| `low_threshold` | Percentage to turn red | `50` (below 50% = red) |
+
+### Telemetry Display Order
+| Setting | Purpose | Location in skin.conf |
+|---------|---------|---------------------|
+| `telemetry_order` | Order of value cards | `[[Appearance]]` section |
+| `telemetry_chart_order` | Order of historical charts | `[[Appearance]]` section |
+| `chart_days` | Days of history to show in charts | `[[Telemetry]]` section (default: 30) |
+
+**Note:** For voltage-based sensors, you don't need text labels or chart positions. The gauge automatically calculates the percentage and applies color coding.
 
 ---
 
@@ -294,6 +502,26 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
 
 **Problem:** Page breaks when sensor doesn't exist
 - **Solution:** Only configure sensors that actually exist, or set `enabled = no`
+
+**Problem:** Battery gauge always shows 100% green (voltage sensors)
+- **Solution:** Configure `max_voltage` and `min_voltage` for voltage-based sensors
+- **Example:** For a 4.5V battery, set `max_voltage = 4.5` and `min_voltage = 0.0`
+- **Note:** The template automatically strips units (" V") and handles both comma and period decimal separators
+- **Restart WeeWX** after configuration changes
+
+**Problem:** Battery gauge doesn't turn red when voltage is low
+- **Solution:** Adjust the `low_threshold` value (default is 20%)
+- **Example:** To turn red below 50%, set `low_threshold = 50`
+
+**Problem:** Battery percentage seems incorrect
+- **Check:** Make sure `max_voltage` matches your actual maximum battery voltage
+- **Check:** Verify your sensor is reporting voltage values, not status codes
+- **Example:** If your battery is 3.7V LiPo (max 4.2V), use `max_voltage = 4.2`
+- **Calculation:** Percentage = (current - min) ÷ (max - min) × 100
+
+**Problem:** Values appear with comma (e.g., "4,5 V") and gauge shows 100%
+- **Fixed!** The template now automatically handles European decimal format
+- **No action needed** - just restart WeeWX to apply template updates
 
 ---
 

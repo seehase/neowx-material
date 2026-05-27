@@ -1,0 +1,103 @@
+# Sample skin.conf Configuration for Voltage-Based Battery Gauges
+# Copy the relevant section to your skin.conf under [Extras]
+
+[Extras]
+    [[Telemetry]]
+        allow_zero_values = yes
+        chart_days = 1
+
+        [[[BatteryFields]]]
+
+            # ================================================================
+            # EXAMPLE 1: Console Battery (0V to 4.5V)
+            # ================================================================
+            [[[[consBatteryVoltage]]]]
+                enabled = yes
+                max_voltage = 4.5      # Maximum voltage (100%)
+                min_voltage = 0.0      # Minimum voltage (0%)
+                low_threshold = 50     # Below 50%, gauge turns red
+
+            # ================================================================
+            # EXAMPLE 2: Outside Temperature Sensor Battery (0V to 4.5V)
+            # ================================================================
+            [[[[outTempBatteryVoltage]]]]
+                enabled = yes
+                max_voltage = 4.5
+                min_voltage = 0.0
+                low_threshold = 30     # Below 30%, gauge turns red
+
+            # ================================================================
+            # EXAMPLE 3: 12V Battery System
+            # ================================================================
+            [[[[battery12v]]]]
+                enabled = yes
+                max_voltage = 14.4     # Fully charged 12V battery
+                min_voltage = 10.5     # Discharged 12V battery
+                low_threshold = 30
+
+            # ================================================================
+            # EXAMPLE 4: 3.7V LiPo Battery
+            # ================================================================
+            [[[[lipoBattery]]]]
+                enabled = yes
+                max_voltage = 4.2      # Fully charged LiPo
+                min_voltage = 3.0      # Minimum safe voltage
+                low_threshold = 25     # Below 25%, gauge turns red
+
+            # ================================================================
+            # EXAMPLE 5: Status-Based Battery (NOT voltage)
+            # Use this format for sensors that report 0=OK, 1=Low, etc.
+            # Don't use max_voltage/min_voltage/low_threshold for these!
+            # ================================================================
+            [[[[batteryStatus1]]]]
+                enabled = yes
+                # Text labels for each status code
+                0 = Normal
+                1 = Low
+                # Chart positions (higher = better)
+                chart_position_0 = 1
+                chart_position_1 = 0
+                max_chart_position = 1
+                flip_values = no
+
+            # ================================================================
+            # EXAMPLE 6: Ecowitt Battery Status (0=Normal, 9=Low)
+            # ================================================================
+            [[[[wh31_batt]]]]
+                enabled = yes
+                0 = Normal
+                9 = Low
+                chart_position_0 = 1
+                chart_position_9 = 0
+                max_chart_position = 1
+                flip_values = no
+
+# ====================================================================
+# Configuration Notes:
+# ====================================================================
+#
+# FOR VOLTAGE SENSORS (e.g., 0-5V, 0-12V):
+#   - Use: max_voltage, min_voltage, low_threshold
+#   - Don't use: chart_position_X, max_chart_position, flip_values
+#   - The gauge will show percentage and change color
+#
+# FOR STATUS SENSORS (e.g., 0=OK, 1=Low):
+#   - Use: text labels (0 = OK), chart_position_X, max_chart_position
+#   - Don't use: max_voltage, min_voltage, low_threshold
+#   - The charts will show status levels
+#
+# ====================================================================
+
+# ====================================================================
+# Quick Configuration Template
+# ====================================================================
+# Copy this and customize for your sensor:
+#
+# [[[[YOUR_SENSOR_NAME]]]]
+#     enabled = yes
+#     max_voltage = 4.5      # Change to your max voltage
+#     min_voltage = 0.0      # Usually 0
+#     low_threshold = 50     # Change to your preference (0-100)
+#
+# ====================================================================
+
