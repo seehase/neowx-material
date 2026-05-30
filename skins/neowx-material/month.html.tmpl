@@ -4,20 +4,24 @@
 ## +-------------------------------------------------------------------------+
 
 #attr $active_nav = 'month'
+#attr $page = 'month'
 
 ## Access HistoryReport section from skin.conf
 #set $table_dict = $generator.skin_dict['HistoryReport']
 #set $threshold_unit = $table_dict.get('threshold_unit', 'degree_C')
-#set $SummerDay = ($table_dict.get('summer_days_threshold', 25.0),  $threshold_unit)
-#set $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
-#set $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
-#set $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
+## Use #set global so these are accessible inside #def renderValueItem()
+#set global $SummerDay = ($table_dict.get('summer_days_threshold', 25.0),  $threshold_unit)
+#set global $TropicDay = ($table_dict.get('tropical_days_threshold', 30.0),  $threshold_unit)
+#set global $TropicNight = ($table_dict.get('tropical_nights_threshold', 20.0),  $threshold_unit)
+#set global $ArcticDay = ($table_dict.get('arctic_days_threshold', 0.0),  $threshold_unit)
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of values (left column)                       |
 ## +-------------------------------------------------------------------------+
 
 #def valuesCard($name)
+    #set $_nm = $name.strip().lower()
+    #if not ($_nm in ('hr', 'hrc') or $_nm[:3] in ('hr:', 'hr ') or $_nm[:4] in ('hrc:', 'hrc '))
     ## ET requires a valid positive sum to be shown
     #if $getVar('month.' + name + '.has_data') and ($name != 'ET' or ($month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0))
         <div class="col-12 col-md-6 col-xl-4 mb-4">
@@ -86,6 +90,7 @@
             </div>
         </div>
     #end if
+    #end if  ## panel-marker guard
 #end def
 
 ## +-------------------------------------------------------------------------+
@@ -93,6 +98,8 @@
 ## +-------------------------------------------------------------------------+
 
 #def chartCard($name, $id, $name2="XX")
+    #set $_nm = $name.strip().lower()
+    #if not ($_nm in ('hr', 'hrc') or $_nm[:3] in ('hr:', 'hr ') or $_nm[:4] in ('hrc:', 'hrc '))
     #if $name.startswith('customChart')
         #set $cc = $Extras.Appearance.get($name, {})
         #if $cc
@@ -133,8 +140,213 @@
             </div>
         </div>
     #end if
+    #end if  ## panel-marker guard
 #end def
 
+
+## +-------------------------------------------------------------------------+
+## | Helper: render a single value-card item by name                         |
+## | (handles ET guard, temperatureThresholdDays, and all normal cards)      |
+## +-------------------------------------------------------------------------+
+
+#def renderValueItem($x)
+    #if $x == "ET"
+        #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
+            $valuesCard('ET')
+        #end if
+    #else if $x == "temperatureThresholdDays"
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="h5-responsive $Extras.color-text">$gettext("summer_days")</h3>
+                    <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6"><h4 class="h2-responsive">$month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")</h4></div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_days")</h3>
+                    <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6"><h4 class="h2-responsive">$month.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")</h4></div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_nights")</h3>
+                    <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6"><h4 class="h2-responsive">$month.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")</h4></div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="h5-responsive $Extras.color-text">$gettext("arctic_days")</h3>
+                    <div class="row">
+                        <div class="col-3 text-muted font-small"></div>
+                        <div class="col-6"><h4 class="h2-responsive">$month.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")</h4></div>
+                        <div class="col-3 text-muted font-small hi-text"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    #else
+        $valuesCard($x)
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper: render items inside a panel (or directly) for a value segment   |
+## +-------------------------------------------------------------------------+
+
+#def renderValSegment($seg, $panel_idx)
+    #if $seg['type'] is None
+        ## No panel – render cards directly into the surrounding row
+        #for $x in $seg['items']
+            $renderValueItem($x)
+        #end for
+    #else
+        ## Expansion panel
+        #set $p_exp   = ($seg['type'] == 'hr')
+        #set $p_exp_s = 'true' if $p_exp else 'false'
+        #set $p_show  = ' show' if $p_exp else ''
+        #set $p_id    = 'nwm-val-panel-' + str($panel_idx)
+        <div class="col-12 mb-3">
+            <div class="card nwm-expansion-panel">
+                <div class="nwm-panel-header" data-toggle="collapse"
+                     data-target="#${p_id}" aria-expanded="${p_exp_s}">
+                    <span class="nwm-panel-title">${seg['title']}</span>
+                    <span class="mdi mdi-chevron-down nwm-panel-icon"></span>
+                </div>
+                <div id="${p_id}" class="collapse${p_show}">
+                    <div class="nwm-panel-body">
+                        <div class="row">
+                            #for $x in $seg['items']
+                                $renderValueItem($x)
+                            #end for
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper: render items inside a panel (or directly) for a chart segment   |
+## +-------------------------------------------------------------------------+
+
+#def renderChartSegment($seg, $panel_idx)
+    #if $seg['type'] is None
+        #for $x in $seg['items']
+            $chartCard($x, $x + 'chart')
+        #end for
+    #else
+        #set $p_exp   = ($seg['type'] == 'hr')
+        #set $p_exp_s = 'true' if $p_exp else 'false'
+        #set $p_show  = ' show' if $p_exp else ''
+        #set $p_id    = 'nwm-chart-panel-' + str($panel_idx)
+        <div class="col-12 mb-3">
+            <div class="card nwm-expansion-panel">
+                <div class="nwm-panel-header" data-toggle="collapse"
+                     data-target="#${p_id}" aria-expanded="${p_exp_s}">
+                    <span class="nwm-panel-title">${seg['title']}</span>
+                    <span class="mdi mdi-chevron-down nwm-panel-icon"></span>
+                </div>
+                <div id="${p_id}" class="collapse${p_show}">
+                    <div class="nwm-panel-body">
+                        <div class="row">
+                            #for $x in $seg['items']
+                                $chartCard($x, $x + 'chart')
+                            #end for
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Collapsible Expansion Panels – pre-processing                           |
+## +-------------------------------------------------------------------------+
+##
+## enablePanels: read from skin.conf [[Appearance]], default true
+#set $enablePanels = str($Extras.Appearance.get('enablePanels', 'true')).strip().lower() not in ['false', 'no', '0']
+
+## isPanelMarker: returns True when item is hr / hrc / hr:Title / hrc:Title
+#set $isPanelMarker = lambda x: (x.strip().lower() in ('hr', 'hrc') or x.strip().lower()[:3] in ('hr:', 'hr ') or x.strip().lower()[:4] in ('hrc:', 'hrc '))
+
+## --- Build value-card segments from values_order ---
+#if isinstance($Extras.Appearance.values_order, list)
+    #set $vo_list = [x.strip() for x in $Extras.Appearance.values_order if x.strip()]
+#else
+    #set $vo_list = [x.strip() for x in str($Extras.Appearance.values_order).split(',') if x.strip()]
+#end if
+
+#set $val_segments = []
+#set $val_cur     = {'type': None, 'title': '', 'items': []}
+#set $val_seen    = set()
+
+#for $vi in $vo_list
+    #set $vi_l = $vi.strip().lower()
+    #if $enablePanels and ($vi_l == 'hr' or ($vi_l[:3] in ('hr:', 'hr ') and $vi_l[:3] != 'hrc'))
+        #silent $val_segments.append($val_cur)
+        ## Extract title: strip the 'hr' prefix (2 chars) + separator (: or space)
+        #set $p_title_v = $vi.strip()[3:].strip()
+        #set $val_cur = {'type': 'hr', 'title': $p_title_v, 'items': []}
+    #else if $enablePanels and ($vi_l == 'hrc' or $vi_l[:4] in ('hrc:', 'hrc '))
+        #silent $val_segments.append($val_cur)
+        ## Extract title: strip the 'hrc' prefix (3 chars) + separator (: or space)
+        #set $p_title_v = $vi.strip()[4:].strip()
+        #set $val_cur = {'type': 'hrc', 'title': $p_title_v, 'items': []}
+    #else if $vi not in $val_seen
+        #silent $val_seen.add($vi)
+        #silent $val_cur['items'].append($vi)
+    #end if
+#end for
+#silent $val_segments.append($val_cur)
+
+## --- Build chart segments from charts_order ---
+#if isinstance($Extras.Appearance.charts_order, list)
+    #set $co_list = [x.strip() for x in $Extras.Appearance.charts_order if x.strip()]
+#else
+    #set $co_list = [x.strip() for x in str($Extras.Appearance.charts_order).split(',') if x.strip()]
+#end if
+
+#set $chart_segments = []
+#set $chart_cur     = {'type': None, 'title': '', 'items': []}
+#set $chart_seen    = set()
+
+#for $ci in $co_list
+    #set $ci_l = $ci.strip().lower()
+    #if $enablePanels and ($ci_l == 'hr' or ($ci_l[:3] in ('hr:', 'hr ') and $ci_l[:3] != 'hrc'))
+        #silent $chart_segments.append($chart_cur)
+        #set $p_title_c = $ci.strip()[3:].strip()
+        #set $chart_cur = {'type': 'hr', 'title': $p_title_c, 'items': []}
+    #else if $enablePanels and ($ci_l == 'hrc' or $ci_l[:4] in ('hrc:', 'hrc '))
+        #silent $chart_segments.append($chart_cur)
+        #set $p_title_c = $ci.strip()[4:].strip()
+        #set $chart_cur = {'type': 'hrc', 'title': $p_title_c, 'items': []}
+    #else if $ci not in $chart_seen
+        #silent $chart_seen.add($ci)
+        #silent $chart_cur['items'].append($ci)
+    #end if
+#end for
+#silent $chart_segments.append($chart_cur)
 
 ## +-------------------------------------------------------------------------+
 ## | The main page layout                                                    |
@@ -156,103 +368,24 @@
             <div class="container-fluid d-flex-xxl">
 
                 <div class="row mt-3 temprow align-content-start">
-                    #set seen_cards = set()
-                    #for $x in $Extras.Appearance.values_order
-                        #if $x not in $seen_cards
-                            #silent $seen_cards.add($x)
-                            #if $x == "ET"
-                                #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
-                                    $valuesCard('ET')
-                                #end if
-                            #else if $x == "temperatureThresholdDays"
-                                <div class="col-12 col-md-6 col-xl-4 mb-4">
-                                    <div class="card">
-                                        <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("summer_days")
-                                            </h3>
-                                            <div class="row">
-                                                <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $month.outTemp.max_ge($SummerDay).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
-                                                <div class="col-3 text-muted font-small hi-text"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6 col-xl-4 mb-4">
-                                    <div class="card">
-                                        <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("tropical_days")
-                                            </h3>
-                                            <div class="row">
-                                                <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $month.outTemp.max_ge($TropicDay).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
-                                                <div class="col-3 text-muted font-small hi-text"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6 col-xl-4 mb-4">
-                                    <div class="card">
-                                        <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("tropical_nights")
-                                            </h3>
-                                            <div class="row">
-                                                <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $month.outTemp.min_ge($TropicNight).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
-                                                <div class="col-3 text-muted font-small hi-text"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-6 col-xl-4 mb-4">
-                                    <div class="card">
-                                        <div class="card-body text-center">
-                                            <h3 class="h5-responsive $Extras.color-text">
-                                                $gettext("arctic_days")
-                                            </h3>
-                                            <div class="row">
-                                                <div class="col-3 text-muted font-small"></div>
-                                                <div class="col-6">
-                                                    <h4 class="h2-responsive">
-                                                        $month.outTemp.max_le($ArcticDay).nolabel("%6d", " N/A")
-                                                    </h4>
-                                                </div>
-                                                <div class="col-3 text-muted font-small hi-text"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            #else
-                                $valuesCard($x)
-                            #end if
+                    #set $val_panel_idx = 0
+                    #for $seg in $val_segments
+                        #if $seg['type'] is not None
+                            #set $val_panel_idx = $val_panel_idx + 1
                         #end if
+                        $renderValSegment($seg, $val_panel_idx)
                     #end for
                 </div>
 
                 <hr class="m-0 mb-4 rowdivider">
 
                 <div class="row mt-3 graphrow align-content-start">
-                    #set seen_charts = set()
-                    #for $x in $Extras.Appearance.charts_order
-                        #if $x not in $seen_charts
-                            #silent $seen_charts.add($x)
-                            $chartCard($x, $x + 'chart')
+                    #set $chart_panel_idx = 0
+                    #for $seg in $chart_segments
+                        #if $seg['type'] is not None
+                            #set $chart_panel_idx = $chart_panel_idx + 1
                         #end if
+                        $renderChartSegment($seg, $chart_panel_idx)
                     #end for
                 </div>
 
@@ -611,7 +744,8 @@
             #set $default_chart_series = {'windDir': 'wind'}
 
             #for $x in $Extras.Appearance.charts_order
-                #if not $x.startswith('customChart') and $x not in $processed_charts
+                #set $x_nm = $x.strip().lower()
+                #if not $x.startswith('customChart') and $x not in $processed_charts and not ($x_nm in ('hr', 'hrc') or $x_nm[:3] in ('hr:', 'hr ') or $x_nm[:4] in ('hrc:', 'hrc '))
                     #silent $processed_charts.add($x)
                     #if $getVar('month.' + $x + '.has_data')
                         #set $c_type = $default_chart_types.get($x, 'area')
@@ -652,8 +786,13 @@
                             #set $cc_vals = [v.strip() for v in str($cc_values_raw).split(',') if v.strip()]
                         #end if
                         ## Build cc_series_pairs from field-name keys or values+column fallback
-                        #set $CC_RESERVED = ['column', 'values', 'title', 'charttype']
-                        #set $cc_field_map = dict((k, v) for k, v in $cc_page.items() if k not in ['column', 'values', 'title', 'charttype'] and isinstance(v, (str, list)))
+                        ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
+                        #set $cc_field_map = {}
+                        #for $fk, $fv in $cc_page.items()
+                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config') and isinstance($fv, (str, list))
+                                #silent $cc_field_map[$fk] = $fv
+                            #end if
+                        #end for
                         #if len($cc_field_map) > 0
                             #set $cc_series_pairs = []
                             #for $field_k, $col_v in $cc_field_map.items()
@@ -674,20 +813,115 @@
                                 #silent $cc_series_pairs.append(($v, $cc_cols))
                             #end for
                         #end if
+
+                        ## +-------------------------------------------------------------+
+                        ## | Multi-Axis Configuration Parser                             |
+                        ## +-------------------------------------------------------------+
+                        ## Parse yaxis configuration for multi-axis support
+                        #set $yaxis_config = $cc_page.get('yaxis_config', $cc.get('yaxis_config', {}))
+                        #set $axis_map = {}  ## Maps series_name -> axis_id (y1, y2, etc)
+                        #set $axes_used = set()  ## Track which axes are actually used
+
+                        ## Check for yaxis subsection that maps fields to axes
+                        #set $yaxis_section = $cc_page.get('yaxis', $cc.get('yaxis', {}))
+                        #if isinstance($yaxis_section, dict)
+                            #for $field_k, $axis_id in $yaxis_section.items()
+                                #set $axis_id_clean = str($axis_id).strip()
+                                #silent $axis_map[$field_k] = $axis_id_clean
+                                #silent $axes_used.add($axis_id_clean)
+                            #end for
+                        #end if
+
+                        ## Default: all series on y1 if no assignments
+                        #if len($axis_map) == 0
+                            #for $field_k, $cols_k in $cc_series_pairs
+                                #silent $axis_map[$field_k] = 'y1'
+                                #silent $axes_used.add('y1')
+                            #end for
+                        #else
+                            ## Ensure any unmapped fields get y1
+                            #for $field_k, $cols_k in $cc_series_pairs
+                                #if $field_k not in $axis_map
+                                    #silent $axis_map[$field_k] = 'y1'
+                                    #silent $axes_used.add('y1')
+                                #end if
+                            #end for
+                        #end if
+
+                        ## Build sorted list of axes (y1, y2, y3, ...)
+                        #set $axes_list = sorted(list($axes_used))
+
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
                             #set $cc_id = $x + "chart"
+                            #try
+                                #set $_ = $axes_list
+                            #except
+                                #set $axes_list = ['y1']
+                            #end try
                             var chartElement = document.querySelector('#$cc_id');
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
-                                    yaxis: {
-                                        labels: {
-                                            formatter: function (val) {
-                                                return formatNumber(val, "$getVar('unit.format.' + cc_series_pairs[0][0])") + "$getVar('unit.label.' + cc_series_pairs[0][0])";
-                                            }
+                                    #if len($axes_list) <= 1
+                                        ## Single axis (backward compatible)
+                                        yaxis: {
+                                            labels: {
+                                                formatter: function (val) {
+                                                    return formatNumber(val, "$getVar('unit.format.' + cc_series_pairs[0][0])") + "$getVar('unit.label.' + cc_series_pairs[0][0])";
+                                                }
+                                            },
                                         },
-                                    },
+                                    #else
+                                        ## Multiple axes configuration
+                                        yaxis: [
+                                            #for $idx, $axis_id in enumerate($axes_list)
+                                                ## Find fields assigned to this axis
+                                                #set $fields_on_axis = [f for f, a in $axis_map.items() if a == $axis_id]
+                                                #set $first_field = $fields_on_axis[0] if $fields_on_axis else $cc_series_pairs[0][0]
+                                                ## Get axis-specific configuration
+                                                #set $axis_cfg = $yaxis_config.get($axis_id, {})
+                                                #set $axis_title = $axis_cfg.get('title', '')
+                                                #set $axis_opposite_raw = $axis_cfg.get('opposite', None)
+                                                ## Default: first axis on left (false), others on right (true)
+                                                #if $axis_opposite_raw is None
+                                                    #set $axis_opposite = 'true' if $idx > 0 else 'false'
+                                                #else
+                                                    #set $axis_opposite = 'true' if str($axis_opposite_raw).lower() in ['true', 'yes', '1'] else 'false'
+                                                #end if
+                                                #set $axis_decimals = $axis_cfg.get('decimals', None)
+                                                #set $axis_min = $axis_cfg.get('min', None)
+                                                #set $axis_max = $axis_cfg.get('max', None)
+                                            {
+                                                seriesName: "$getVar('obs.label.' + $first_field)",
+                                                #if $axis_title
+                                                title: {
+                                                    text: "$axis_title",
+                                                    style: {
+                                                        fontSize: '12px',
+                                                    }
+                                                },
+                                                #end if
+                                                opposite: $axis_opposite,
+                                                #if $axis_min is not None
+                                                min: $axis_min,
+                                                #end if
+                                                #if $axis_max is not None
+                                                max: $axis_max,
+                                                #end if
+                                                labels: {
+                                                    formatter: function (val) {
+                                                        #if $axis_decimals is not None
+                                                        return formatNumber(val, "%.$axis_decimals\f") + "$getVar('unit.label.' + $first_field)";
+                                                        #else
+                                                        return formatNumber(val, "$getVar('unit.format.' + $first_field)") + "$getVar('unit.label.' + $first_field)";
+                                                        #end if
+                                                    }
+                                                },
+                                            },
+                                            #end for
+                                        ],
+                                    #end if
                                     series: [
                                         #for $val, $cols in $cc_series_pairs
                                             #if $getVar('month.' + val + '.has_data')
@@ -715,6 +949,9 @@
             #end for
 
         </script>
+
+        <script src="$Extras.MQTT.paho_mqtt_url" type="text/javascript"></script>
+        <script type="text/javascript" src="js/weewx-mqtt.js"></script>
 
     </body>
 </html>

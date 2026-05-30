@@ -1,7 +1,8 @@
 # Battery Field Mapping Configuration Guide
 
 ## Overview
-This feature allows you to convert numeric battery status values (like 0, 1, 9) into human-readable custom text (like "OK", "Low", "Critical") and display them with custom charts.
+This feature allows you to convert numeric battery status values (like 0, 1, 9) 
+into human-readable custom text (like "OK", "Low", "Critical") and display them with custom charts.
 
 ---
 
@@ -10,7 +11,8 @@ This feature allows you to convert numeric battery status values (like 0, 1, 9) 
 ### Step 1: Find Your Station's Battery Values
 
 First, you need to know what numeric values your weather station reports for battery status. 
-If you know your station has a "battery sensor" but it's not showing under the Telemetry page edit the skin.conf to allow_zero_values = yes to plot it.
+If you know your station has a "battery sensor" but it's not showing under the Telemetry page edit the skin.conf 
+to allow_zero_values = yes to plot it.
 Or check your weewx database or reports to see what values appear.
 
 **Common examples:**

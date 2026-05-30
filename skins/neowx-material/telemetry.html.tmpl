@@ -3,6 +3,8 @@
 ## |    telemetry.html.tmpl            Template file for "telemetry" page    |
 ## +-------------------------------------------------------------------------+
 
+#attr $page = 'telemetry'
+
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of telemetry values                           |
 ## +-------------------------------------------------------------------------+
@@ -78,6 +80,8 @@
 ## +-------------------------------------------------------------------------+
 
 #def chartCard($name)
+    #set $_nm = $name.strip().lower()
+    #if not ($_nm in ('hr', 'hrc') or $_nm[:3] in ('hr:', 'hr ') or $_nm[:4] in ('hrc:', 'hrc '))
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart" id="${name}-chart-card" data-name="$name">
@@ -90,6 +94,7 @@
             </div>
         </div>
     #end if
+    #end if  ## panel-marker guard
 #end def
 
 ## +-------------------------------------------------------------------------+
@@ -337,7 +342,7 @@
         ## | string  $column  the column of the display value (e.g. min, max, avg)   |
         ## +-------------------------------------------------------------------------+
 
-        #def getChartData($name, $column)
+        #def getChartData($name, $column, $chart_interval=300)
             ## Get chart timespan (default to current_timespan if not specified)
             #set chart_days = 1
             #try
@@ -346,21 +351,10 @@
                 #set chart_days = 1
             #end try
 
-			## Dynamic interval based on chart timespan
-			#if $chart_days <= 7
-				#set current_interval = 3600
-			#elif $chart_days <= 30
-				#set current_interval = 21600
-			#elif $chart_days <= 365
-				#set current_interval = 86400
-			#else
-				#set current_interval = 604800
-			#end if
-
             ## Check if this is an enabled battery field
             #set is_battery = $isBatteryFieldEnabled($name)
 
-            #set records = list($span($day_delta=$chart_days).spans(interval=current_interval))
+            #set records = list($span($day_delta=$chart_days).spans(interval=$chart_interval))
             #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
@@ -395,6 +389,33 @@
                 ## Check if this is an enabled battery field for custom Y-axis
                 #set is_battery = $isBatteryFieldEnabled($name)
                 #set is_voltage = $isVoltageBased($name)
+
+                ## Read per-field chart_interval: FieldConfiguration takes priority, then BatteryFields, then default_interval from config, then hardcoded 300
+                #set chart_interval = 300
+                #try
+                    #set _default_interval_str = $getVar('Extras.Telemetry.default_interval', None)
+                    #if $_default_interval_str is not None and str($_default_interval_str).strip() != '' and str($_default_interval_str) != 'None'
+                        #set chart_interval = int($_default_interval_str)
+                    #end if
+                #except
+                    #set chart_interval = 300
+                #end try
+                #try
+                    #set _field_interval = $getVar('Extras.Telemetry.FieldConfiguration.' + $name + '.chart_interval', None)
+                    #if $_field_interval is not None and str($_field_interval).strip() != '' and str($_field_interval) != 'None'
+                        #set chart_interval = int($_field_interval)
+                    #else
+                        ## Fall back to BatteryFields
+                        #set _battery_interval = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_interval', None)
+                        #if _battery_interval is not None and str($_battery_interval).strip() != '' and str($_battery_interval) != 'None'
+                            #set chart_interval = int($_battery_interval)
+                        #end if
+                    #end if
+                #except
+                    #pass
+                #end try
+
+                // currentvalue: --> $chart_interval <--
 
                 new ApexCharts(document.querySelector('#$name-chart'), {
                     ...graph_area_config,
@@ -463,7 +484,7 @@
                     series: [
                         {
                             name: "$getVar('obs.label.' + series)",
-                            data: [ $getChartData(series, column) ]
+                            data: [ $getChartData(series, column, chart_interval) ]
                         }
                     ]
                 }).render()
