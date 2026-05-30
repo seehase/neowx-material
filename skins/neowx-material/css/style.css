@@ -6707,6 +6707,55 @@ header .navbar {
    Bootstrap normally provides 15px left/right padding on .col-* elements
    but some custom rules in this stylesheet may override those.
    Target the footer specifically so other layouts are unaffected. */
+.nwm-expansion-panel {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.nwm-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  min-height: 48px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: background-color 0.15s ease;
+}
+.nwm-panel-header:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.nwm-panel-title {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding: 14px 0;
+}
+
+.nwm-panel-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.nwm-panel-header[aria-expanded=true] .nwm-panel-icon {
+  transform: rotate(180deg);
+}
+
+.nwm-panel-body {
+  padding: 0 8px 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auto-theme .nwm-panel-header:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+}
+.dark-theme .nwm-panel-header:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 footer.page-footer .row {
   margin-left: -15px !important;
   margin-right: -15px !important;

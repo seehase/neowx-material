@@ -104,6 +104,51 @@
     </style>
 #end if
 
+#set $_panel_color = str($Extras.Appearance.get('panelColor', '')).strip().strip('"').strip("'")
+#set $_panel_color_dark = str($Extras.Appearance.get('panelColorDark', '')).strip().strip('"').strip("'")
+#set $_panel_title_color = str($Extras.Appearance.get('panelTitleColor', '')).strip().strip('"').strip("'")
+#set $_panel_title_color_dark = str($Extras.Appearance.get('panelTitleColorDark', '')).strip().strip('"').strip("'")
+
+#if $_panel_color != '' or $_panel_color_dark != '' or $_panel_title_color != '' or $_panel_title_color_dark != ''
+<style>
+    #if $_panel_color != ''
+    /* Light mode panel background */
+    .light-theme .nwm-panel-header,
+    .auto-theme .nwm-panel-header {
+        background-color: $_panel_color !important;
+    }
+    #end if
+    #if $_panel_color_dark != ''
+    /* Dark mode panel background */
+    .dark-theme .nwm-panel-header {
+        background-color: $_panel_color_dark !important;
+    }
+    @media (prefers-color-scheme: dark) {
+        .auto-theme .nwm-panel-header {
+            background-color: $_panel_color_dark !important;
+        }
+    }
+    #end if
+    #if $_panel_title_color != ''
+    /* Light mode panel title */
+    .light-theme .nwm-panel-title,
+    .auto-theme .nwm-panel-title {
+        color: $_panel_title_color !important;
+    }
+    #end if
+    #if $_panel_title_color_dark != ''
+    /* Dark mode panel title */
+    .dark-theme .nwm-panel-title {
+        color: $_panel_title_color_dark !important;
+    }
+    @media (prefers-color-scheme: dark) {
+        .auto-theme .nwm-panel-title {
+            color: $_panel_title_color_dark !important;
+        }
+    }
+    #end if
+</style>
+#end if
 ## Startup images (splash screens) for ios web app
 
 <link

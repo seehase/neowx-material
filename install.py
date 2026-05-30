@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.59.0",
+            version="1.60.0",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoweewx",
@@ -36,11 +36,8 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/fonts/Rubik-Regular.woff2",
                         "skins/neowx-material/footer.inc",
                         "skins/neowx-material/forecast.inc",
-                        "skins/neowx-material/graph_area_archive_config.inc",
                         "skins/neowx-material/graph_area_config.inc",
-                        "skins/neowx-material/graph_bar_archive_config.inc",
                         "skins/neowx-material/graph_bar_config.inc",
-                        "skins/neowx-material/graph_line_archive_config.inc",
                         "skins/neowx-material/graph_line_config.inc",
                         "skins/neowx-material/graph_radar_config.inc",
                         "skins/neowx-material/header.inc",

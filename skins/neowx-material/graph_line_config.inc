@@ -1,7 +1,17 @@
 #encoding UTF-8
-## +---------------------------------------------------------------------------+
+## +-----------------------------------------------------------------------------------+
 ## |    graph_line_config.inc             JS config for default line charts    |
-## +---------------------------------------------------------------------------+
+## +-----------------------------------------------------------------------------------+
+
+#set $allowMouseWheelZoom = "false"
+#if $Extras.Appearance.get('allowMouseWheelZoom') == "true"
+    #set $allowMouseWheelZoom = "true"
+#end if
+
+#set $defaultChartBehavior = "zoom"
+#if $Extras.Appearance.get('defaultChartBehavior') == "pan"
+    #set $defaultChartBehavior = "pan"
+#end if
 
 chart: {
     type: 'line',
@@ -9,6 +19,18 @@ chart: {
         enabled: false,
         type: 'x',
         autoScaleYaxis: false,
+        allowMouseWheelZoom: $allowMouseWheelZoom,
+    },
+    toolbar: {
+        autoSelected: '$defaultChartBehavior',
+        export: {
+            csv: {
+                headerCategory: 'DateTime',
+                dateFormatter(timestamp) {
+                    return moment.unix(timestamp).toISOString()
+                }
+            }
+        }
     },
 },
 
@@ -52,7 +74,18 @@ xaxis: {
         showDuplicates: false,
         trim: true,
         formatter: function(val, timestamp) {
-            var fmt = "$Extras.Formatting.datetime_graph_label";
+            #if $page == 'week'
+                var fmt = "$Extras.Formatting.datetime_graph_label_week";
+            #else if $page == 'month'
+                var fmt = "$Extras.Formatting.datetime_graph_label_month";
+            #else if $page == 'year'
+                var fmt = "$Extras.Formatting.datetime_graph_label_year";
+            #else
+                var fmt = "$Extras.Formatting.datetime_graph_label";
+            #end if
+            // If the format uses uppercase MM for minutes (common mistake), convert
+            // only occurrences of ":MM" to Moment's minutes token ":mm" so we don't
+            // change months (MM) to minutes.
             fmt = fmt.replace(/:MM/g, ':mm');
             return moment.unix(timestamp).format(fmt);
         }
@@ -78,9 +111,9 @@ grid: {
 tooltip: {
     x: {
         formatter: function(val) {
-           var fmt = "$Extras.Formatting.datetime_graph_tooltip";
-           fmt = fmt.replace(/:MM/g, ':mm');
-           return moment.unix(val).format(fmt);
+            var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            fmt = fmt.replace(/:MM/g, ':mm');
+            return moment.unix(val).format(fmt);
         }
     }
 },
