@@ -389,10 +389,10 @@ For developers who want to contribute or customize the skin:
 
 - **Styling**: SCSS → CSS (Material Design for Bootstrap)
 - **Charts**: [ApexCharts](https://apexcharts.com) (MIT)
-- **Icons**: [Weather Icons by Erik Flowers](https://erikflowers.github.io/weather-icons/) (MIT/SIL OFL 1.1)
+- **Icons**: [Weather Icons by Erik Flowers](https://erikflowers.github.io/weather-icons/) (MIT / SIL OFL 1.1)
 - **Date/Time**: [MomentJS](https://momentjs.com) (MIT)
 - **Forecast**: [Open-Meteo API](https://open-meteo.com) (CC BY 4.0)
-- **MQTT**: Paho MQTT JavaScript client
+- **MQTT**: Paho MQTT JavaScript client (EPL-2.0 / BSD-3-Clause)
 
 ---
 

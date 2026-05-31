@@ -39,7 +39,7 @@
                             #set min_val = $getVar('day.' + name + '.min')
                             #set min_mapped = $mapBatteryValue($name, $min_val)
                             $min_mapped <br>
-                            ($getVar('day.' + name + '.mintime').format($Extras.Formatting.datetime_today))
+                            ($getVar('day.' + name + '.mintime').format($card_datetime))
                         </div>
 
                         <div class="col-6">
@@ -66,7 +66,7 @@
                             #set max_val = $getVar('day.' + name + '.max')
                             #set max_mapped = $mapBatteryValue($name, $max_val)
                             $max_mapped <br>
-                            ($getVar('day.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
+                            ($getVar('day.' + name + '.maxtime').format($card_datetime))
                         </div>
                     </div>
                 </div>
@@ -300,6 +300,9 @@
         #attr $active_nav = ''
         #include "header.inc"
 
+        #set global $card_scope = $page
+        #set global $card_default = $Extras.Formatting.datetime_today
+        #include "card_datetime.inc"
         <main>
             <div class="container-fluid d-flex-xxl">
 

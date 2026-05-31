@@ -154,7 +154,7 @@
                         $day.wind.max $day.wind.gustdir.ordinal_compass <br>
                         <i class="wi wi-wind from-$day.wind.gustdir.formatted-deg mr-2"
                         title="$day.wind.gustdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-                        ($day.wind.maxtime.format($Extras.Formatting.datetime_today))
+                        ($day.wind.maxtime.format($card_datetime))
                     </div>
                 </div>
 
@@ -170,7 +170,7 @@
                     </div>
                     <div class="col-3 text-muted font-small hi-text">
                         $day.rainRate.max <br>
-                        ($day.rainRate.maxtime.format($Extras.Formatting.datetime_today))
+                        ($day.rainRate.maxtime.format($card_datetime))
                     </div>
                 </div>
 
@@ -197,14 +197,14 @@
                 <div class="row">
                     <div class="col-3 text-muted font-small lo-text">
                         $getVar('day.' + name + '.min') <br>
-                        ($getVar('day.' + name + '.mintime').format($Extras.Formatting.datetime_today))
+                        ($getVar('day.' + name + '.mintime').format($card_datetime))
                     </div>
                     <div class="col-6">
                         <h4 class="h2-responsive">$center_val</h4>
                     </div>
                     <div class="col-3 text-muted font-small hi-text">
                         $getVar('day.' + name + '.max') <br>
-                        ($getVar('day.' + name + '.maxtime').format($Extras.Formatting.datetime_today))
+                        ($getVar('day.' + name + '.maxtime').format($card_datetime))
                     </div>
                 </div>
 
@@ -471,6 +471,9 @@
         #attr $active_nav = 'current'
         #include "header.inc"
 
+        #set global $card_scope = $page
+        #set global $card_default = $Extras.Formatting.datetime_today
+        #include "card_datetime.inc"
         <main>
             <div class="container-fluid d-flex-xxl flex-wrap">
 
@@ -600,7 +603,7 @@
             // Pass the strftime formats from skin.conf to JavaScript
             // JavaScript will convert them from Python strftime to JS format tokens
             window.DATETIME_CONFIG = {
-                weewx_format: "$Extras.Formatting.get('datetime', '%a %d %H:%M')",
+                weewx_format: "$Extras.Formatting.get('datetime_updated', $Extras.Formatting.get('datetime', '%a %d %H:%M'))",
                 date_format:  "$Extras.Formatting.get('date',     '%d.%m.%Y')",
                 time_format:  "$Extras.Formatting.get('time',     '%H:%M:%S')"
             };
@@ -968,7 +971,7 @@
                         ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
                         #set $cc_field_map = {}
                         #for $fk, $fv in $cc_page.items()
-                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config') and isinstance($fv, (str, list))
+                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format') and isinstance($fv, (str, list))
                                 #silent $cc_field_map[$fk] = $fv
                             #end if
                         #end for
@@ -1030,6 +1033,14 @@
                         ## Build sorted list of axes (y1, y2, y3, ...)
                         #set $axes_list = sorted(list($axes_used))
 
+                        ## Resolve per-chart date-format overrides
+                        #set $cc_label_key   = $cc_page.get('datetime_label_format',   $cc.get('datetime_label_format',   ''))
+                        #set $cc_tooltip_key = $cc_page.get('datetime_tooltip_format', $cc.get('datetime_tooltip_format', ''))
+                        #set $cc_label_raw   = $Extras.Formatting.get($cc_label_key,   '') if $cc_label_key   else ''
+                        #set $cc_tooltip_raw = $Extras.Formatting.get($cc_tooltip_key, '') if $cc_tooltip_key else ''
+                        #set $cc_label_fmt   = ', '.join($cc_label_raw)   if isinstance($cc_label_raw,   list) else $cc_label_raw
+                        #set $cc_tooltip_fmt = ', '.join($cc_tooltip_raw) if isinstance($cc_tooltip_raw, list) else $cc_tooltip_raw
+
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
                             #set $cc_id = $x + "chart"
@@ -1042,6 +1053,18 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
+                                    #if $cc_label_fmt
+                                    xaxis: {
+                                        ...graph_${cc_type}_config.xaxis,
+                                        labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
+                                    },
+                                    #end if
+                                    #if $cc_tooltip_fmt
+                                    tooltip: {
+                                        ...graph_${cc_type}_config.tooltip,
+                                        x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") }
+                                    },
+                                    #end if
                                     #if len($axes_list) <= 1
                                         ## Single axis (backward compatible)
                                         yaxis: {

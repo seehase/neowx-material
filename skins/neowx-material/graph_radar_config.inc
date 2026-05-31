@@ -24,7 +24,17 @@ xaxis: {
 tooltip: {
     x: {
         formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-            var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            #if $page == 'day'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_day";
+            #else if $page == 'week'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_week";
+            #else if $page == 'month'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_month";
+            #else if $page == 'year'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_year";
+            #else
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            #end if
             fmt = fmt.replace(/:MM/g, ':mm');
             // the first argument is 'value' (timestamp), use that
             return moment.unix(value).format(fmt);

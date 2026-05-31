@@ -18,6 +18,8 @@
     <script type="text/javascript">moment.locale('$lang')</script>
 #end if
 <script src="js/vendor/apexcharts/apexcharts.min.js"></script>
+## NeoWX Material chart helpers (shared date formatter)
+<script type="text/javascript" src="js/neowx-date-format.js"></script>
 ## NeoWX Material App
 <script type="text/javascript" src="js/app.js"></script>
 
