@@ -6,7 +6,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/seehase/neowx-material?style=flat-square)](https://github.com/seehase/neowx-material/issues)
 [![License](https://img.shields.io/github/license/seehase/neowx-material?style=flat-square)](LICENSE)
 
-This actively maintained fork brings NeoWX Material into the modern era with **real-time MQTT updates**, **weather forecasting**, **comprehensive multi-language support**, and many more improvements.
+This actively maintained fork brings NeoWX Material into the modern era with **real-time MQTT updates**, **weather forecasting**, **multi-axis charts**, **collapsible grouping panels**, **comprehensive telemetry monitoring**, **comprehensive multi-language support**, and many more improvements.
 
 > **Live Demo:** [weewx.seehausen.org](https://weewx.seehausen.org/)
 
@@ -17,14 +17,37 @@ This actively maintained fork brings NeoWX Material into the modern era with **r
 This is an **actively maintained** continuation of the NeoWX Material skin. The original repository has not been maintained for years, so this fork provides:
 
 ✅ **Active development and bug fixes**  
-✅ **New major features** (MQTT real-time updates, weather forecasts, telemetry)  
+✅ **New major features** (MQTT real-time updates, weather forecasts, multi-axis charts, grouping panels, telemetry)  
 ✅ **Complete multi-language support** (11 languages, all keys translated and sorted)  
 ✅ **Modern features** (configurable UI, improved charts, better mobile experience)  
-✅ **Community-driven improvements**  
+✅ **Community-driven improvements**
 
 ---
 
 ## ✨ Major Features
+
+### 📉 Multi-Y-Axis Charts
+- **Multiple independent Y-axes** on a single chart for sensors with different scales
+- Assign any observation to a left or right axis (e.g. UV Index vs. Solar Radiation)
+- Fully configurable axis titles, position (opposite side), and per-field assignment
+- Defined inline in `skin.conf` under `[[[[yaxis]]]]` and `[[[[yaxis_config]]]]` subsections
+
+### 🗂️ Collapsible Grouping Panels
+- Group cards and charts into **collapsible Material Design expansion panels**
+- Panels can be expanded or collapsed by default
+- Optional panel titles for clear labelling
+- Add separator markers directly inside `values_order` and `charts_order`:
+   - `hr` / `hr:My Title` — expanded panel (with or without title)
+   - `hrc` / `hrc:My Title` — collapsed panel (with or without title)
+- Fully configurable panel header color and title color for both light and dark mode
+
+### 📡 Advanced Telemetry & Battery Monitoring
+- Dedicated **telemetry page** for station health at a glance
+- Battery status tracking for all sensors with configurable value-to-label mapping
+- Historical battery trend charts with configurable display order and chart interval
+- Signal quality monitoring (`rxCheckPercent`)
+- Per-field chart interval override — set different resolutions for different sensors
+- Customizable card and chart ordering via `telemetry_order` and `telemetry_chart_order`
 
 ### 🔴 Real-Time MQTT Updates
 - **Live data updates** without page refresh
@@ -43,21 +66,15 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
 - All keys translated and professionally localized
 - Easy to extend with additional languages
 
-### 📊 Advanced Telemetry & Battery Monitoring
-- Dedicated telemetry page for station health
-- Battery status tracking for all sensors
-- Historical battery trend charts with configurable display order
-- Signal quality monitoring
-- Customizable card and chart ordering
-
 ### 🎨 Beautiful Material Design
 - Modern, clean interface
 - 20+ color schemes to choose from
 - Auto dark mode (follows system settings)
 - Responsive design for all devices
 
-### 📈 Interactive Charts
+### 📊 Interactive Charts
 - Zoomable and pannable charts powered by ApexCharts
+- **Multi-Y-axis support** for sensors with different value ranges
 - Configurable time ranges and data intervals
 - Wind rose visualization
 - Customizable colors and appearance
@@ -79,29 +96,46 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
 
 ## 📚 Documentation
 
-Comprehensive guides are available for advanced features:
+Comprehensive guides are available in the [`docs/`](docs/) folder:
 
-### 🔴 [MQTT Real-Time Updates Guide](MQTT.md)
+### 🔴 [MQTT Real-Time Updates Guide](docs/MQTT.md)
 Set up live data updates without page refresh. Complete guide covering:
 - MQTT broker installation (Mosquitto with Docker)
 - WeeWX MQTT extension configuration
 - WebSocket setup for browser connections
 - Sensor mapping and troubleshooting
 
-### 🔧 [Configuration Patcher Guide](CONFIG-PATCHER.md)
+### 🔧 [Configuration Patcher Guide](docs/CONFIG-PATCHER.md)
 Never lose your settings again! Automate configuration updates with:
 - Automatic settings preservation after skin updates
 - Patch file creation and usage
 - Automated weekly updates with cron jobs
 - Real-world examples and best practices
 
-### 🔋 [Battery Configuration Guide](battery-config-guide.md)
+### 🔋 [Battery Configuration Guide](docs/battery-config-guide.md)
 Monitor all your weather station sensors:
 - Battery status tracking for multiple sensors
 - Telemetry page setup
 - Custom sensor configuration
 - Low battery alerts and monitoring
 - Configurable display order for cards and charts
+
+### ⚡ [Voltage-Based Battery Gauge Update](docs/VOLTAGE-BATTERY-GAUGE-UPDATE.md)
+How to migrate from simple battery status flags to voltage-based gauges:
+- What changed and why
+- Step-by-step migration guide
+- Configuring voltage thresholds for accurate gauge display
+
+### 📉 [Multi-Axis Charts – Usage Guide](docs/MULTI-AXIS-USAGE-GUIDE.md)
+Full guide to combining sensors with different value ranges on one chart:
+- Concept and configuration overview
+- `[[[[yaxis]]]]` and `[[[[yaxis_config]]]]` reference
+- Practical examples (UV vs. radiation, temperature vs. humidity, …)
+
+### 📋 [Multi-Axis Charts – Quick Reference](docs/MULTI-AXIS-QUICK-REFERENCE.md)
+Compact cheat-sheet for the multi-axis syntax:
+- Minimal working configuration snippets
+- All supported keys at a glance
 
 **Quick Links:**
 - [Installation](#-installation) • [Configuration](#️-configuration) • [Troubleshooting](#-contribution--support) • [Contributing](#-contribution--support)
@@ -230,7 +264,7 @@ All configuration is done in `skin.conf` under `[Extras]`. Here are the key area
 ./config_patcher.py skin.conf skin.conf.patch
 ```
 
-📖 **For complete instructions**, see the [Configuration Patcher Guide](CONFIG-PATCHER.md)
+📖 **For complete instructions**, see the [Configuration Patcher Guide](docs/CONFIG-PATCHER.md)
 
 ### Basic Settings
 - **Color scheme**: Choose from 20+ Material Design colors
@@ -250,7 +284,7 @@ Enable live updates without page refresh:
         flash_color = "#00ff00"
 ```
 
-📖 **For complete MQTT setup instructions**, see the [MQTT Setup Guide](MQTT.md)
+📖 **For complete MQTT setup instructions**, see the [MQTT Setup Guide](docs/MQTT.md)
 
 ### Weather Forecast
 Get 7-day forecasts from Open-Meteo:
