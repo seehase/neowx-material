@@ -74,7 +74,9 @@ xaxis: {
         showDuplicates: false,
         trim: true,
         formatter: function(val, timestamp) {
-            #if $page == 'week'
+            #if $page == 'day'
+                var fmt = "$Extras.Formatting.datetime_graph_label_day";
+            #else if $page == 'week'
                 var fmt = "$Extras.Formatting.datetime_graph_label_week";
             #else if $page == 'month'
                 var fmt = "$Extras.Formatting.datetime_graph_label_month";

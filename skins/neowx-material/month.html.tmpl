@@ -220,28 +220,44 @@
         #end for
     #else
         ## Expansion panel
-        #set $p_exp   = ($seg['type'] == 'hr')
-        #set $p_exp_s = 'true' if $p_exp else 'false'
-        #set $p_show  = ' show' if $p_exp else ''
-        #set $p_id    = 'nwm-val-panel-' + str($panel_idx)
-        <div class="col-12 mb-3">
-            <div class="card nwm-expansion-panel">
-                <div class="nwm-panel-header" data-toggle="collapse"
-                     data-target="#${p_id}" aria-expanded="${p_exp_s}">
-                    <span class="nwm-panel-title">${seg['title']}</span>
-                    <span class="mdi mdi-chevron-down nwm-panel-icon"></span>
-                </div>
-                <div id="${p_id}" class="collapse${p_show}">
-                    <div class="nwm-panel-body">
-                        <div class="row">
-                            #for $x in $seg['items']
-                                $renderValueItem($x)
-                            #end for
+        #set $any_has_data = False
+        #for $x in $seg['items']
+            #if $x == "ET"
+                #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
+                    #set $any_has_data = True
+                #end if
+            #else if $x == "temperatureThresholdDays"
+                #set $any_has_data = True
+            #else
+                #if $getVar('month.' + $x + '.has_data')
+                    #set $any_has_data = True
+                #end if
+            #end if
+        #end for
+        #if $any_has_data
+            #set $p_exp   = ($seg['type'] == 'hr')
+            #set $p_exp_s = 'true' if $p_exp else 'false'
+            #set $p_show  = ' show' if $p_exp else ''
+            #set $p_id    = 'nwm-val-panel-' + str($panel_idx)
+            <div class="col-12 mb-3">
+                <div class="card nwm-expansion-panel">
+                    <div class="nwm-panel-header" data-toggle="collapse"
+                         data-target="#${p_id}" aria-expanded="${p_exp_s}">
+                        <span class="nwm-panel-title">${seg['title']}</span>
+                        <span class="mdi mdi-chevron-down nwm-panel-icon"></span>
+                    </div>
+                    <div id="${p_id}" class="collapse${p_show}">
+                        <div class="nwm-panel-body">
+                            <div class="row">
+                                #for $x in $seg['items']
+                                    $renderValueItem($x)
+                                #end for
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        #end if
     #end if
 #end def
 
@@ -255,28 +271,50 @@
             $chartCard($x, $x + 'chart')
         #end for
     #else
-        #set $p_exp   = ($seg['type'] == 'hr')
-        #set $p_exp_s = 'true' if $p_exp else 'false'
-        #set $p_show  = ' show' if $p_exp else ''
-        #set $p_id    = 'nwm-chart-panel-' + str($panel_idx)
-        <div class="col-12 mb-3">
-            <div class="card nwm-expansion-panel">
-                <div class="nwm-panel-header" data-toggle="collapse"
-                     data-target="#${p_id}" aria-expanded="${p_exp_s}">
-                    <span class="nwm-panel-title">${seg['title']}</span>
-                    <span class="mdi mdi-chevron-down nwm-panel-icon"></span>
-                </div>
-                <div id="${p_id}" class="collapse${p_show}">
-                    <div class="nwm-panel-body">
-                        <div class="row">
-                            #for $x in $seg['items']
-                                $chartCard($x, $x + 'chart')
-                            #end for
+        #set $any_has_data = False
+        #for $x in $seg['items']
+            #if $x.startswith('customChart')
+                #set $cc = $Extras.Appearance.get($x, {})
+                #if $cc
+                    #set $cc_values_raw = $cc.get('values', '')
+                    #if isinstance($cc_values_raw, list)
+                        #set $cc_vals_list = [v.strip() for v in $cc_values_raw if v.strip()]
+                    #else
+                        #set $cc_vals_list = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
+                    #end if
+                    #set $cc_any_has_data = any($getVar('month.' + v + '.has_data') for v in $cc_vals_list)
+                    #if len($cc_vals_list) > 0 and $cc_any_has_data
+                        #set $any_has_data = True
+                    #end if
+                #end if
+            #else if ($getVar('month.' + $x + '.has_data') or $x == "windvec") and $x != "appTemp" and ($x != 'ET' or ($month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0))
+                #set $any_has_data = True
+            #end if
+        #end for
+        #if $any_has_data
+            #set $p_exp   = ($seg['type'] == 'hr')
+            #set $p_exp_s = 'true' if $p_exp else 'false'
+            #set $p_show  = ' show' if $p_exp else ''
+            #set $p_id    = 'nwm-chart-panel-' + str($panel_idx)
+            <div class="col-12 mb-3">
+                <div class="card nwm-expansion-panel">
+                    <div class="nwm-panel-header" data-toggle="collapse"
+                         data-target="#${p_id}" aria-expanded="${p_exp_s}">
+                        <span class="nwm-panel-title">${seg['title']}</span>
+                        <span class="mdi mdi-chevron-down nwm-panel-icon"></span>
+                    </div>
+                    <div id="${p_id}" class="collapse${p_show}">
+                        <div class="nwm-panel-body">
+                            <div class="row">
+                                #for $x in $seg['items']
+                                    $chartCard($x, $x + 'chart')
+                                #end for
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        #end if
     #end if
 #end def
 
