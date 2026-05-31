@@ -113,7 +113,9 @@ grid: {
 tooltip: {
     x: {
         formatter: function(val) {
-            #if $page == 'week'
+            #if $page == 'day'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_day";
+            #else if $page == 'week'
                 var fmt = "$Extras.Formatting.datetime_graph_tooltip_week";
             #else if $page == 'month'
                 var fmt = "$Extras.Formatting.datetime_graph_tooltip_month";

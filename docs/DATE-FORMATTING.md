@@ -145,8 +145,10 @@ Inside a custom chart you can override per page using the page sub-sections you 
                 datetime_label_format = datetime_custom_graph_full     # …but full detail on the Week page
 ```
 
-Valid per-page sub-sections: `[[[[index]]]]`, `[[[[yesterday]]]]`, `[[[[week]]]]`, `[[[[month]]]]`,
-`[[[[year]]]]`.
+Valid per-page sub-sections: `[[[[current]]]]` (the index/"current" page), `[[[[yesterday]]]]`,
+`[[[[week]]]]`, `[[[[month]]]]`, `[[[[year]]]]`. (These follow the chart's per-page config scope, so the
+index page is `current` here - distinct from the `day` scope used for per-page labels/tooltips and cards
+below.)
 
 ---
 
@@ -168,18 +170,21 @@ directly:
 
 | Key | Pages it applies to |
 |---|---|
-| `datetime_graph_label` | index, yesterday |
+| `datetime_graph_label` | base / fallback (telemetry) |
+| `datetime_graph_label_day` | day (index + yesterday) |
 | `datetime_graph_label_week` | week |
 | `datetime_graph_label_month` | month |
 | `datetime_graph_label_year` | year |
-| `datetime_graph_tooltip` | index, yesterday |
+| `datetime_graph_tooltip` | base / fallback (telemetry) |
+| `datetime_graph_tooltip_day` | day (index + yesterday) |
 | `datetime_graph_tooltip_week` | week |
 | `datetime_graph_tooltip_month` | month |
 | `datetime_graph_tooltip_year` | year |
 
 - A per-chart format (Example 1) still wins over the keyed default for that one chart.
-- The `telemetry` page has no custom charts; its built-in battery charts use the base
-  `datetime_graph_label` / `datetime_graph_tooltip` keys.
+- index and yesterday share the **`day`** scope (their template `$page` is `day`), so
+  `datetime_graph_label_day` / `datetime_graph_tooltip_day` cover both. The `telemetry` page's
+  built-in battery charts use the base `datetime_graph_label` / `datetime_graph_tooltip`.
 
 ---
 
@@ -196,7 +201,7 @@ The small "high 24.3° at **14:32**" times under each value card are controlled 
             year  = datetime_custom_card_full
 ```
 
-- Valid scopes: `index`, `yesterday`, `week`, `month`, `year`, `telemetry`.
+- Valid scopes: `day` (covers index + yesterday), `week`, `month`, `year`, `telemetry`.
 - Cards are page-level only - there's no per-individual-card override.
 - When no `CardPageFormats` entry applies, cards fall back to the built-in defaults
   (see *Customizing the Built-in Defaults* below).
@@ -208,8 +213,7 @@ The small "high 24.3° at **14:32**" times under each value card are controlled 
 For a chart's label or tooltip, the skin picks the first of these that's set:
 
 1. **Per-chart** key on that custom chart (Example 1) - most specific, wins.
-2. **Per-page keyed default** (`datetime_graph_label_week` / `_month` / `_year`, or the base key for
-   index/yesterday) - Example 2.
+2. **Per-page keyed default** (`datetime_graph_label_day` / `_week` / `_month` / `_year`) - Example 2.
 3. The **global default** (`datetime_graph_label` / `datetime_graph_tooltip`) - final fallback.
 
 Cards are simpler: **per-page `CardPageFormats`** → the page's built-in default.
@@ -228,15 +232,17 @@ these keys directly.
 
 | Key | Dialect | Ships as | What it affects |
 |---|---|---|---|
-| `datetime_graph_label` | moment | `dd HH:mm` | Chart **x-axis** labels on index and yesterday |
+| `datetime_graph_label` | moment | `dd HH:mm` | Chart **x-axis** base/fallback (telemetry; any page without a more specific key) |
+| `datetime_graph_label_day` | moment | `dd HH:mm` | Chart **x-axis** labels on the day pages (index, yesterday) |
 | `datetime_graph_label_week` | moment | `ddd` | Chart **x-axis** labels on the week page |
 | `datetime_graph_label_month` | moment | `DD` | Chart **x-axis** labels on the month page |
 | `datetime_graph_label_year` | moment | `DD.MM` | Chart **x-axis** labels on the year page |
-| `datetime_graph_tooltip` | moment | `dd DD. MMM YY HH:mm` | Chart **hover tooltip** on index and yesterday |
+| `datetime_graph_tooltip` | moment | `dd DD. MMM YY HH:mm` | Chart **hover tooltip** base/fallback (telemetry) |
+| `datetime_graph_tooltip_day` | moment | `dd DD. MMM YY HH:mm` | Chart **hover tooltip** on the day pages (index, yesterday) |
 | `datetime_graph_tooltip_week` | moment | `dd DD. MMM YY HH:mm` | Chart **hover tooltip** on the week page |
 | `datetime_graph_tooltip_month` | moment | `dd DD. MMM YY HH:mm` | Chart **hover tooltip** on the month page |
 | `datetime_graph_tooltip_year` | moment | `dd DD. MMM YY HH:mm` | Chart **hover tooltip** on the year page |
-| `datetime_today` | strftime | `%H:%M` | **Card** min/max times on index, yesterday, telemetry |
+| `datetime_today` | strftime | `%H:%M` | **Card** min/max times on the day pages (index, yesterday) and telemetry |
 | `datetime` | strftime | `%a %d %H:%M` | **Card** min/max times on week and month |
 | `datetime_archive` | strftime | `%d.%m. %H:%M` | **Card** min/max times on year |
 
@@ -338,6 +344,7 @@ Pages and charts you didn't touch render exactly as before.
   after a colon (the auto-fix only covers `:MM`).
 - **Nothing changed** - did you regenerate the report and hard-refresh? Is the chart actually in
   `charts_order`? Try deleting the html file and letting the report generator recreate it.
-- **The wrong page scope is matching** - page scopes are: `index`, `yesterday`, `week`, `month`,
-  `year`, `telemetry`. There are no archive scopes; archive pages (month-YYYY-MM, year-YYYY) use the
-  `month` / `year` keys respectively.
+- **The wrong page scope is matching** - per-page label/tooltip and card scopes are: `day` (index +
+  yesterday share it), `week`, `month`, `year`, `telemetry`. There are no archive scopes; archive pages
+  (month-YYYY-MM, year-YYYY) use the `month` / `year` keys respectively. (Per-**chart** override
+  sub-sections are separate and use `current`/`yesterday`/`week`/`month`/`year`.)
