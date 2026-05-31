@@ -1,13 +1,10 @@
 .idea
 .vscode/
+.vs/
 /dist/skins/neowx-material/
 /dist/*.zip
 /skins/neowx-material/node_modules/
 /neowx-material-latest.zip
-/skins/neowx-material/skin.conf.patch
-
-/todo.md
-
-# Local dev notes (specs, plans) - not shipped
 /private/
-.vs/
+/skins/neowx-material/skin.conf.patch
+/todo.md
