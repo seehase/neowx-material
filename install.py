@@ -83,6 +83,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/img/splash/splash_828x1792.png",
                         "skins/neowx-material/index.html.tmpl",
                         "skins/neowx-material/js/app.js",
+                        "skins/neowx-material/js/neowx-date-format.js",
                         "skins/neowx-material/js/bootstrap.min.js",
                         "skins/neowx-material/js.inc",
                         "skins/neowx-material/js/jquery.min.js",
