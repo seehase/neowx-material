@@ -34,6 +34,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/fonts/Rubik-Regular.eot",
                         "skins/neowx-material/fonts/Rubik-Regular.woff",
                         "skins/neowx-material/fonts/Rubik-Regular.woff2",
+                        "skins/neowx-material/card_datetime.inc",
                         "skins/neowx-material/footer.inc",
                         "skins/neowx-material/forecast.inc",
                         "skins/neowx-material/graph_area_config.inc",
