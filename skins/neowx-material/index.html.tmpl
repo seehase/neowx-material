@@ -571,7 +571,7 @@
             // Pass the strftime formats from skin.conf to JavaScript
             // JavaScript will convert them from Python strftime to JS format tokens
             window.DATETIME_CONFIG = {
-                weewx_format: "$Extras.Formatting.get('datetime', '%a %d %H:%M')",
+                weewx_format: "$Extras.Formatting.get('datetime_updated', $Extras.Formatting.get('datetime', '%a %d %H:%M'))",
                 date_format:  "$Extras.Formatting.get('date',     '%d.%m.%Y')",
                 time_format:  "$Extras.Formatting.get('time',     '%H:%M:%S')"
             };
