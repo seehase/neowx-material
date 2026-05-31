@@ -111,7 +111,15 @@ grid: {
 tooltip: {
     x: {
         formatter: function(val) {
-            var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            #if $page == 'week'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_week";
+            #else if $page == 'month'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_month";
+            #else if $page == 'year'
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip_year";
+            #else
+                var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            #end if
             fmt = fmt.replace(/:MM/g, ':mm');
             return moment.unix(val).format(fmt);
         }
