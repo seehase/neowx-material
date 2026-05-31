@@ -756,7 +756,7 @@
                         ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
                         #set $cc_field_map = {}
                         #for $fk, $fv in $cc_page.items()
-                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config') and isinstance($fv, (str, list))
+                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format') and isinstance($fv, (str, list))
                                 #silent $cc_field_map[$fk] = $fv
                             #end if
                         #end for
@@ -820,6 +820,14 @@
                         ## Build sorted list of axes (y1, y2, y3, ...)
                         #set $axes_list = sorted(list($axes_used))
 
+                        ## Resolve per-chart date-format overrides
+                        #set $cc_label_key   = $cc_page.get('datetime_label_format',   $cc.get('datetime_label_format',   ''))
+                        #set $cc_tooltip_key = $cc_page.get('datetime_tooltip_format', $cc.get('datetime_tooltip_format', ''))
+                        #set $cc_label_raw   = $Extras.Formatting.get($cc_label_key,   '') if $cc_label_key   else ''
+                        #set $cc_tooltip_raw = $Extras.Formatting.get($cc_tooltip_key, '') if $cc_tooltip_key else ''
+                        #set $cc_label_fmt   = ', '.join($cc_label_raw)   if isinstance($cc_label_raw,   list) else $cc_label_raw
+                        #set $cc_tooltip_fmt = ', '.join($cc_tooltip_raw) if isinstance($cc_tooltip_raw, list) else $cc_tooltip_raw
+
                         ##
                         ## Render the chart JS
                         ## Render chart JS
@@ -834,6 +842,18 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
+                                    #if $cc_label_fmt
+                                    xaxis: {
+                                        ...graph_${cc_type}_config.xaxis,
+                                        labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
+                                    },
+                                    #end if
+                                    #if $cc_tooltip_fmt
+                                    tooltip: {
+                                        ...graph_${cc_type}_config.tooltip,
+                                        x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") }
+                                    },
+                                    #end if
                                     #if len($axes_list) <= 1
                                         ## Single axis (backward compatible)
                                         yaxis: {
