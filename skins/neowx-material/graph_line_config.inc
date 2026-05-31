@@ -80,6 +80,8 @@ xaxis: {
                 var fmt = "$Extras.Formatting.datetime_graph_label_month";
             #else if $page == 'year'
                 var fmt = "$Extras.Formatting.datetime_graph_label_year";
+            #else if $page == 'day'
+                var fmt = "$Extras.Formatting.datetime_graph_label_day";							
             #else
                 var fmt = "$Extras.Formatting.datetime_graph_label";
             #end if
