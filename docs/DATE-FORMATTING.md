@@ -144,7 +144,10 @@ shipped values are literals, but they accept a named constant just the same.
 
 ## Example 1 - Change One Custom Chart's Dates
 
-On any `customChart*` in `[[Appearance]]`, add either or both keys:
+On any `customChart*` in `[[Appearance]]`, add either or both keys. The value can be a **named
+constant** or a **direct (literal) format** - here's one of each (they're equivalent).
+
+**Named constant:**
 
 ```ini
 [Extras]
@@ -158,20 +161,22 @@ On any `customChart*` in `[[Appearance]]`, add either or both keys:
             datetime_tooltip_format = datetime_custom_graph_full      # hover tooltip
 ```
 
-Set just one if you only want to change the axis *or* the tooltip. Anything you leave out keeps the
-normal format for that page.
-
-Both keys also accept a **literal** moment string instead of a named constant - this is equivalent to
-the named example above:
+**Direct (literal) format:**
 
 ```ini
+[Extras]
+    [[Appearance]]
         [[[customChartOutTemp]]]
+            title     = Outdoor Temperature
             charttype = area
             values    = outTemp, dewpoint
             column    = avg
-            datetime_label_format   = dd DD                  # literal moment string
-            datetime_tooltip_format = ddd DD.MM.YYYY HH:mm   # literal moment string
+            datetime_label_format   = dd DD                  # x-axis labels
+            datetime_tooltip_format = ddd DD.MM.YYYY HH:mm   # hover tooltip
 ```
+
+Set just one if you only want to change the axis *or* the tooltip; anything you leave out keeps the
+page's normal format.
 
 ### Vary it per page
 
@@ -183,10 +188,10 @@ Inside a custom chart you can override per page using the page sub-sections you 
             charttype = area
             values    = outTemp, dewpoint
             column    = avg
-            datetime_label_format = datetime_custom_graph_dayonly      # default for all pages
+            datetime_label_format = datetime_custom_graph_dayonly      # named constant - default for all pages
             [[[[week]]]]
                 outTemp  = min, max
-                datetime_label_format = datetime_custom_graph_full     # …but full detail on the Week page
+                datetime_label_format = ddd DD.MM.YYYY HH:mm           # literal - full detail, Week page only
 ```
 
 Valid per-page sub-sections: `[[[[current]]]]` (the index/"current" page), `[[[[yesterday]]]]`,
@@ -199,20 +204,28 @@ below.)
 ## Example 2 - Change **Every** Chart on a Page
 
 The skin selects chart axis labels and tooltips by page automatically via keyed defaults in
-`[[Formatting]]`. To change the format for every chart on a specific page, set the matching key
-directly:
+`[[Formatting]]`. To change the format for every chart on a specific page, set the matching key - with a
+**named constant** or a **direct (literal) format**, one of each shown here.
+
+**Named constant:**
 
 ```ini
 [Extras]
     [[Formatting]]
-        datetime_graph_label_month   = ddd DD                        # literal moment string
-        datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm          # literal moment string
-        datetime_graph_label_year    = datetime_custom_graph_month   # a named constant also works
+        datetime_graph_label_month   = datetime_custom_graph_dayonly   # x-axis, every chart on month.html
+        datetime_graph_tooltip_month = datetime_custom_graph_full      # tooltip, every chart on month.html
 ```
 
-> A keyed default's value can be a **named constant** *or* a **literal** format string, just like the
-> per-chart and card keys. The values shipped in `skin.conf` are literals (`ddd`, `DD`, …); point one at
-> a `datetime_custom_graph_*` name if you'd rather reuse a constant.
+**Direct (literal) format:**
+
+```ini
+[Extras]
+    [[Formatting]]
+        datetime_graph_label_month   = ddd DD                 # x-axis, every chart on month.html
+        datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm   # tooltip, every chart on month.html
+```
+
+> The values shipped in `skin.conf` are literals (`ddd`, `DD`, …); either form works.
 
 **How the keyed defaults map to pages:**
 
@@ -242,12 +255,24 @@ The small "high 24.3° at **14:32**" times under each value card are controlled 
 `[[[CardPageFormats]]]`. Values are **strftime** - either a `datetime_custom_card_*` named constant or a
 literal strftime string written inline (e.g. `month = %a %d.%m.%Y %H:%M`).
 
+**Named constant:**
+
 ```ini
 [Extras]
     [[Formatting]]
         [[[CardPageFormats]]]
-            month = datetime_custom_card_full      # named constant (every card on month.html)
-            year  = %a %d.%m.%Y %H:%M              # literal strftime - also works
+            month = datetime_custom_card_full      # every card's min/max time on month.html
+            year  = datetime_custom_card_full
+```
+
+**Direct (literal) format:**
+
+```ini
+[Extras]
+    [[Formatting]]
+        [[[CardPageFormats]]]
+            month = %a %d.%m.%Y %H:%M
+            year  = %a %d.%m.%Y %H:%M
 ```
 
 - Valid scopes: `day` (covers index + yesterday), `week`, `month`, `year`, `telemetry`.
