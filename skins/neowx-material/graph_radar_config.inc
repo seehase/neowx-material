@@ -24,7 +24,9 @@ xaxis: {
 tooltip: {
     x: {
         formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-            var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            #set global $gdf_base = 'datetime_graph_tooltip'
+            #include "graph_date_format.inc"
+            var fmt = "$gdf_fmt";
             fmt = fmt.replace(/:MM/g, ':mm');
             // the first argument is 'value' (timestamp), use that
             return moment.unix(value).format(fmt);

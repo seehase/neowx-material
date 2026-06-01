@@ -49,7 +49,7 @@
                                 $month.wind.max $month.wind.gustdir.ordinal_compass <br>
                                 <i class="wi wi-wind from-$month.wind.gustdir.formatted-deg mr-2"
                                 title="$month.wind.gustdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-                                ($month.wind.maxtime.format($Extras.Formatting.datetime))
+                                ($month.wind.maxtime.format($card_datetime))
                             </div>
                         </div>
                     #else if $name == 'rain'
@@ -60,7 +60,7 @@
                             </div>
                             <div class="col-3 text-muted font-small hi-text">
                                 $month.rainRate.max <br>
-                                ($month.rainRate.maxtime.format($Extras.Formatting.datetime))
+                                ($month.rainRate.maxtime.format($card_datetime))
                             </div>
                         </div>
                     #else if $name in set(['lightning_strike_count', 'windrun', 'ET'])
@@ -75,14 +75,14 @@
                         <div class="row">
                             <div class="col-3 text-muted font-small lo-text">
                                 $getVar('month.' + name + '.min') <br>
-                                ($getVar('month.' + name + '.mintime').format($Extras.Formatting.datetime))
+                                ($getVar('month.' + name + '.mintime').format($card_datetime))
                             </div>
                             <div class="col-6">
                                 <h4 class="h2-responsive">$getVar('month.' + name + '.avg')</h4>
                             </div>
                             <div class="col-3 text-muted font-small hi-text">
                                 $getVar('month.' + name + '.max') <br>
-                                ($getVar('month.' + name + '.maxtime').format($Extras.Formatting.datetime))
+                                ($getVar('month.' + name + '.maxtime').format($card_datetime))
                             </div>
                         </div>
                     #end if
@@ -402,6 +402,9 @@
 
         #include "header.inc"
 
+        #set global $card_scope = $page
+        #set global $card_default = $Extras.Formatting.datetime
+        #include "card_datetime.inc"
         <main>
             <div class="container-fluid d-flex-xxl">
 
@@ -827,7 +830,7 @@
                         ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
                         #set $cc_field_map = {}
                         #for $fk, $fv in $cc_page.items()
-                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config') and isinstance($fv, (str, list))
+                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format') and isinstance($fv, (str, list))
                                 #silent $cc_field_map[$fk] = $fv
                             #end if
                         #end for
@@ -889,6 +892,11 @@
                         ## Build sorted list of axes (y1, y2, y3, ...)
                         #set $axes_list = sorted(list($axes_used))
 
+                        ## Resolve per-chart date-format overrides (shared logic)
+                        #set global $cc_name  = $x
+                        #set global $cc_scope = 'month'
+                        #include "chart_date_format.inc"
+
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
                             #set $cc_id = $x + "chart"
@@ -901,6 +909,18 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
+                                    #if $cc_label_fmt
+                                    xaxis: {
+                                        ...graph_${cc_type}_config.xaxis,
+                                        labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
+                                    },
+                                    #end if
+                                    #if $cc_tooltip_fmt
+                                    tooltip: {
+                                        ...graph_${cc_type}_config.tooltip,
+                                        x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") }
+                                    },
+                                    #end if
                                     #if len($axes_list) <= 1
                                         ## Single axis (backward compatible)
                                         yaxis: {

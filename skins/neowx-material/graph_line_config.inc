@@ -74,17 +74,9 @@ xaxis: {
         showDuplicates: false,
         trim: true,
         formatter: function(val, timestamp) {
-            #if $page == 'day'
-                var fmt = "$Extras.Formatting.datetime_graph_label_day";
-            #else if $page == 'week'
-                var fmt = "$Extras.Formatting.datetime_graph_label_week";
-            #else if $page == 'month'
-                var fmt = "$Extras.Formatting.datetime_graph_label_month";
-            #else if $page == 'year'
-                var fmt = "$Extras.Formatting.datetime_graph_label_year";
-            #else
-                var fmt = "$Extras.Formatting.datetime_graph_label";
-            #end if
+            #set global $gdf_base = 'datetime_graph_label'
+            #include "graph_date_format.inc"
+            var fmt = "$gdf_fmt";
             // If the format uses uppercase MM for minutes (common mistake), convert
             // only occurrences of ":MM" to Moment's minutes token ":mm" so we don't
             // change months (MM) to minutes.
@@ -113,7 +105,9 @@ grid: {
 tooltip: {
     x: {
         formatter: function(val) {
-            var fmt = "$Extras.Formatting.datetime_graph_tooltip";
+            #set global $gdf_base = 'datetime_graph_tooltip'
+            #include "graph_date_format.inc"
+            var fmt = "$gdf_fmt";
             fmt = fmt.replace(/:MM/g, ':mm');
             return moment.unix(val).format(fmt);
         }
