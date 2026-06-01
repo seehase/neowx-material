@@ -24,8 +24,9 @@ Everything here lives in **`skin.conf`** under `[Extras] → [[Formatting]]` and
 | The global default for all charts | `datetime_graph_label` / `datetime_graph_tooltip` (already in your `skin.conf`) |
 
 You can write a format **two ways**: define a **named constant** once and refer to it by name, or write
-the **literal format string inline**. Both work for per-chart overrides (Example 1) and `CardPageFormats`
-(Example 3). Named constants follow a convention:
+the **literal format string inline**. This works everywhere a format is set - the per-page keyed
+defaults (Example 2), per-chart overrides (Example 1), and `CardPageFormats` (Example 3). Named
+constants follow a convention:
 
 - `datetime_custom_graph_*` → a **moment** string (for charts)
 - `datetime_custom_card_*` → a **strftime** string (for cards)
@@ -136,8 +137,8 @@ defining a constant you'll reference once.
 > renders as literal text on the chart/card rather than silently falling back - a loud, easy-to-spot
 > mistake. Define the constant before you reference it.
 
-(The per-page keyed defaults in Example 2 - `datetime_graph_label_week` etc. - are the exception: they
-are **always** literal moment strings, never run through the name lookup.)
+This includes the per-page keyed defaults in Example 2 (`datetime_graph_label_week` etc.) - their
+shipped values are literals, but they accept a named constant just the same.
 
 ---
 
@@ -204,14 +205,14 @@ directly:
 ```ini
 [Extras]
     [[Formatting]]
-        datetime_graph_label_month   = ddd DD                 # x-axis on every chart on month.html
-        datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm   # tooltip on every chart on month.html
-        datetime_graph_label_year    = MMM                    # just "Mar", "Apr", … on year.html
+        datetime_graph_label_month   = ddd DD                        # literal moment string
+        datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm          # literal moment string
+        datetime_graph_label_year    = datetime_custom_graph_month   # a named constant also works
 ```
 
-> Unlike the per-chart and card keys, these keyed defaults take a **literal** moment string directly -
-> they are **not** run through the named-format lookup. Put the format itself here (e.g. `ddd DD`), not
-> a `datetime_custom_graph_*` name (a name would render literally).
+> A keyed default's value can be a **named constant** *or* a **literal** format string, just like the
+> per-chart and card keys. The values shipped in `skin.conf` are literals (`ddd`, `DD`, …); point one at
+> a `datetime_custom_graph_*` name if you'd rather reuse a constant.
 
 **How the keyed defaults map to pages:**
 
@@ -342,7 +343,7 @@ and don't need the date repeated.
         datetime_custom_graph_month  = MMM
         datetime_custom_card_full    = %a %d.%m.%Y %H:%M
 
-        # Per-page keyed defaults take a LITERAL moment string (not a named constant):
+        # Per-page keyed defaults (literal here, but a datetime_custom_graph_* name works too):
         datetime_graph_label_month   = ddd DD                 # every chart's x-axis on month.html
         datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm   # every chart's tooltip on month.html
 
