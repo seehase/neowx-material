@@ -8,7 +8,9 @@
 ## ---------------------------------------------------------------------------
 #set $cpf = $Extras.Formatting.get('CardPageFormats', {})
 #set $card_key = $cpf.get($card_scope, '')
-#set global $card_datetime = $Extras.Formatting.get($card_key, $card_default) if $card_key else $card_default
+#set $card_key = ', '.join($card_key) if isinstance($card_key, list) else $card_key
+## resolve as a named [[Formatting]] entry; if not a known name, use the value as a literal strftime
+#set global $card_datetime = $Extras.Formatting.get($card_key, $card_key) if $card_key else $card_default
 #if isinstance($card_datetime, list)
     #set global $card_datetime = ', '.join($card_datetime)
 #end if
