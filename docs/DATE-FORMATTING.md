@@ -360,33 +360,33 @@ Goal: short dates on the month page's charts, nicer card times on month and year
 custom chart (Outdoor Temperature) that keeps a bare `HH:mm` tooltip because you stare at it all day
 and don't need the date repeated.
 
+This one example uses **both** styles - named constants *and* literals mixed together:
+
 ```ini
 [Extras]
     [[Formatting]]
-        # Named constants - reused by the per-chart override and cards below
-        datetime_custom_graph_time   = HH:mm
-        datetime_custom_graph_month  = MMM
-        datetime_custom_card_full    = %a %d.%m.%Y %H:%M
+        # NAMED constants - defined once, reused below
+        datetime_custom_graph_time = HH:mm                    # moment (charts)
+        datetime_custom_card_full  = %a %d.%m.%Y %H:%M         # strftime (cards)
 
-        # Per-page keyed defaults (literal here, but a datetime_custom_graph_* name works too):
+        # Per-page keyed defaults - written as LITERALS
         datetime_graph_label_month   = ddd DD                 # every chart's x-axis on month.html
         datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm   # every chart's tooltip on month.html
 
-        # Per-page: every card on month and year
+        # Per-page cards - a NAMED constant
         [[[CardPageFormats]]]
             month = datetime_custom_card_full
             year  = datetime_custom_card_full
 
     [[Appearance]]
-        # Per-chart: this one chart overrides just its tooltip, on every page
         [[[customChartOutTemp]]]
             title     = Outdoor Temperature
             charttype = area
             column    = avg
             values    = outTemp, dewpoint
-            datetime_tooltip_format = datetime_custom_graph_time   # wins over per-page keyed default
+            datetime_tooltip_format = datetime_custom_graph_time   # NAMED - bare HH:mm, wins over the page tooltip
             [[[[year]]]]
-                datetime_label_format = datetime_custom_graph_month   # axis = "Mar", "Apr", … on year.html
+                datetime_label_format = MMM                        # LITERAL - axis = "Mar", "Apr", … on year.html
 ```
 
 Result, on `month.html`:
