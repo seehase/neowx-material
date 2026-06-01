@@ -1033,17 +1033,10 @@
                         ## Build sorted list of axes (y1, y2, y3, ...)
                         #set $axes_list = sorted(list($axes_used))
 
-                        ## Resolve per-chart date-format overrides
-                        #set $cc_label_key   = $cc_page.get('datetime_label_format',   $cc.get('datetime_label_format',   ''))
-                        #set $cc_tooltip_key = $cc_page.get('datetime_tooltip_format', $cc.get('datetime_tooltip_format', ''))
-                        ## a value containing a comma is parsed as a list by ConfigObj - rejoin to a string
-                        #set $cc_label_key   = ', '.join($cc_label_key)   if isinstance($cc_label_key,   list) else $cc_label_key
-                        #set $cc_tooltip_key = ', '.join($cc_tooltip_key) if isinstance($cc_tooltip_key, list) else $cc_tooltip_key
-                        ## resolve as a named [[Formatting]] entry; if not a known name, use the value as a literal format
-                        #set $cc_label_raw   = $Extras.Formatting.get($cc_label_key,   $cc_label_key)   if $cc_label_key   else ''
-                        #set $cc_tooltip_raw = $Extras.Formatting.get($cc_tooltip_key, $cc_tooltip_key) if $cc_tooltip_key else ''
-                        #set $cc_label_fmt   = ', '.join($cc_label_raw)   if isinstance($cc_label_raw,   list) else $cc_label_raw
-                        #set $cc_tooltip_fmt = ', '.join($cc_tooltip_raw) if isinstance($cc_tooltip_raw, list) else $cc_tooltip_raw
+                        ## Resolve per-chart date-format overrides (shared logic)
+                        #set global $cc_name  = $x
+                        #set global $cc_scope = 'current'
+                        #include "chart_date_format.inc"
 
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order

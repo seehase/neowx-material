@@ -24,13 +24,9 @@ xaxis: {
 tooltip: {
     x: {
         formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
-            ## per-page key for $page (datetime_graph_tooltip_<page>), else the base key
-            #set $_tipval = $Extras.Formatting.get('datetime_graph_tooltip_' + $page, $Extras.Formatting.get('datetime_graph_tooltip', ''))
-            #set $_tipval = ', '.join($_tipval) if isinstance($_tipval, list) else $_tipval
-            ## resolve as a named [[Formatting]] constant; if not a known name, use the value literally
-            #set $_tipfmt = $Extras.Formatting.get($_tipval, $_tipval)
-            #set $_tipfmt = ', '.join($_tipfmt) if isinstance($_tipfmt, list) else $_tipfmt
-            var fmt = "$_tipfmt";
+            #set global $gdf_base = 'datetime_graph_tooltip'
+            #include "graph_date_format.inc"
+            var fmt = "$gdf_fmt";
             fmt = fmt.replace(/:MM/g, ':mm');
             // the first argument is 'value' (timestamp), use that
             return moment.unix(value).format(fmt);
