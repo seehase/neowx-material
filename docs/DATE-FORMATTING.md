@@ -23,13 +23,15 @@ Everything here lives in **`skin.conf`** under `[Extras] → [[Formatting]]` and
 | Every **card** on a page | `[[[CardPageFormats]]]` |
 | The global default for all charts | `datetime_graph_label` / `datetime_graph_tooltip` (already in your `skin.conf`) |
 
-You define **named formats** once and refer to them by name. By convention:
+You can write a format **two ways**: define a **named constant** once and refer to it by name, or write
+the **literal format string inline**. Both work for per-chart overrides (Example 1) and `CardPageFormats`
+(Example 3). Named constants follow a convention:
 
 - `datetime_custom_graph_*` → a **moment** string (for charts)
 - `datetime_custom_card_*` → a **strftime** string (for cards)
 
 Keeping the prefixes straight matters: feed a moment string to a card (or vice-versa) and you'll get
-literal gibberish on the page.
+literal gibberish on the page. See *Named constant vs. literal* (below) for which to use when.
 
 ---
 
@@ -40,7 +42,7 @@ literal gibberish on the page.
 | Token | Meaning | Example |
 |---|---|---|
 | `DD` | day of month, 2-digit | `07` |
-| `ddd` / `dddd` | weekday short / long | `Mon` / `Monday` |
+| `dd` / `ddd` / `dddd` | weekday short / medium / long | `Mo` / `Mon` / `Monday` |
 | `MM` | month number | `03` |
 | `MMM` / `MMMM` | month name short / long | `Mar` / `March` |
 | `YY` / `YYYY` | year 2- / 4-digit | `26` / `2026` |
@@ -106,7 +108,36 @@ Add these under `[Extras] → [[Formatting]]` (next to the existing `datetime_gr
 > Avoid commas inside a format value - the config parser treats a comma as a list separator.
 > `%a, %d %b` will misbehave; use `%a %d %b` instead.
 
-Now you can reference these by name in the examples below.
+Defining names is optional - you can also write a literal format inline. Names pay off when you reuse a
+format (see the next section). You can reference these in the examples below.
+
+---
+
+## Named constant vs. literal — which to use
+
+Per-chart overrides (`datetime_label_format` / `datetime_tooltip_format`) and `CardPageFormats` values
+each accept **either**:
+
+- a **named constant** you defined in `[[Formatting]]` (e.g. `datetime_custom_graph_full`), or
+- a **literal** format string written inline (e.g. `ddd DD.MM.YYYY HH:mm`).
+
+The skin first looks the value up as a `[[Formatting]]` key; if it isn't one, the value is used as a
+literal format.
+
+**Prefer a named constant when you'll use the same format in more than one place** - e.g. the same
+"full" timestamp on several charts, or one card format across pages. Define it once and reference it
+everywhere: to restyle them all you edit a single line, the name documents intent, and the copies can't
+drift apart or pick up a typo independently.
+
+**A literal is fine for a true one-off** - a single chart with a unique format you won't reuse. No point
+defining a constant you'll reference once.
+
+> Because an unknown value is treated as a literal, a typo'd constant name (or one you forgot to define)
+> renders as literal text on the chart/card rather than silently falling back - a loud, easy-to-spot
+> mistake. Define the constant before you reference it.
+
+(The per-page keyed defaults in Example 2 - `datetime_graph_label_week` etc. - are the exception: they
+are **always** literal moment strings, never run through the name lookup.)
 
 ---
 
@@ -128,6 +159,18 @@ On any `customChart*` in `[[Appearance]]`, add either or both keys:
 
 Set just one if you only want to change the axis *or* the tooltip. Anything you leave out keeps the
 normal format for that page.
+
+Both keys also accept a **literal** moment string instead of a named constant - this is equivalent to
+the named example above:
+
+```ini
+        [[[customChartOutTemp]]]
+            charttype = area
+            values    = outTemp, dewpoint
+            column    = avg
+            datetime_label_format   = dd DD                  # literal moment string
+            datetime_tooltip_format = ddd DD.MM.YYYY HH:mm   # literal moment string
+```
 
 ### Vary it per page
 
@@ -161,10 +204,14 @@ directly:
 ```ini
 [Extras]
     [[Formatting]]
-        datetime_graph_label_month   = datetime_custom_graph_dayonly   # x-axis on every chart on month.html
-        datetime_graph_tooltip_month = datetime_custom_graph_full      # tooltip on every chart on month.html
-        datetime_graph_label_year    = datetime_custom_graph_month     # just "Mar", "Apr", … on year.html
+        datetime_graph_label_month   = ddd DD                 # x-axis on every chart on month.html
+        datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm   # tooltip on every chart on month.html
+        datetime_graph_label_year    = MMM                    # just "Mar", "Apr", … on year.html
 ```
+
+> Unlike the per-chart and card keys, these keyed defaults take a **literal** moment string directly -
+> they are **not** run through the named-format lookup. Put the format itself here (e.g. `ddd DD`), not
+> a `datetime_custom_graph_*` name (a name would render literally).
 
 **How the keyed defaults map to pages:**
 
@@ -191,7 +238,8 @@ directly:
 ## Example 3 - Change the Card Times
 
 The small "high 24.3° at **14:32**" times under each value card are controlled by
-`[[[CardPageFormats]]]`. Remember: **strftime**, so `datetime_custom_card_*` names.
+`[[[CardPageFormats]]]`. Values are **strftime** - either a `datetime_custom_card_*` named constant or a
+literal strftime string written inline (e.g. `month = %a %d.%m.%Y %H:%M`).
 
 ```ini
 [Extras]
@@ -202,6 +250,8 @@ The small "high 24.3° at **14:32**" times under each value card are controlled 
 ```
 
 - Valid scopes: `day` (covers index + yesterday), `week`, `month`, `year`, `telemetry`.
+- A value is a named `datetime_custom_card_*` constant **or** a literal strftime string (see
+  *Named constant vs. literal*).
 - Cards are page-level only - there's no per-individual-card override.
 - When no `CardPageFormats` entry applies, cards fall back to the built-in defaults
   (see *Customizing the Built-in Defaults* below).
@@ -287,15 +337,14 @@ and don't need the date repeated.
 ```ini
 [Extras]
     [[Formatting]]
-        datetime_custom_graph_short  = ddd DD
-        datetime_custom_graph_full   = ddd DD.MM.YYYY HH:mm
+        # Named constants - reused by the per-chart override and cards below
         datetime_custom_graph_time   = HH:mm
         datetime_custom_graph_month  = MMM
         datetime_custom_card_full    = %a %d.%m.%Y %H:%M
 
-        # Per-page: change every chart's x-axis and tooltip on month.html
-        datetime_graph_label_month   = datetime_custom_graph_short
-        datetime_graph_tooltip_month = datetime_custom_graph_full
+        # Per-page keyed defaults take a LITERAL moment string (not a named constant):
+        datetime_graph_label_month   = ddd DD                 # every chart's x-axis on month.html
+        datetime_graph_tooltip_month = ddd DD.MM.YYYY HH:mm   # every chart's tooltip on month.html
 
         # Per-page: every card on month and year
         [[[CardPageFormats]]]
