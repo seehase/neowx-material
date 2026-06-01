@@ -43,6 +43,7 @@ literal gibberish on the page. See *Named constant vs. literal* (below) for whic
 | Token | Meaning | Example |
 |---|---|---|
 | `DD` | day of month, 2-digit | `07` |
+| `Do` | suffixed day of month | `2nd` |
 | `dd` / `ddd` / `dddd` | weekday short / medium / long | `Mo` / `Mon` / `Monday` |
 | `MM` | month number | `03` |
 | `MMM` / `MMMM` | month name short / long | `Mar` / `March` |
@@ -57,6 +58,9 @@ literal gibberish on the page. See *Named constant vs. literal* (below) for whic
 
 > ⚠️ In moment, **`MM` is the month** and **`mm` is minutes**. Writing `HH:MM` by mistake is so
 > common that the skin auto-corrects `:MM` → `:mm` for you - but getting it right is easy too.
+
+> This is a subset of all the moment.js date format codes.  The full list can be found 
+> [here](https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/)
 
 **Cards (Python strftime)** - examples: `%H:%M`, `%a %d %H:%M`, `%d.%m.%Y %H:%M`
 
@@ -85,6 +89,8 @@ literal gibberish on the page. See *Named constant vs. literal* (below) for whic
 > `ddd MM/DD/YYYY hh:mm A` (chart) or `%a %m/%d/%Y %I:%M %p` (card). Pick whichever you prefer; the
 > skin doesn't care which ordering you use.
 
+> This is a subset of all the strftime format codes.  The full list can be found 
+> [here](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes)
 ---
 
 ## Step 1 - Define your Named Formats
