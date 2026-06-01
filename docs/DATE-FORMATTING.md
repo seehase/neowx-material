@@ -246,8 +246,8 @@ literal strftime string written inline (e.g. `month = %a %d.%m.%Y %H:%M`).
 [Extras]
     [[Formatting]]
         [[[CardPageFormats]]]
-            month = datetime_custom_card_full      # every card's min/max time on month.html
-            year  = datetime_custom_card_full
+            month = datetime_custom_card_full      # named constant (every card on month.html)
+            year  = %a %d.%m.%Y %H:%M              # literal strftime - also works
 ```
 
 - Valid scopes: `day` (covers index + yesterday), `week`, `month`, `year`, `telemetry`.
