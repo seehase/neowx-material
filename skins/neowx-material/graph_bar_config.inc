@@ -15,17 +15,13 @@ xaxis: {
     tickAmount: 8,
     labels: {
         formatter: function(val, timestamp) {
-            #if $page == 'day'
-                var fmt = "$Extras.Formatting.datetime_graph_label_day";
-            #else if $page == 'week'
-                var fmt = "$Extras.Formatting.datetime_graph_label_week";
-            #else if $page == 'month'
-                var fmt = "$Extras.Formatting.datetime_graph_label_month";
-            #else if $page == 'year'
-                var fmt = "$Extras.Formatting.datetime_graph_label_year";
-            #else
-                var fmt = "$Extras.Formatting.datetime_graph_label";
-            #end if
+            ## per-page key for $page (datetime_graph_label_<page>), else the base key
+            #set $_lblval = $Extras.Formatting.get('datetime_graph_label_' + $page, $Extras.Formatting.get('datetime_graph_label', ''))
+            #set $_lblval = ', '.join($_lblval) if isinstance($_lblval, list) else $_lblval
+            ## resolve as a named [[Formatting]] constant; if not a known name, use the value literally
+            #set $_lblfmt = $Extras.Formatting.get($_lblval, $_lblval)
+            #set $_lblfmt = ', '.join($_lblfmt) if isinstance($_lblfmt, list) else $_lblfmt
+            var fmt = "$_lblfmt";
             // If the format uses uppercase MM for minutes (common mistake), convert
             // only occurrences of ":MM" to Moment's minutes token ":mm" so we don't
             // change months (MM) to minutes.
@@ -37,17 +33,13 @@ xaxis: {
 tooltip: {
     x: {
         formatter: function(val) {
-            #if $page == 'day'
-                var fmt = "$Extras.Formatting.datetime_graph_tooltip_day";
-            #else if $page == 'week'
-                var fmt = "$Extras.Formatting.datetime_graph_tooltip_week";
-            #else if $page == 'month'
-                var fmt = "$Extras.Formatting.datetime_graph_tooltip_month";
-            #else if $page == 'year'
-                var fmt = "$Extras.Formatting.datetime_graph_tooltip_year";
-            #else
-                var fmt = "$Extras.Formatting.datetime_graph_tooltip";
-            #end if
+            ## per-page key for $page (datetime_graph_tooltip_<page>), else the base key
+            #set $_tipval = $Extras.Formatting.get('datetime_graph_tooltip_' + $page, $Extras.Formatting.get('datetime_graph_tooltip', ''))
+            #set $_tipval = ', '.join($_tipval) if isinstance($_tipval, list) else $_tipval
+            ## resolve as a named [[Formatting]] constant; if not a known name, use the value literally
+            #set $_tipfmt = $Extras.Formatting.get($_tipval, $_tipval)
+            #set $_tipfmt = ', '.join($_tipfmt) if isinstance($_tipfmt, list) else $_tipfmt
+            var fmt = "$_tipfmt";
             // convert minute token if needed (':MM' -> ':mm')
             fmt = fmt.replace(/:MM/g, ':mm');
             return moment.unix(val).format(fmt);
