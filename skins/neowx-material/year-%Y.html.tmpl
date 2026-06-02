@@ -672,9 +672,9 @@
     #if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'month'
         #set global $year_month_align = True
         #set global $month_marks = []
-        #set $_mn = int($_yr_parts[2]) if (len($_yr_parts) >= 3 and $_yr_parts[2].strip().isdigit() and int($_yr_parts[2]) > 0) else 1
-        ## Anchor on the range's first day-of-month, then mark that date each month.
-        ## :N adds N-1 evenly-spaced sub-markers between consecutive monthly anchors.
+        #set $_ndiv_raw = $_yr_parts[2] if len($_yr_parts) >= 3 else ''
+        ## Anchor on the range's first day-of-month; mark that date each month, then
+        ## keep every (months/N)-th one so align:month:N splits the year into N segments.
         #set $_days = list($year.days)
         #if len($_days) > 0
             #set $_anchor_dom = int($_days[0].start.format('%d'))
@@ -684,15 +684,21 @@
                     #silent $_idxs.append($_i)
                 #end if
             #end for
-            #for $_j in range(len($_idxs))
-                #set $_a = $_idxs[$_j]
-                #silent $month_marks.append([$_days[$_a].start.raw * 1000, $_days[$_a].start.format('%b')])
-                #if $_mn > 1 and $_j + 1 < len($_idxs)
-                    #set $_b = $_idxs[$_j + 1]
-                    #for $_k in range(1, $_mn)
-                        #set $_si = $_a + int(round(($_b - $_a) * $_k / float($_mn)))
-                        #silent $month_marks.append([$_days[$_si].start.raw * 1000, str(int($_days[$_si].start.format('%d')))])
-                    #end for
+            #set $_nmonths = len($_idxs) - 1
+            #if $_nmonths < 1
+                #set $_nmonths = 1
+            #end if
+            #set $_ndiv = int($_ndiv_raw) if ($_ndiv_raw.strip().isdigit() and int($_ndiv_raw) > 0) else $_nmonths
+            #if $_ndiv > $_nmonths
+                #set $_ndiv = $_nmonths
+            #end if
+            #set $_seen = {}
+            #for $_k in range($_ndiv + 1)
+                #set $_pos = int(round($_k * $_nmonths / float($_ndiv)))
+                #if $_pos not in $_seen
+                    #silent $_seen[$_pos] = 1
+                    #set $_a = $_idxs[$_pos]
+                    #silent $month_marks.append([$_days[$_a].start.raw * 1000, $_days[$_a].start.format('%b')])
                 #end if
             #end for
         #end if
