@@ -529,11 +529,11 @@
                 new ApexCharts(chartElement, {
                     ...graph_${type}_config,
                     #if $year_month_align and $type != 'radar'
-                        #include "graph_month_annotations.inc"
                         xaxis: {
                             ...graph_${type}_config.xaxis,
-                            axisTicks: { show: false },
-                            labels: { ...graph_${type}_config.xaxis.labels, show: false },
+                            min: $ym_min,
+                            max: $ym_max,
+                            tickAmount: $ym_ticks,
                         },
                     #end if
                     #if $_do_align
@@ -590,11 +590,11 @@
                 new ApexCharts(chartElement, {
                     ...graph_${type}_config,
                     #if $year_month_align and $type != 'radar'
-                        #include "graph_month_annotations.inc"
                         xaxis: {
                             ...graph_${type}_config.xaxis,
-                            axisTicks: { show: false },
-                            labels: { ...graph_${type}_config.xaxis.labels, show: false },
+                            min: $ym_min,
+                            max: $ym_max,
+                            tickAmount: $ym_ticks,
                         },
                     #end if
                     #if $_do_align
@@ -672,38 +672,18 @@
     #set $_yr_spec = $_yr_spec.strip().lower() if (not isinstance($_yr_spec, list) and $_yr_spec) else 'auto'
     #set $_yr_parts = $_yr_spec.split(':')
     #if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'month'
+        ## Native even-spaced ticks (same mechanism as week/month) across the archived
+        ## year: min = first day, max = last day, tickAmount = N (default 12).
         #set global $year_month_align = True
-        #set global $month_marks = []
         #set $_ndiv_raw = $_yr_parts[2] if len($_yr_parts) >= 3 else ''
-        ## Anchor on the range's first day-of-month; mark that date each month, then
-        ## keep every (months/N)-th one so align:month:N splits the year into N segments.
-        #set $_days = list($year.days)
-        #if len($_days) > 0
-            #set $_anchor_dom = int($_days[0].start.format('%d'))
-            #set $_idxs = []
-            #for $_i, $_d in enumerate($_days)
-                #if int($_d.start.format('%d')) == $_anchor_dom
-                    #silent $_idxs.append($_i)
-                #end if
-            #end for
-            #set $_nmonths = len($_idxs) - 1
-            #if $_nmonths < 1
-                #set $_nmonths = 1
-            #end if
-            #set $_ndiv = int($_ndiv_raw) if ($_ndiv_raw.strip().isdigit() and int($_ndiv_raw) > 0) else $_nmonths
-            #if $_ndiv > $_nmonths
-                #set $_ndiv = $_nmonths
-            #end if
-            #set $_seen = {}
-            #for $_k in range($_ndiv + 1)
-                #set $_pos = int(round($_k * $_nmonths / float($_ndiv)))
-                #if $_pos not in $_seen
-                    #silent $_seen[$_pos] = 1
-                    #set $_a = $_idxs[$_pos]
-                    #silent $month_marks.append([$_days[$_a].start.raw * 1000, $_days[$_a].start.format('%m/%d')])
-                #end if
-            #end for
+        #set global $ym_min = 0
+        #set global $ym_max = 0
+        #set $_yd = list($year.days)
+        #if len($_yd) > 0
+            #set global $ym_min = int($_yd[0].start.raw) * 1000
+            #set global $ym_max = int($_yd[-1].start.raw) * 1000
         #end if
+        #set global $ym_ticks = int($_ndiv_raw) if ($_ndiv_raw.strip().isdigit() and int($_ndiv_raw) > 0) else 12
     #else if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'midnight'
         #set global $pg_align_mid = True
         #set global $align_start = int(list($year.days)[0].start.raw)
@@ -917,9 +897,6 @@
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${cc_type}_config,
-                            #if $year_month_align
-                                #include "graph_month_annotations.inc"
-                            #end if
                             #if $cc_label_fmt or $pg_align_mid or $year_month_align
                             xaxis: {
                                 ...graph_${cc_type}_config.xaxis,
@@ -927,9 +904,11 @@
                                     #include "graph_align_axis.inc"
                                 #end if
                                 #if $year_month_align
-                                axisTicks: { show: false },
-                                labels: { ...graph_${cc_type}_config.xaxis.labels, show: false }
-                                #else if $cc_label_fmt
+                                min: $ym_min,
+                                max: $ym_max,
+                                tickAmount: $ym_ticks,
+                                #end if
+                                #if $cc_label_fmt
                                 labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
                                 #end if
                             },

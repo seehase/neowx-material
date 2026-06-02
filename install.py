@@ -43,7 +43,6 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/graph_bar_config.inc",
                         "skins/neowx-material/graph_date_format.inc",
                         "skins/neowx-material/graph_line_config.inc",
-                        "skins/neowx-material/graph_month_annotations.inc",
                         "skins/neowx-material/graph_radar_config.inc",
                         "skins/neowx-material/graph_tick_amount.inc",
                         "skins/neowx-material/header.inc",

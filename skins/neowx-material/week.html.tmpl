@@ -915,9 +915,6 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
-                                    #if $year_month_align
-                                        #include "graph_month_annotations.inc"
-                                    #end if
                                     #if $cc_label_fmt or $pg_align_mid or $year_month_align
                                     xaxis: {
                                         ...graph_${cc_type}_config.xaxis,
