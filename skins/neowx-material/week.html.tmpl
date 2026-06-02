@@ -620,6 +620,20 @@
         <script type="text/javascript">
             // Config templates
 
+            ## ---- align setup (once per page): shared by standard AND custom charts ----
+            #set global $year_month_align = False
+            #set global $pg_align_mid = False
+            #set $_pg_spec = $Extras.Charts.get('tick_amount_week', $Extras.Charts.get('tick_amount', 'auto'))
+            #set $_pg_spec = $_pg_spec.strip().lower() if (not isinstance($_pg_spec, list) and $_pg_spec) else 'auto'
+            #set $_pg_parts = $_pg_spec.split(':')
+            #if len($_pg_parts) >= 2 and $_pg_parts[0] == 'align' and $_pg_parts[1] == 'midnight'
+                #set global $pg_align_mid = True
+                #set global $align_start = int($span($week_delta=1, $boundary='midnight').start.raw)
+                #set global $align_stop  = int($current.dateTime.raw)
+                #set global $align_mode  = 'midnight'
+                #set global $align_count = int($_pg_parts[2]) if (len($_pg_parts) >= 3 and $_pg_parts[2].strip().isdigit()) else 0
+            #end if
+
             var graph_area_config = {
                 #include "graph_area_config.inc"
             }
@@ -901,10 +915,20 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
-                                    #if $cc_label_fmt
+                                    #if $year_month_align
+                                        #include "graph_month_annotations.inc"
+                                    #end if
+                                    #if $cc_label_fmt or $pg_align_mid or $year_month_align
                                     xaxis: {
                                         ...graph_${cc_type}_config.xaxis,
+                                        #if $pg_align_mid
+                                            #include "graph_align_axis.inc"
+                                        #end if
+                                        #if $year_month_align
+                                        labels: { ...graph_${cc_type}_config.xaxis.labels, show: false }
+                                        #else if $cc_label_fmt
                                         labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
+                                        #end if
                                     },
                                     #end if
                                     #if $cc_tooltip_fmt
