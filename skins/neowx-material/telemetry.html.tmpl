@@ -369,7 +369,7 @@
                     #end if
 
                     #if $data != "null" or $idx == 0 or $idx == len($records) - 1
-                        [$record.start.raw, $data],
+                        [$record.start.raw * 1000, $data],
                     #end if
                 #except
 

@@ -96,7 +96,7 @@
                     csv: {
                         headerCategory: 'DateTime',
                         dateFormatter(timestamp) {
-                            return moment.unix(timestamp).toISOString()
+                            return moment(timestamp).toISOString()
                         }
                     }
                 }

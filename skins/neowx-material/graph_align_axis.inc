@@ -2,12 +2,13 @@
 ## ---------------------------------------------------------------------------
 ## Emit min / max / tickAmount for a day-aligned datetime x-axis so ticks land
 ## on whole-day (midnight) boundaries. Set before including (as #set global):
-##   $align_start - first boundary, a midnight, in epoch SECONDS (matches data)
+##   $align_start - first boundary, a midnight, in epoch SECONDS
 ##   $align_stop  - end reference in epoch seconds (e.g. $current.dateTime.raw)
 ##   $align_count - desired approx number of ticks; 0 = one tick per day
 ##   $align_mode  - reserved ('midnight'); noon support TBD
-## Ticks are spaced a whole number of days apart, so when a count is given it is
-## approximate (rounded to the nearest whole-day stride to stay on midnight).
+## Inputs are seconds; min/max are emitted in MILLISECONDS to match the chart
+## data ([$record.start.raw * 1000, ...]). Ticks are spaced a whole number of
+## days apart, so a given count is approximate (rounded to a whole-day stride).
 ## ---------------------------------------------------------------------------
 #set $_start = int($align_start)
 #set $_total = int((int($align_stop) - $_start + 86399) // 86400)
@@ -23,7 +24,8 @@
     #set $_stride = 1
 #end if
 #set $_ticks = int(($_total + $_stride - 1) // $_stride)
-#set $_max = $_start + $_ticks * $_stride * 86400
-    min: $_start,
-    max: $_max,
+#set $_min_ms = $_start * 1000
+#set $_max_ms = ($_start + $_ticks * $_stride * 86400) * 1000
+    min: $_min_ms,
+    max: $_max_ms,
     tickAmount: $_ticks,

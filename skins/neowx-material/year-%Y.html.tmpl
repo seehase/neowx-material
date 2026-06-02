@@ -498,7 +498,7 @@
             #set val = $getattr($record, $name)
             #set data = $getattr($val, $column).format(add_label=False, localize=False, None_string="null")
             #if $data != "null" or $idx == 0 or $idx == len($days) - 1
-                [$record.start.raw, $data],
+                [$record.start.raw * 1000, $data],
             #end if
         #except
 
@@ -510,12 +510,30 @@
 
     #if $name in $Extras.Appearance.charts_order
 
+        ## align:midnight[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
+        #set $_ta_pg = $Extras.Charts.get('tick_amount_year', $Extras.Charts.get('tick_amount', 'auto'))
+        #set $_ta_pg = $_ta_pg.strip().lower() if (not isinstance($_ta_pg, list) and $_ta_pg) else 'auto'
+        #set $_align_parts = $_ta_pg.split(':')
+        #set $_do_align = len($_align_parts) >= 2 and $_align_parts[0] == 'align' and $_align_parts[1] == 'midnight' and $type != 'radar'
+        #if $_do_align
+            #set global $align_start = int(list($year.days)[0].start.raw)
+            #set global $align_stop  = int(list($year.days)[-1].start.raw) + 86400
+            #set global $align_mode  = 'midnight'
+            #set global $align_count = int($_align_parts[2]) if (len($_align_parts) >= 3 and $_align_parts[2].strip().isdigit()) else 0
+        #end if
+
         #if $name == "outTemp"
 
             var chartElement = document.querySelector('#$id');
             if (chartElement) {
                 new ApexCharts(chartElement, {
                     ...graph_${type}_config,
+                    #if $_do_align
+                        xaxis: {
+                            ...graph_${type}_config.xaxis,
+                            #include "graph_align_axis.inc"
+                        },
+                    #end if
                     yaxis: {
                         labels: {
                             formatter: function (val) {
@@ -563,6 +581,12 @@
             if (chartElement) {
                 new ApexCharts(chartElement, {
                     ...graph_${type}_config,
+                    #if $_do_align
+                        xaxis: {
+                            ...graph_${type}_config.xaxis,
+                            #include "graph_align_axis.inc"
+                        },
+                    #end if
                     #if $name == "windDir"
                         yaxis: {
                             max: 360, min: 0, type: 'datetime', tickAmount: 8, trim: false,

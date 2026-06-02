@@ -27,7 +27,7 @@ chart: {
             csv: {
                 headerCategory: 'DateTime',
                 dateFormatter(timestamp) {
-                    return moment.unix(timestamp).toISOString()
+                    return moment(timestamp).toISOString()
                 }
             }
         }
@@ -80,7 +80,7 @@ xaxis: {
             // only occurrences of ":MM" to Moment's minutes token ":mm" so we don't
             // change months (MM) to minutes.
             fmt = fmt.replace(/:MM/g, ':mm');
-            return moment.unix(timestamp).format(fmt);
+            return moment(timestamp).format(fmt);
         }
     }
 },
@@ -108,7 +108,7 @@ tooltip: {
             #include "graph_date_format.inc"
             var fmt = "$gdf_fmt";
             fmt = fmt.replace(/:MM/g, ':mm');
-            return moment.unix(val).format(fmt);
+            return moment(val).format(fmt);
         }
     }
 },

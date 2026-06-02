@@ -15,7 +15,7 @@ function neowxDateFormatter(fmt) {
         // called (value, optsObject). Use the 2nd arg only when it is the numeric timestamp,
         // otherwise fall back to the first arg.
         var ts = (typeof timestamp === 'number') ? timestamp : val;
-        return moment.unix(ts).format(fmt);
+        return moment(ts).format(fmt);
     };
 }
 
