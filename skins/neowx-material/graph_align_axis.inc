@@ -5,8 +5,7 @@
 ##   $align_start - first boundary, a midnight, in epoch SECONDS
 ##   $align_stop  - end reference in epoch seconds (e.g. $current.dateTime.raw)
 ##   $align_count - desired approx number of ticks; 0 = one tick per day
-##   $align_mode  - 'midnight' or 'noon' (informational; for noon the caller
-##                  passes align_start already shifted -12h so ticks land at noon)
+##   $align_mode  - informational ('day')
 ## Inputs are seconds; min/max are emitted in MILLISECONDS to match the chart
 ## data ([$record.start.raw * 1000, ...]). Ticks are spaced a whole number of
 ## days apart, so a given count is approximate (rounded to a whole-day stride).

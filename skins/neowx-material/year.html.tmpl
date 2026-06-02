@@ -468,15 +468,15 @@
 
             #if $name in $Extras.Appearance.charts_order
 
-                ## align:midnight[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
+                ## align:day[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
                 #set $_ta_pg = $Extras.Charts.get('tick_amount_year', $Extras.Charts.get('tick_amount', 'auto'))
                 #set $_ta_pg = $_ta_pg.strip().lower() if (not isinstance($_ta_pg, list) and $_ta_pg) else 'auto'
                 #set $_align_parts = $_ta_pg.split(':')
-                #set $_do_align = len($_align_parts) >= 2 and $_align_parts[0] == 'align' and $_align_parts[1] == 'midnight' and $type != 'radar'
+                #set $_do_align = len($_align_parts) >= 2 and $_align_parts[0] == 'align' and $_align_parts[1] == 'day' and $type != 'radar'
                 #if $_do_align
                     #set global $align_start = int($span($year_delta=1, $boundary='midnight').start.raw)
                     #set global $align_stop  = int($current.dateTime.raw)
-                    #set global $align_mode  = 'midnight'
+                    #set global $align_mode  = 'day'
                     #set global $align_count = int($_align_parts[2]) if (len($_align_parts) >= 3 and $_align_parts[2].strip().isdigit()) else 0
                 #end if
 
@@ -638,11 +638,11 @@
                 #set global $ym_min = int($span($year_delta=1, $boundary='midnight').start.raw) * 1000
                 #set global $ym_max = int($current.dateTime.raw) * 1000
                 #set global $ym_ticks = int($_ndiv_raw) if ($_ndiv_raw.strip().isdigit() and int($_ndiv_raw) > 0) else 12
-            #else if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'midnight'
+            #else if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'day'
                 #set global $pg_align_mid = True
                 #set global $align_start = int($span($year_delta=1, $boundary='midnight').start.raw)
                 #set global $align_stop  = int($current.dateTime.raw)
-                #set global $align_mode  = 'midnight'
+                #set global $align_mode  = 'day'
                 #set global $align_count = int($_yr_parts[2]) if (len($_yr_parts) >= 3 and $_yr_parts[2].strip().isdigit()) else 0
             #end if
             var graph_area_config = {

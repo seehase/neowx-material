@@ -462,15 +462,15 @@
 
             #if $name in $Extras.Appearance.charts_order
 
-                ## align:midnight[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
+                ## align:day[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
                 #set $_ta_pg = $Extras.Charts.get('tick_amount_month', $Extras.Charts.get('tick_amount', 'auto'))
                 #set $_ta_pg = $_ta_pg.strip().lower() if (not isinstance($_ta_pg, list) and $_ta_pg) else 'auto'
                 #set $_align_parts = $_ta_pg.split(':')
-                #set $_do_align = len($_align_parts) >= 2 and $_align_parts[0] == 'align' and $_align_parts[1] == 'midnight' and $type != 'radar'
+                #set $_do_align = len($_align_parts) >= 2 and $_align_parts[0] == 'align' and $_align_parts[1] == 'day' and $type != 'radar'
                 #if $_do_align
                     #set global $align_start = int(list($month.days)[0].start.raw)
                     #set global $align_stop  = int(list($month.days)[-1].start.raw) + 86400
-                    #set global $align_mode  = 'midnight'
+                    #set global $align_mode  = 'day'
                     #set global $align_count = int($_align_parts[2]) if (len($_align_parts) >= 3 and $_align_parts[2].strip().isdigit()) else 0
                 #end if
 
@@ -607,11 +607,11 @@
             #set $_pg_spec = $Extras.Charts.get('tick_amount_month', $Extras.Charts.get('tick_amount', 'auto'))
             #set $_pg_spec = $_pg_spec.strip().lower() if (not isinstance($_pg_spec, list) and $_pg_spec) else 'auto'
             #set $_pg_parts = $_pg_spec.split(':')
-            #if len($_pg_parts) >= 2 and $_pg_parts[0] == 'align' and $_pg_parts[1] == 'midnight'
+            #if len($_pg_parts) >= 2 and $_pg_parts[0] == 'align' and $_pg_parts[1] == 'day'
                 #set global $pg_align_mid = True
                 #set global $align_start = int(list($month.days)[0].start.raw)
                 #set global $align_stop  = int(list($month.days)[-1].start.raw) + 86400
-                #set global $align_mode  = 'midnight'
+                #set global $align_mode  = 'day'
                 #set global $align_count = int($_pg_parts[2]) if (len($_pg_parts) >= 3 and $_pg_parts[2].strip().isdigit()) else 0
             #end if
 
