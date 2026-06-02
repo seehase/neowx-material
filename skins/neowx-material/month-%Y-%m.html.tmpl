@@ -462,16 +462,16 @@
 
             #if $name in $Extras.Appearance.charts_order
 
-                ## align:day[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
+                ## align[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
                 #set $_ta_pg = $Extras.Charts.get('tick_amount_month', $Extras.Charts.get('tick_amount', 'auto'))
                 #set $_ta_pg = $_ta_pg.strip().lower() if (not isinstance($_ta_pg, list) and $_ta_pg) else 'auto'
                 #set $_align_parts = $_ta_pg.split(':')
-                #set $_do_align = len($_align_parts) >= 2 and $_align_parts[0] == 'align' and $_align_parts[1] == 'day' and $type != 'radar'
+                #set $_do_align = len($_align_parts) >= 1 and $_align_parts[0] == 'align' and $type != 'radar'
                 #if $_do_align
                     #set global $align_start = int(list($month.days)[0].start.raw)
                     #set global $align_stop  = int(list($month.days)[-1].start.raw) + 86400
                     #set global $align_mode  = 'day'
-                    #set global $align_count = int($_align_parts[2]) if (len($_align_parts) >= 3 and $_align_parts[2].strip().isdigit()) else 0
+                    #set global $align_count = int($_align_parts[1]) if (len($_align_parts) >= 2 and $_align_parts[1].strip().isdigit()) else 0
                 #end if
 
                 #if $name == "outTemp"
@@ -602,17 +602,16 @@
 
         <script type="text/javascript">
             ## ---- align setup (once per page): shared by standard AND custom charts ----
-            #set global $year_month_align = False
             #set global $pg_align_mid = False
             #set $_pg_spec = $Extras.Charts.get('tick_amount_month', $Extras.Charts.get('tick_amount', 'auto'))
             #set $_pg_spec = $_pg_spec.strip().lower() if (not isinstance($_pg_spec, list) and $_pg_spec) else 'auto'
             #set $_pg_parts = $_pg_spec.split(':')
-            #if len($_pg_parts) >= 2 and $_pg_parts[0] == 'align' and $_pg_parts[1] == 'day'
+            #if len($_pg_parts) >= 1 and $_pg_parts[0] == 'align'
                 #set global $pg_align_mid = True
                 #set global $align_start = int(list($month.days)[0].start.raw)
                 #set global $align_stop  = int(list($month.days)[-1].start.raw) + 86400
                 #set global $align_mode  = 'day'
-                #set global $align_count = int($_pg_parts[2]) if (len($_pg_parts) >= 3 and $_pg_parts[2].strip().isdigit()) else 0
+                #set global $align_count = int($_pg_parts[1]) if (len($_pg_parts) >= 2 and $_pg_parts[1].strip().isdigit()) else 0
             #end if
 
             var graph_area_config = {
@@ -822,15 +821,13 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
-                                    #if $cc_label_fmt or $pg_align_mid or $year_month_align
+                                    #if $cc_label_fmt or $pg_align_mid
                                     xaxis: {
                                         ...graph_${cc_type}_config.xaxis,
                                         #if $pg_align_mid
                                             #include "graph_align_axis.inc"
                                         #end if
-                                        #if $year_month_align
-                                        labels: { ...graph_${cc_type}_config.xaxis.labels, show: false }
-                                        #else if $cc_label_fmt
+                                        #if $cc_label_fmt
                                         labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
                                         #end if
                                     },

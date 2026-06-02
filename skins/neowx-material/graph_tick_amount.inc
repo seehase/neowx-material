@@ -6,7 +6,7 @@
 ## Supported values:
 ##   auto            (default) no tickAmount - ApexCharts chooses the count
 ##   fixed:N (or N)  exactly N tick intervals (N+1 evenly-spaced labels)
-##   align:day       one tick per day (midnight) - handled in the page template
+##   align           aligned ticks, auto day/month by span - handled per page
 ##                   (it needs the page's time span), so nothing is emitted here
 ## $page is one of: day (index + yesterday), week, month, year, telemetry.
 ## ---------------------------------------------------------------------------
