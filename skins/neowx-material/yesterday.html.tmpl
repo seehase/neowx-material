@@ -952,8 +952,13 @@
                                                 #set $idx = $axis_entry[0]
                                                 #set $axis_id = $axis_entry[1]
                                                 ## Find fields assigned to this axis
-                                                #set $fields_on_axis = [f for f, a in $axis_map.items() if a == $axis_id]
-                                                #set $first_field = $fields_on_axis[0] if $fields_on_axis else $cc_series_pairs[0][0]
+                                                #set $fields_on_axis = []
+                                                #for $f, $a in $axis_map.items()
+                                                    #if $a == $axis_id
+                                                        #silent $fields_on_axis.append($f)
+                                                    #end if
+                                                #end for
+                                                #set $first_field = $fields_on_axis[0] if len($fields_on_axis) > 0 else $cc_series_pairs[0][0]
                                                 ## Get axis-specific configuration
                                                 #set $axis_cfg = $yaxis_config.get($axis_id, {})
                                                 #set $axis_title = $axis_cfg.get('title', '')
