@@ -11,13 +11,16 @@ annotations: {
         #for $_mk in $month_marks
             {
                 x: $_mk[0],
-                borderColor: '#888',
-                strokeDashArray: 3,
+                borderColor: 'rgba(128,128,128,0.30)',
+                strokeDashArray: 4,
                 label: {
                     text: '$_mk[1]',
                     position: 'bottom',
                     orientation: 'horizontal',
-                    style: { fontSize: '11px', background: 'transparent', color: '#888' }
+                    offsetY: 4,
+                    borderWidth: 0,
+                    borderColor: 'transparent',
+                    style: { fontSize: '11px', background: 'transparent', color: '#9e9e9e' }
                 }
             },
         #end for
