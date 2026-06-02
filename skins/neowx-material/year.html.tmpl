@@ -631,16 +631,30 @@
                 #set global $year_month_align = True
                 #set global $month_marks = []
                 #set $_mn = int($_yr_parts[2]) if (len($_yr_parts) >= 3 and $_yr_parts[2].strip().isdigit() and int($_yr_parts[2]) > 0) else 1
-                #set $_mstride = int(round(30.0 / $_mn))
-                #if $_mstride < 1
-                    #set $_mstride = 1
+                ## Anchor on the range's first day-of-month (= today's DoM on the rolling
+                ## year), then mark that same date each month - so the last tick lands on
+                ## today. :N adds N-1 evenly-spaced sub-markers between monthly anchors.
+                #set $_days = list($span($year_delta=1, $boundary='midnight').spans(interval=86400))
+                #if len($_days) > 0
+                    #set $_anchor_dom = int($_days[0].start.format('%d'))
+                    #set $_idxs = []
+                    #for $_i, $_d in enumerate($_days)
+                        #if int($_d.start.format('%d')) == $_anchor_dom
+                            #silent $_idxs.append($_i)
+                        #end if
+                    #end for
+                    #for $_j in range(len($_idxs))
+                        #set $_a = $_idxs[$_j]
+                        #silent $month_marks.append([$_days[$_a].start.raw * 1000, $_days[$_a].start.format('%b')])
+                        #if $_mn > 1 and $_j + 1 < len($_idxs)
+                            #set $_b = $_idxs[$_j + 1]
+                            #for $_k in range(1, $_mn)
+                                #set $_si = $_a + int(round(($_b - $_a) * $_k / float($_mn)))
+                                #silent $month_marks.append([$_days[$_si].start.raw * 1000, str(int($_days[$_si].start.format('%d')))])
+                            #end for
+                        #end if
+                    #end for
                 #end if
-                #for $_r in $span($year_delta=1, $boundary='midnight').spans(interval=86400)
-                    #set $_dom = int($_r.start.format('%d'))
-                    #if ($_dom - 1) % $_mstride == 0 and ($_dom - 1) // $_mstride < $_mn
-                        #silent $month_marks.append([$_r.start.raw * 1000, $_r.start.format('%b') if $_dom == 1 else str($_dom)])
-                    #end if
-                #end for
             #else if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'midnight'
                 #set global $pg_align_mid = True
                 #set global $align_start = int($span($year_delta=1, $boundary='midnight').start.raw)
