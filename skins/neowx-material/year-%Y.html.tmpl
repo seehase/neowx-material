@@ -532,6 +532,7 @@
                         #include "graph_month_annotations.inc"
                         xaxis: {
                             ...graph_${type}_config.xaxis,
+                            axisTicks: { show: false },
                             labels: { ...graph_${type}_config.xaxis.labels, show: false },
                         },
                     #end if
@@ -592,6 +593,7 @@
                         #include "graph_month_annotations.inc"
                         xaxis: {
                             ...graph_${type}_config.xaxis,
+                            axisTicks: { show: false },
                             labels: { ...graph_${type}_config.xaxis.labels, show: false },
                         },
                     #end if
@@ -698,7 +700,7 @@
                 #if $_pos not in $_seen
                     #silent $_seen[$_pos] = 1
                     #set $_a = $_idxs[$_pos]
-                    #silent $month_marks.append([$_days[$_a].start.raw * 1000, $_days[$_a].start.format('%b')])
+                    #silent $month_marks.append([$_days[$_a].start.raw * 1000, $_days[$_a].start.format('%m/%d')])
                 #end if
             #end for
         #end if
@@ -925,6 +927,7 @@
                                     #include "graph_align_axis.inc"
                                 #end if
                                 #if $year_month_align
+                                axisTicks: { show: false },
                                 labels: { ...graph_${cc_type}_config.xaxis.labels, show: false }
                                 #else if $cc_label_fmt
                                 labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
