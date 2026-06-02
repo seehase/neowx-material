@@ -627,12 +627,18 @@
             #set $_yr_spec = $Extras.Charts.get('tick_amount_year', $Extras.Charts.get('tick_amount', 'auto'))
             #set $_yr_spec = $_yr_spec.strip().lower() if (not isinstance($_yr_spec, list) and $_yr_spec) else 'auto'
             #set $_yr_parts = $_yr_spec.split(':')
-            #if $_yr_spec == 'align:month'
+            #if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'month'
                 #set global $year_month_align = True
                 #set global $month_marks = []
+                #set $_mn = int($_yr_parts[2]) if (len($_yr_parts) >= 3 and $_yr_parts[2].strip().isdigit() and int($_yr_parts[2]) > 0) else 1
+                #set $_mstride = int(round(30.0 / $_mn))
+                #if $_mstride < 1
+                    #set $_mstride = 1
+                #end if
                 #for $_r in $span($year_delta=1, $boundary='midnight').spans(interval=86400)
-                    #if $_r.start.format('%d') == '01'
-                        #silent $month_marks.append([$_r.start.raw * 1000, $_r.start.format('%b')])
+                    #set $_dom = int($_r.start.format('%d'))
+                    #if ($_dom - 1) % $_mstride == 0 and ($_dom - 1) // $_mstride < $_mn
+                        #silent $month_marks.append([$_r.start.raw * 1000, $_r.start.format('%b') if $_dom == 1 else str($_dom)])
                     #end if
                 #end for
             #else if len($_yr_parts) >= 2 and $_yr_parts[0] == 'align' and $_yr_parts[1] == 'midnight'
