@@ -64,11 +64,11 @@ markers: {
 
 xaxis: {
     type: 'datetime',
-    tickAmount: 8,
+    ## tickAmount intentionally unset: let ApexCharts place ticks on day/round
+    ## boundaries (fixes duplicate weekday labels + bar misalignment on week/month)
     trim: true,
     labels: {
         hideOverlappingLabels: true,
-        tickAmount: 8,
         rotateAlways: false,
         hideOverlappingLabels: true,
         showDuplicates: false,
