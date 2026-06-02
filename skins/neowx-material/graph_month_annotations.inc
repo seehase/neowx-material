@@ -17,7 +17,7 @@ annotations: {
                     text: '$_mk[1]',
                     position: 'bottom',
                     orientation: 'horizontal',
-                    offsetY: 4,
+                    offsetY: 18,
                     borderWidth: 0,
                     borderColor: 'transparent',
                     style: { fontSize: '11px', background: 'transparent', color: '#9e9e9e' }
