@@ -12,8 +12,7 @@ fill: {
 xaxis: {
     type: 'datetime',
     hideOverlappingLabels: true,
-    ## tickAmount intentionally unset: let ApexCharts place ticks on day/round
-    ## boundaries (fixes duplicate weekday labels + bar misalignment on week/month)
+    #include "graph_tick_amount.inc"
     labels: {
         formatter: function(val, timestamp) {
             #set global $gdf_base = 'datetime_graph_label'
