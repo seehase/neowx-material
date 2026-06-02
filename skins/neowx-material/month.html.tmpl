@@ -495,18 +495,6 @@
             ## Only add JS chart code if in array
             #if $name in $Extras.Appearance.charts_order
 
-                ## align[:N]: day-aligned x-axis ticks via graph_align_axis.inc (see week.html.tmpl).
-                #set $_ta_pg = $Extras.Charts.get('tick_amount_month', $Extras.Charts.get('tick_amount', 'auto'))
-                #set $_ta_pg = $_ta_pg.strip().lower() if (not isinstance($_ta_pg, list) and $_ta_pg) else 'auto'
-                #set $_align_parts = $_ta_pg.split(':')
-                #set $_do_align = len($_align_parts) >= 1 and $_align_parts[0] == 'align' and $type != 'radar'
-                #if $_do_align
-                    #set global $align_start = int($span($day_delta=31, $boundary='midnight').start.raw)
-                    #set global $align_stop  = int($current.dateTime.raw)
-                    #set global $align_mode  = 'day'
-                    #set global $align_count = int($_align_parts[1]) if (len($_align_parts) >= 2 and $_align_parts[1].strip().isdigit()) else 0
-                #end if
-
                 #if $name == "outTemp"
 
                     ## Special diagram for outside temp
@@ -515,7 +503,7 @@
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${type}_config,
-                            #if $_do_align
+                            #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
                                     ...graph_${type}_config.xaxis,
                                     #include "graph_align_axis.inc"
@@ -589,7 +577,7 @@
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${type}_config,
-                            #if $_do_align
+                            #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
                                     ...graph_${type}_config.xaxis,
                                     #include "graph_align_axis.inc"
@@ -699,17 +687,9 @@
             // Config templates
 
             ## ---- align setup (once per page): shared by standard AND custom charts ----
-            #set global $pg_align_mid = False
-            #set $_pg_spec = $Extras.Charts.get('tick_amount_month', $Extras.Charts.get('tick_amount', 'auto'))
-            #set $_pg_spec = $_pg_spec.strip().lower() if (not isinstance($_pg_spec, list) and $_pg_spec) else 'auto'
-            #set $_pg_parts = $_pg_spec.split(':')
-            #if len($_pg_parts) >= 1 and $_pg_parts[0] == 'align'
-                #set global $pg_align_mid = True
-                #set global $align_start = int($span($day_delta=31, $boundary='midnight').start.raw)
-                #set global $align_stop  = int($current.dateTime.raw)
-                #set global $align_mode  = 'day'
-                #set global $align_count = int($_pg_parts[1]) if (len($_pg_parts) >= 2 and $_pg_parts[1].strip().isdigit()) else 0
-            #end if
+            #set global $align_start = int($span($day_delta=31, $boundary='midnight').start.raw)
+            #set global $align_stop  = int($current.dateTime.raw)
+            #include "graph_align_setup.inc"
 
             var graph_area_config = {
                 #include "graph_area_config.inc"

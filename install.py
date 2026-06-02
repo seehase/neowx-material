@@ -39,6 +39,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/footer.inc",
                         "skins/neowx-material/forecast.inc",
                         "skins/neowx-material/graph_align_axis.inc",
+                        "skins/neowx-material/graph_align_setup.inc",
                         "skins/neowx-material/graph_area_config.inc",
                         "skins/neowx-material/graph_bar_config.inc",
                         "skins/neowx-material/graph_date_format.inc",

@@ -1,0 +1,18 @@
+#encoding UTF-8
+## ---------------------------------------------------------------------------
+## Resolve the page's tick spec into the align globals (once per page). Set
+## $align_start and $align_stop (epoch seconds) BEFORE including. This sets:
+##   $pg_align_mid - True when tick_amount_<page> is 'align' / 'align:N'
+##   $align_count  - N from align:N, else 0 (auto)
+## graph_align_axis.inc then turns start/stop/count into min/max/tickAmount
+## (auto day- vs month-granularity by span). Keyed off $page, so it works on
+## every chart page including the archives.
+## ---------------------------------------------------------------------------
+#set global $pg_align_mid = False
+#set $_spec = $Extras.Charts.get('tick_amount_' + $page, $Extras.Charts.get('tick_amount', 'auto'))
+#set $_spec = $_spec.strip().lower() if (not isinstance($_spec, list) and $_spec) else 'auto'
+#set $_parts = $_spec.split(':')
+#if len($_parts) >= 1 and $_parts[0] == 'align'
+    #set global $pg_align_mid = True
+    #set global $align_count = int($_parts[1]) if (len($_parts) >= 2 and $_parts[1].strip().isdigit()) else 0
+#end if

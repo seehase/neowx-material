@@ -494,26 +494,11 @@
             ## Only add JS chart code if in array
             #if $name in $Extras.Appearance.charts_order
 
-                ## tick_amount_week = align[:N] (prototype): provide the week
-                ## span bounds; graph_align_axis.inc emits day-aligned min/max/tickAmount
-                ## so ticks land on midnights. Optional :N aims for ~N ticks (whole-day
-                ## spacing). The same include is reused for month/year once validated.
-                #set $_ta_week = $Extras.Charts.get('tick_amount_week', $Extras.Charts.get('tick_amount', 'auto'))
-                #set $_ta_week = $_ta_week.strip().lower() if (not isinstance($_ta_week, list) and $_ta_week) else 'auto'
-                #set $_align_parts = $_ta_week.split(':')
-                #set $_do_align = len($_align_parts) >= 1 and $_align_parts[0] == 'align' and $type != 'radar'
-                #if $_do_align
-                    #set global $align_start = int($span($week_delta=1, $boundary='midnight').start.raw)
-                    #set global $align_stop  = int($current.dateTime.raw)
-                    #set global $align_mode  = 'day'
-                    #set global $align_count = int($_align_parts[1]) if (len($_align_parts) >= 2 and $_align_parts[1].strip().isdigit()) else 0
-                #end if
-
                 var chartElement = document.querySelector('#$id');
                 if (chartElement) {
                     new ApexCharts(chartElement, {
                         ...graph_${type}_config,
-                        #if $_do_align
+                        #if $pg_align_mid and $type != 'radar'
                             xaxis: {
                                 ...graph_${type}_config.xaxis,
                                 #include "graph_align_axis.inc"
@@ -621,17 +606,9 @@
             // Config templates
 
             ## ---- align setup (once per page): shared by standard AND custom charts ----
-            #set global $pg_align_mid = False
-            #set $_pg_spec = $Extras.Charts.get('tick_amount_week', $Extras.Charts.get('tick_amount', 'auto'))
-            #set $_pg_spec = $_pg_spec.strip().lower() if (not isinstance($_pg_spec, list) and $_pg_spec) else 'auto'
-            #set $_pg_parts = $_pg_spec.split(':')
-            #if len($_pg_parts) >= 1 and $_pg_parts[0] == 'align'
-                #set global $pg_align_mid = True
-                #set global $align_start = int($span($week_delta=1, $boundary='midnight').start.raw)
-                #set global $align_stop  = int($current.dateTime.raw)
-                #set global $align_mode  = 'day'
-                #set global $align_count = int($_pg_parts[1]) if (len($_pg_parts) >= 2 and $_pg_parts[1].strip().isdigit()) else 0
-            #end if
+            #set global $align_start = int($span($week_delta=1, $boundary='midnight').start.raw)
+            #set global $align_stop  = int($current.dateTime.raw)
+            #include "graph_align_setup.inc"
 
             var graph_area_config = {
                 #include "graph_area_config.inc"
