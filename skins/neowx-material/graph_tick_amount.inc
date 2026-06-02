@@ -1,15 +1,26 @@
 #encoding UTF-8
 ## ---------------------------------------------------------------------------
-## Emit `tickAmount: N,` for the datetime x-axis when a numeric tick count is
-## configured for this page; emit nothing for "auto" (the default) so that
-## ApexCharts places ticks on natural day / round boundaries.
-## Resolution (keys live in [[Charts]]):
+## Resolve the per-page x-axis tick spec and emit the matching ApexCharts
+## datetime config. Keys live in [[Charts]]:
 ##     tick_amount_<page>  ->  tick_amount  ->  auto
+## Supported values:
+##   auto            (default) no tickAmount - ApexCharts chooses the count
+##   fixed:N (or N)  exactly N tick intervals (N+1 evenly-spaced labels)
+##   align:midnight  one tick on every midnight - handled in the page template
+##                   (it needs the page's time span), so nothing is emitted here
 ## $page is one of: day (index + yesterday), week, month, year, telemetry.
-## A fixed count is spaced evenly across the range, so ticks may not land on
-## midnight; use "auto" when you want day-aligned ticks.
 ## ---------------------------------------------------------------------------
-#set $_ta = $Extras.Charts.get('tick_amount_' + $page, $Extras.Charts.get('tick_amount', 'auto'))
-#if $_ta and not isinstance($_ta, list) and $_ta.strip().isdigit() and int($_ta) > 0
-    tickAmount: $int($_ta),
+#set $_spec = $Extras.Charts.get('tick_amount_' + $page, $Extras.Charts.get('tick_amount', 'auto'))
+#if isinstance($_spec, list) or not $_spec
+    #set $_spec = 'auto'
+#end if
+#set $_spec = $_spec.strip().lower()
+#set $_num = ''
+#if $_spec.startswith('fixed:')
+    #set $_num = $_spec[6:].strip()
+#else if $_spec.isdigit()
+    #set $_num = $_spec
+#end if
+#if $_num.isdigit() and int($_num) > 0
+    tickAmount: $int($_num),
 #end if

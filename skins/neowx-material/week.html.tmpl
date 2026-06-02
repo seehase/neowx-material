@@ -494,10 +494,34 @@
             ## Only add JS chart code if in array
             #if $name in $Extras.Appearance.charts_order
 
+                ## tick_amount_week = align:midnight (prototype): compute whole-day
+                ## aligned x-axis bounds (epoch seconds, matching the data) so the
+                ## evenly-spaced ticks land on each midnight. tickAmount = day count.
+                #set $_ta_week = $Extras.Charts.get('tick_amount_week', $Extras.Charts.get('tick_amount', 'auto'))
+                #set $_ta_week = $_ta_week.strip().lower() if (not isinstance($_ta_week, list) and $_ta_week) else 'auto'
+                #set $_do_align = $_ta_week == 'align:midnight' and $type != 'radar'
+                #if $_do_align
+                    #set $_wsp    = $span($week_delta=1, $boundary='midnight')
+                    #set $_wstart = int($_wsp.start.raw)
+                    #set $_wdays  = int((int($current.dateTime.raw) - $_wstart + 86399) // 86400)
+                    #if $_wdays < 1
+                        #set $_wdays = 1
+                    #end if
+                    #set $_wmax = $_wstart + $_wdays * 86400
+                #end if
+
                 var chartElement = document.querySelector('#$id');
                 if (chartElement) {
                     new ApexCharts(chartElement, {
                         ...graph_${type}_config,
+                        #if $_do_align
+                            xaxis: {
+                                ...graph_${type}_config.xaxis,
+                                min: $_wstart,
+                                max: $_wmax,
+                                tickAmount: $_wdays,
+                            },
+                        #end if
                         #if $name == "windDir"
                             yaxis: {
                                 max: 360,
