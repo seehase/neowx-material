@@ -528,6 +528,13 @@
             if (chartElement) {
                 new ApexCharts(chartElement, {
                     ...graph_${type}_config,
+                    #if $year_month_align and $type != 'radar'
+                        #include "graph_month_annotations.inc"
+                        xaxis: {
+                            ...graph_${type}_config.xaxis,
+                            labels: { ...graph_${type}_config.xaxis.labels, show: false },
+                        },
+                    #end if
                     #if $_do_align
                         xaxis: {
                             ...graph_${type}_config.xaxis,
@@ -581,6 +588,13 @@
             if (chartElement) {
                 new ApexCharts(chartElement, {
                     ...graph_${type}_config,
+                    #if $year_month_align and $type != 'radar'
+                        #include "graph_month_annotations.inc"
+                        xaxis: {
+                            ...graph_${type}_config.xaxis,
+                            labels: { ...graph_${type}_config.xaxis.labels, show: false },
+                        },
+                    #end if
                     #if $_do_align
                         xaxis: {
                             ...graph_${type}_config.xaxis,
@@ -649,6 +663,19 @@
 #end def
 
 <script type="text/javascript">
+    ## align:month (year): build month-1st markers once (epoch ms) for annotations
+    #set global $year_month_align = False
+    #set $_yr_spec = $Extras.Charts.get('tick_amount_year', $Extras.Charts.get('tick_amount', 'auto'))
+    #set $_yr_spec = $_yr_spec.strip().lower() if (not isinstance($_yr_spec, list) and $_yr_spec) else 'auto'
+    #if $_yr_spec == 'align:month'
+        #set global $year_month_align = True
+        #set global $month_marks = []
+        #for $_r in list($year.days)
+            #if $_r.start.format('%d') == '01'
+                #silent $month_marks.append([$_r.start.raw * 1000, $_r.start.format('%b')])
+            #end if
+        #end for
+    #end if
     var graph_area_config = {
         #include "graph_area_config.inc"
     }
