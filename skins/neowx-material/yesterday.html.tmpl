@@ -884,7 +884,9 @@
                         ## Check for yaxis subsection that maps fields to axes
                         #set $yaxis_section = $cc_page.get('yaxis', $cc.get('yaxis', {}))
                         #if isinstance($yaxis_section, dict)
-                            #for $field_k, $axis_id in $yaxis_section.items()
+                            #for $yaxis_item in $yaxis_section.items()
+                                #set $field_k = $yaxis_item[0]
+                                #set $axis_id = $yaxis_item[1]
                                 #set $axis_id_clean = str($axis_id).strip()
                                 #silent $axis_map[$field_k] = $axis_id_clean
                                 #silent $axes_used.add($axis_id_clean)
@@ -946,7 +948,9 @@
                                     #else
                                         ## Multiple axes configuration
                                         yaxis: [
-                                            #for $idx, $axis_id in enumerate($axes_list)
+                                            #for $axis_entry in enumerate($axes_list)
+                                                #set $idx = $axis_entry[0]
+                                                #set $axis_id = $axis_entry[1]
                                                 ## Find fields assigned to this axis
                                                 #set $fields_on_axis = [f for f, a in $axis_map.items() if a == $axis_id]
                                                 #set $first_field = $fields_on_axis[0] if $fields_on_axis else $cc_series_pairs[0][0]

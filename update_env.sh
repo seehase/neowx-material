@@ -1,4 +1,6 @@
 #!/bin/zsh
+now="$(date +"%T")"
+echo "Current time : $now"
 
 # Check if /Volumes/docker exists
 if [ ! -d "/Volumes/docker" ]; then
