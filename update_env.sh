@@ -1,6 +1,4 @@
 #!/bin/zsh
-now="$(date +"%T")"
-echo "Current time : $now"
 
 # Check if /Volumes/docker exists
 if [ ! -d "/Volumes/docker" ]; then
@@ -96,3 +94,6 @@ else
     echo "Backup saved at $DEST_DIR/skin.conf.bak"
     exit 1
 fi
+
+now="$(date +"%T")"
+echo "Current time : $now"
