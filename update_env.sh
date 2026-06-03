@@ -94,3 +94,6 @@ else
     echo "Backup saved at $DEST_DIR/skin.conf.bak"
     exit 1
 fi
+
+now="$(date +"%T")"
+echo "Current time : $now"
