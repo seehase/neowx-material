@@ -6,8 +6,8 @@
 ##   $align_count    - N from align:N, else 0 (auto)
 ##   $pg_align_count - stable snapshot of $align_count (for per-chart overrides)
 ## graph_align_axis.inc then turns start/stop/count into min/max/tickAmount
-## (auto day- vs month-granularity by span). Keyed off $page, so it works on
-## every chart page including the archives.
+## (auto hour-/day-/month-granularity by span - see that file). Keyed off
+## $page, so it works on every chart page including the archives.
 ## ---------------------------------------------------------------------------
 #set global $pg_align_mid = False
 #set global $align_count = 0
