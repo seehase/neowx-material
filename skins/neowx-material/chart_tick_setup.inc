@@ -4,7 +4,8 @@
 ## chart-scoped globals. Include from the customChart* loop AFTER setting
 ## (as #set global):
 ##   $cc_name  - the customChart* key (e.g. customChartOutTemp)
-##   $cc_scope - page scope key: week / month / year (etc.)
+##   $cc_scope - per-page subsection name: current (index) / yesterday / week /
+##               month / year - NOT the page-level tick_amount_<page> key
 ## The value (page subsection -> top-level) accepts the same forms as the
 ## [[Charts]] tick_amount keys: auto / fixed:N (or N) / align / align:N.
 ## When the chart sets nothing, $cc_tick_set stays False and the page setting
