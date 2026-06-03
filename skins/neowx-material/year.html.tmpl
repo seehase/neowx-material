@@ -800,6 +800,7 @@
                         #set global $cc_name  = $x
                         #set global $cc_scope = 'year'
                         #include "chart_date_format.inc"
+                        #include "chart_tick_setup.inc"
 
                         ##
                         ## Render the chart JS
@@ -815,12 +816,10 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
-                                    #if $cc_label_fmt or $pg_align_mid
+                                    #if $cc_label_fmt or $pg_align_mid or $cc_tick_set
                                     xaxis: {
                                         ...graph_${cc_type}_config.xaxis,
-                                        #if $pg_align_mid
-                                            #include "graph_align_axis.inc"
-                                        #end if
+                                        #include "chart_tick_axis.inc"
                                         #if $cc_label_fmt
                                         labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
                                         #end if
