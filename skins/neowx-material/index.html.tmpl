@@ -684,6 +684,12 @@
                 if (chartElement) {
                     new ApexCharts(chartElement, {
                         ...graph_${type}_config,
+                        #if $pg_align_mid and $type != 'radar'
+                            xaxis: {
+                                ...graph_${type}_config.xaxis,
+                                #include "graph_align_axis.inc"
+                            },
+                        #end if
                         #if $name == "windDir"
                             yaxis: {
                                 max: 360,
@@ -785,6 +791,10 @@
         <script type="text/javascript">
             // Config templates
 
+            ## ---- align setup (once per page): shared by standard AND custom charts ----
+            #set global $align_start = int($span($time_delta=$custom_time_delta).start.raw)
+            #set global $align_stop  = int($current.dateTime.raw)
+            #include "graph_align_setup.inc"
             var graph_area_config = {
                 #include "graph_area_config.inc"
             }
@@ -1039,6 +1049,7 @@
                         #set global $cc_name  = $x
                         #set global $cc_scope = 'current'
                         #include "chart_date_format.inc"
+                        #include "chart_tick_setup.inc"
 
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
@@ -1052,10 +1063,13 @@
                             if (chartElement) {
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
-                                    #if $cc_label_fmt
+                                    #if $cc_label_fmt or $pg_align_mid or $cc_tick_set
                                     xaxis: {
                                         ...graph_${cc_type}_config.xaxis,
+                                        #include "chart_tick_axis.inc"
+                                        #if $cc_label_fmt
                                         labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
+                                        #end if
                                     },
                                     #end if
                                     #if $cc_tooltip_fmt
