@@ -303,6 +303,19 @@
         #set global $card_scope = $page
         #set global $card_default = $Extras.Formatting.datetime_today
         #include "card_datetime.inc"
+
+        ## Resolve the page tick spec once (tick_amount_telemetry -> tick_amount ->
+        ## auto). All telemetry charts share the same span (Telemetry.chart_days,
+        ## default 1 day), so the resulting min/max/tickAmount apply to all of them.
+        #set global $_tel_chart_days = 1
+        #try
+            #set global $_tel_chart_days = int($getVar('Extras.Telemetry.chart_days', '1'))
+        #except
+            #set global $_tel_chart_days = 1
+        #end try
+        #set global $align_start = $span($day_delta=$_tel_chart_days).start.raw
+        #set global $align_stop = $current.dateTime.raw
+        #include "graph_align_setup.inc"
         <main>
             <div class="container-fluid d-flex-xxl">
 
@@ -422,6 +435,17 @@
 
                 new ApexCharts(document.querySelector('#$name-chart'), {
                     ...graph_area_config,
+                    #if $pg_align_mid
+                    xaxis: {
+                        ...graph_area_config.xaxis,
+                        #include "graph_align_axis.inc"
+                    },
+                    #else
+                    xaxis: {
+                        ...graph_area_config.xaxis,
+                        #include "graph_tick_amount.inc"
+                    },
+                    #end if
                     yaxis: {
                         #if $is_battery and not $is_voltage
                             ## Status-based battery: use custom position labels
