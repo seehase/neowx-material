@@ -37,6 +37,10 @@
         #set global $cc_tick_fixed = int($_parts[1]) if (len($_parts) >= 2 and $_parts[1].strip().isdigit()) else 0
     #else if $_spec.isdigit()
         #set global $cc_tick_fixed = int($_spec)
+    #else if $_spec != 'auto'
+        ## not align / fixed / number / auto -> a typo that would silently
+        ## force this chart to auto; flag it instead
+        // neowx-material: ignored unrecognized tick_amount "$_spec" on chart $cc_name - using auto
     #end if
-    ## anything else (e.g. 'auto') leaves align False / fixed 0 -> ticks auto
+    ## 'auto' falls through here: explicit auto is valid and stays silent
 #end if

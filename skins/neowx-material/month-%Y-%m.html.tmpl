@@ -590,8 +590,16 @@
 
         <script type="text/javascript">
             ## ---- align setup (once per page): shared by standard AND custom charts ----
-            #set global $align_start = int(list($month.days)[0].start.raw)
-            #set global $align_stop  = int(list($month.days)[-1].start.raw) + 86400
+            #set $_mdays = list($month.days)
+            #if len($_mdays) > 0
+                #set global $align_start = int($_mdays[0].start.raw)
+                #set global $align_stop  = int($_mdays[-1].start.raw) + 86400
+            #else
+                ## empty archive month (sparse data): nominal 1-day span so nothing
+                ## indexes an empty list or divides by zero downstream
+                #set global $align_start = int($current.dateTime.raw) - 86400
+                #set global $align_stop  = int($current.dateTime.raw)
+            #end if
             #include "graph_align_setup.inc"
 
             var graph_area_config = {

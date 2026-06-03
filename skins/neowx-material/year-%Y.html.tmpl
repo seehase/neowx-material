@@ -638,8 +638,15 @@
 
 <script type="text/javascript">
     ## ---- align setup (once per page): shared by standard AND custom charts ----
-    #set global $align_start = int(list($year.days)[0].start.raw)
-    #set global $align_stop  = int(list($year.days)[-1].start.raw) + 86400
+    #set $_ydays = list($year.days)
+    #if len($_ydays) > 0
+        #set global $align_start = int($_ydays[0].start.raw)
+        #set global $align_stop  = int($_ydays[-1].start.raw) + 86400
+    #else
+        ## empty archive year (sparse data): nominal 1-day span as a safe fallback
+        #set global $align_start = int($current.dateTime.raw) - 86400
+        #set global $align_stop  = int($current.dateTime.raw)
+    #end if
     #include "graph_align_setup.inc"
     var graph_area_config = {
         #include "graph_area_config.inc"

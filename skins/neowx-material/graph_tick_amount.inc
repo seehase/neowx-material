@@ -23,4 +23,6 @@
 #end if
 #if $_num.isdigit() and int($_num) > 0
     tickAmount: $int($_num),
+#else if $_spec.startswith('fixed:') or ($_spec and $_spec != 'auto' and not $_spec.startswith('align') and not $_spec.isdigit())
+    // neowx-material: ignored unparseable tick_amount "$_spec" on page $page - using auto
 #end if
