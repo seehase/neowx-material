@@ -218,6 +218,22 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Does an observation have data within the chart's rolling window?         |
+## |                                                                          |
+## | Charts on the current page plot $custom_time_delta (a ~24h window that   |
+## | crosses midnight), so visibility must be decided against that span, NOT  |
+## | $day (midnight->now). Otherwise a calm/empty morning hides a chart that  |
+## | still has data from earlier in the window (e.g. yesterday evening).      |
+## | Value-cards keep using $day on purpose: they show today's stats.         |
+## +-------------------------------------------------------------------------+
+## >>> chartHasData >>>
+#def chartHasData($name)
+    #set $_chd_obs = $getattr($span($time_delta=$custom_time_delta), $name)
+    #return $_chd_obs.has_data
+#end def
+## <<< chartHasData <<<
+
+## +-------------------------------------------------------------------------+
 ## | Template for display card of a single chart (right column)              |
 ## | Chart values are defined in the JS section below                        |
 ## +-------------------------------------------------------------------------+
@@ -236,7 +252,7 @@
             #else
                 #set $cc_vals_list = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
             #end if
-            #set $cc_any_has_data = any($getVar('day.' + v + '.has_data') for v in $cc_vals_list)
+            #set $cc_any_has_data = any($chartHasData(v) for v in $cc_vals_list)
             #set $cc_sensors_str = chr(44).join($cc_vals_list)
             #if len($cc_vals_list) > 0 and $cc_any_has_data
                 <div class="col-12 col-xl-6 mb-4">
@@ -249,7 +265,7 @@
                 </div>
             #end if
         #end if
-    #else if ($getVar('day.' + name + '.has_data') or $name == "windvec") and $name not in ["appTemp", "windrun"] and ($name != 'ET' or ($day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0))
+    #else if ($chartHasData($name) or $name == "windvec") and $name not in ["appTemp", "windrun"] and ($name != 'ET' or ($day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0))
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart" id="${name}-chart" data-name="$name">
                 <div class="card-body text-center">
@@ -350,12 +366,12 @@
                     #else
                         #set $cc_vals_list = [v.strip() for v in $cc_values_raw.split(',') if v.strip()]
                     #end if
-                    #set $cc_any_has_data = any($getVar('day.' + v + '.has_data') for v in $cc_vals_list)
+                    #set $cc_any_has_data = any($chartHasData(v) for v in $cc_vals_list)
                     #if len($cc_vals_list) > 0 and $cc_any_has_data
                         #set $any_has_data = True
                     #end if
                 #end if
-            #else if ($getVar('day.' + $x + '.has_data') or $x == "windvec") and $x not in ["appTemp", "windrun"] and ($x != 'ET' or ($day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0))
+            #else if ($chartHasData($x) or $x == "windvec") and $x not in ["appTemp", "windrun"] and ($x != 'ET' or ($day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0))
                 #set $any_has_data = True
             #end if
         #end for
@@ -734,43 +750,43 @@
                                 name: "$getVar('obs.label.' + series1)",
                                 data: [ $getChartData(series1, column) ]
                             }
-                            #if $series2 != "" and $getVar('day.' + series2 + '.has_data')
+                            #if $series2 != "" and $chartHasData(series2)
                                 ,{
                                     name: "$getVar('obs.label.' + series2)",
                                     data: [ $getChartData(series2, column) ]
                                 }
                             #end if
-                            #if $series3 != "" and $getVar('day.' + series3 + '.has_data')
+                            #if $series3 != "" and $chartHasData(series3)
                                 ,{
                                     name: "$getVar('obs.label.' + series3)",
                                     data: [ $getChartData(series3, column) ]
                                 }
                             #end if
-                            #if $series4 != "" and $getVar('day.' + series4 + '.has_data')
+                            #if $series4 != "" and $chartHasData(series4)
                                 ,{
                                     name: "$getVar('obs.label.' + series4)",
                                     data: [ $getChartData(series4, column) ]
                                 }
                             #end if
-                            #if $series5 != "" and $getVar('day.' + series5 + '.has_data')
+                            #if $series5 != "" and $chartHasData(series5)
                                 ,{
                                     name: "$getVar('obs.label.' + series5)",
                                     data: [ $getChartData(series5, column) ]
                                 }
                             #end if
-                            #if $series6 != "" and $getVar('day.' + series6 + '.has_data')
+                            #if $series6 != "" and $chartHasData(series6)
                                 ,{
                                     name: "$getVar('obs.label.' + series6)",
                                     data: [ $getChartData(series6, column) ]
                                 }
                             #end if
-                            #if $series7 != "" and $getVar('day.' + series7 + '.has_data')
+                            #if $series7 != "" and $chartHasData(series7)
                                 ,{
                                     name: "$getVar('obs.label.' + series7)",
                                     data: [ $getChartData(series7, column) ]
                                 }
                             #end if
-                            #if $series8 != "" and $getVar('day.' + series8 + '.has_data')
+                            #if $series8 != "" and $chartHasData(series8)
                                 ,{
                                     name: "$getVar('obs.label.' + series8)",
                                     data: [ $getChartData(series8, column) ]
@@ -812,7 +828,7 @@
             #set $processed_charts = set()
 
             // Wind
-            #if $day.windSpeed.has_data
+            #if $chartHasData('windSpeed')
                 $getChartJsCode("windSpeed", "windSpeedchart", "area", "windSpeed", "windGust", "max")
             #end if
             #silent $processed_charts.add("windSpeed")
@@ -939,7 +955,7 @@
                 #set $x_nm = $x.strip().lower()
                 #if not $x.startswith('customChart') and $x not in $processed_charts and not ($x_nm in ('hr', 'hrc') or $x_nm[:3] in ('hr:', 'hr ') or $x_nm[:4] in ('hrc:', 'hrc '))
                     #silent $processed_charts.add($x)
-                    #if $getVar('day.' + $x + '.has_data')
+                    #if $chartHasData($x)
                         #set $c_type = $default_chart_types.get($x, 'area')
                         #set $c_col = $default_chart_columns.get($x, 'avg')
                         #set $c_series = $default_chart_series.get($x, $x)
@@ -1146,7 +1162,7 @@
                                     #end if
                                     series: [
                                         #for $val, $cols in $cc_series_pairs
-                                            #if $getVar('day.' + val + '.has_data')
+                                            #if $chartHasData(val)
                                                 {
                                                     name: "$getVar('obs.label.' + val)",
                                                     data: [ $getChartData(val, cols[0]) ]

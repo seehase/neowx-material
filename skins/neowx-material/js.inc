@@ -53,19 +53,22 @@
     #set $defaultChartBehavior = "pan"
 #end if
 
-## Opt-in: re-snap datetime ticks to the calendar after a zoom (default off)
-#set $alignOnZoom = "false"
-#if str($Extras.Charts.get('align_on_zoom', 'false')).strip().lower() in ('true', 'yes', '1')
-    #set $alignOnZoom = "true"
-#end if
-
 ## Global apexcharts config
 <script type="text/javascript">
-    // Opt-in (align_on_zoom): after a user zoom, re-snap the datetime x-axis
-    // back onto calendar boundaries. Granularity follows the zoom width, the
-    // same way graph_align_axis.inc picks it server-side: hour tier (<=2 days),
-    // day tier (<=62 days), else even spacing.
-    var NEOWX_ALIGN_ON_ZOOM = $alignOnZoom;
+    // Charts drawn in "align" mode (the only ones with xaxis.min+max set) keep
+    // their calendar alignment through a zoom: record them at mount, then the
+    // zoom handler re-snaps the new range. fixed/auto charts are left alone.
+    // Granularity follows the zoom width, same as graph_align_axis.inc server-
+    // side: hour tier (<=2 days), day tier (<=62 days), else even spacing.
+    var NEOWX_ALIGNED = {};
+    function neowxMountedHandler(chartContext) {
+        try {
+            var x = chartContext.w.config.xaxis;
+            if (x && x.min != null && x.max != null) {
+                NEOWX_ALIGNED[chartContext.w.globals.chartID] = true;
+            }
+        } catch (e) {}
+    }
     function neowxAlignAxis(minMs, maxMs) {
         var secs = (maxMs - minMs) / 1000;
         if (secs < 3600) { secs = 3600; }
@@ -87,7 +90,8 @@
     }
     var _neowxZooming = false;
     function neowxZoomHandler(chartContext, opts) {
-        if (!NEOWX_ALIGN_ON_ZOOM || _neowxZooming) { return; }
+        if (_neowxZooming) { return; }
+        try { if (!NEOWX_ALIGNED[chartContext.w.globals.chartID]) { return; } } catch (e) { return; }
         if (!opts || !opts.xaxis || opts.xaxis.min == null || opts.xaxis.max == null) { return; }
         var a = neowxAlignAxis(opts.xaxis.min, opts.xaxis.max);
         _neowxZooming = true;
@@ -153,6 +157,7 @@
                 enabled: false
             },
             events: {
+                mounted: neowxMountedHandler,
                 zoomed: neowxZoomHandler
             },
         },
