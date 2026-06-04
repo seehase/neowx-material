@@ -306,14 +306,15 @@
 
         ## Resolve the page tick spec once (tick_amount_telemetry -> tick_amount ->
         ## auto). All telemetry charts share the same span (Telemetry.chart_days,
-        ## default 1 day), so the resulting min/max/tickAmount apply to all of them.
+        ## 30 in the shipped config; 1 if unset). Snap the start to midnight so the
+        ## day-tier ticks land on midnight (not the current time-of-day).
         #set global $_tel_chart_days = 1
         #try
             #set global $_tel_chart_days = int($getVar('Extras.Telemetry.chart_days', '1'))
         #except
             #set global $_tel_chart_days = 1
         #end try
-        #set global $align_start = $span($day_delta=$_tel_chart_days).start.raw
+        #set global $align_start = $span($day_delta=$_tel_chart_days, $boundary='midnight').start.raw
         #set global $align_stop = $current.dateTime.raw
         #include "graph_align_setup.inc"
         <main>
@@ -370,7 +371,7 @@
             ## Check if this is an enabled battery field
             #set is_battery = $isBatteryFieldEnabled($name)
 
-            #set records = list($span($day_delta=$chart_days).spans(interval=$chart_interval))
+            #set records = list($span($day_delta=$chart_days, $boundary='midnight').spans(interval=$chart_interval))
             #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
