@@ -4,7 +4,8 @@
 ## including (as #set global, epoch SECONDS):
 ##   $align_start - range start
 ##   $align_stop  - range end (e.g. $current.dateTime.raw, or period end)
-##   $align_count - desired tick count; 0 = auto (~<=12 ticks)
+##   $align_count - desired tick count; 0 = auto (~6 on the hour tier / day
+##                  page, ~12 on the day and month tiers)
 ## Granularity is chosen automatically from the span:
 ##   span <= 2 days  -> hour-aligned: ticks snapped to the top of the hour
 ##                      (e.g. 14:00) - i.e. the day page and telemetry
@@ -22,15 +23,16 @@
     #set $_secs = 3600
 #end if
 #set $_count = int($align_count)
-#if $_count < 1
-    #set $_count = 12
-#end if
 #set $_total = int(($_secs + 86399) // 86400)
 #if $_total < 1
     #set $_total = 1
 #end if
 #if $_secs <= 172800
     ## hour-aligned: whole-hour stride so ticks land on the hour (e.g. 14:00)
+    ## auto count defaults to 6 here (short day-page span -> ~every 4 hours)
+    #if $_count < 1
+        #set $_count = 6
+    #end if
     #set $_hours = int(($_secs + 3599) // 3600)
     #set $_stride = int(round(float($_hours) / $_count))
     #if $_stride < 1
@@ -45,6 +47,9 @@
     tickAmount: $_ticks,
 #else if $_total <= 62
     ## day-aligned: whole-day stride so ticks land on midnight
+    #if $_count < 1
+        #set $_count = 12
+    #end if
     #set $_stride = int(round(float($_total) / $_count))
     #if $_stride < 1
         #set $_stride = 1
@@ -57,6 +62,9 @@
     tickAmount: $_ticks,
 #else
     ## long span: ticks evenly spaced across the range (~monthly)
+    #if $_count < 1
+        #set $_count = 12
+    #end if
     #set $_min_ms = $_start * 1000
     #set $_max_ms = $_stop * 1000
     min: $_min_ms,
