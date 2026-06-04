@@ -56,16 +56,18 @@
 ## Global apexcharts config
 <script type="text/javascript">
     // Charts drawn in "align" mode (the only ones with xaxis.min+max set) keep
-    // their calendar alignment through a zoom: record them at mount, then the
-    // zoom handler re-snaps the new range. fixed/auto charts are left alone.
-    // Granularity follows the zoom width, same as graph_align_axis.inc server-
-    // side: hour tier (<=2 days), day tier (<=62 days), else even spacing.
+    // their calendar alignment through a zoom: record their original aligned
+    // axis at mount, re-snap on zoom, and restore the original on reset zoom.
+    // fixed/auto charts are left alone. Granularity follows the zoom width,
+    // same as graph_align_axis.inc server-side: hour tier (<=2 days), day tier
+    // (<=62 days), else even spacing.
     var NEOWX_ALIGNED = {};
     function neowxMountedHandler(chartContext) {
         try {
             var x = chartContext.w.config.xaxis;
             if (x && x.min != null && x.max != null) {
-                NEOWX_ALIGNED[chartContext.w.globals.chartID] = true;
+                NEOWX_ALIGNED[chartContext.w.globals.chartID] =
+                    { min: x.min, max: x.max, tickAmount: x.tickAmount };
             }
         } catch (e) {}
     }
@@ -89,8 +91,9 @@
         return { min: minMs, max: maxMs, tickAmount: 12 };
     }
     var _neowxZooming = false;
+    var _neowxResetting = false;
     function neowxZoomHandler(chartContext, opts) {
-        if (_neowxZooming) { return; }
+        if (_neowxZooming || _neowxResetting) { return; }
         try { if (!NEOWX_ALIGNED[chartContext.w.globals.chartID]) { return; } } catch (e) { return; }
         if (!opts || !opts.xaxis || opts.xaxis.min == null || opts.xaxis.max == null) { return; }
         var a = neowxAlignAxis(opts.xaxis.min, opts.xaxis.max);
@@ -101,6 +104,26 @@
             if (p && p.then) { p.then(function(){ _neowxZooming = false; }, function(){ _neowxZooming = false; }); }
             else { _neowxZooming = false; }
         } catch (e) { _neowxZooming = false; }
+    }
+    function neowxResetDone() { _neowxZooming = false; _neowxResetting = false; }
+    function neowxBeforeResetHandler(chartContext) {
+        // Restore the ORIGINAL aligned min/max/tickAmount captured at mount. beforeResetZoom only
+        // positions min/max, so re-apply the exact tickAmount right after via updateOptions.
+        try {
+            var o = NEOWX_ALIGNED[chartContext.w.globals.chartID];
+            if (!o) { return; }
+            _neowxResetting = true;
+            setTimeout(function() {
+                try {
+                    _neowxZooming = true;
+                    var p = chartContext.updateOptions(
+                        { xaxis: { min: o.min, max: o.max, tickAmount: o.tickAmount } }, false, false);
+                    if (p && p.then) { p.then(neowxResetDone, neowxResetDone); }
+                    else { neowxResetDone(); }
+                } catch (e) { neowxResetDone(); }
+            }, 0);
+            return { xaxis: { min: o.min, max: o.max } };
+        } catch (e) {}
     }
 
     var config_mode = '${Extras.Appearance.mode}';
@@ -158,7 +181,8 @@
             },
             events: {
                 mounted: neowxMountedHandler,
-                zoomed: neowxZoomHandler
+                zoomed: neowxZoomHandler,
+                beforeResetZoom: neowxBeforeResetHandler
             },
         },
     }
