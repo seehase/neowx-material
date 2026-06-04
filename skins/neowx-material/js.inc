@@ -53,8 +53,52 @@
     #set $defaultChartBehavior = "pan"
 #end if
 
+## Opt-in: re-snap datetime ticks to the calendar after a zoom (default off)
+#set $alignOnZoom = "false"
+#if str($Extras.Charts.get('align_on_zoom', 'false')).strip().lower() in ('true', 'yes', '1')
+    #set $alignOnZoom = "true"
+#end if
+
 ## Global apexcharts config
 <script type="text/javascript">
+    // Opt-in (align_on_zoom): after a user zoom, re-snap the datetime x-axis
+    // back onto calendar boundaries. Granularity follows the zoom width, the
+    // same way graph_align_axis.inc picks it server-side: hour tier (<=2 days),
+    // day tier (<=62 days), else even spacing.
+    var NEOWX_ALIGN_ON_ZOOM = $alignOnZoom;
+    function neowxAlignAxis(minMs, maxMs) {
+        var secs = (maxMs - minMs) / 1000;
+        if (secs < 3600) { secs = 3600; }
+        if (secs <= 172800) {
+            var hours = Math.ceil(secs / 3600);
+            var hs = Math.max(1, Math.round(hours / 6));
+            var ht = Math.ceil(hours / hs);
+            var h0 = moment(minMs).startOf('hour');
+            return { min: h0.valueOf(), max: h0.clone().add(ht * hs, 'hours').valueOf(), tickAmount: ht };
+        }
+        var days = Math.ceil(secs / 86400);
+        if (days <= 62) {
+            var ds = Math.max(1, Math.round(days / 12));
+            var dt = Math.ceil(days / ds);
+            var d0 = moment(minMs).startOf('day');
+            return { min: d0.valueOf(), max: d0.clone().add(dt * ds, 'days').valueOf(), tickAmount: dt };
+        }
+        return { min: minMs, max: maxMs, tickAmount: 12 };
+    }
+    var _neowxZooming = false;
+    function neowxZoomHandler(chartContext, opts) {
+        if (!NEOWX_ALIGN_ON_ZOOM || _neowxZooming) { return; }
+        if (!opts || !opts.xaxis || opts.xaxis.min == null || opts.xaxis.max == null) { return; }
+        var a = neowxAlignAxis(opts.xaxis.min, opts.xaxis.max);
+        _neowxZooming = true;
+        try {
+            var p = chartContext.updateOptions(
+                { xaxis: { min: a.min, max: a.max, tickAmount: a.tickAmount } }, false, false);
+            if (p && p.then) { p.then(function(){ _neowxZooming = false; }, function(){ _neowxZooming = false; }); }
+            else { _neowxZooming = false; }
+        } catch (e) { _neowxZooming = false; }
+    }
+
     var config_mode = '${Extras.Appearance.mode}';
     var theme_mode = 'light';
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -107,6 +151,9 @@
             defaultLocale: '$lang',
             animations: {
                 enabled: false
+            },
+            events: {
+                zoomed: neowxZoomHandler
             },
         },
     }
