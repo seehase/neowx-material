@@ -4,8 +4,10 @@
 ## including (as #set global, epoch SECONDS):
 ##   $align_start - range start
 ##   $align_stop  - range end (e.g. $current.dateTime.raw, or period end)
-##   $align_count - desired tick count; 0 = auto (~6 on the hour tier / day
-##                  page, ~12 on the day and month tiers)
+##   $align_count - desired tick count; 0 = auto. Target is ~6 on the hour
+##                  tier (day page) and ~12 on the day/month tiers, but the
+##                  whole-hour / whole-day stride caps it (e.g. the week shows
+##                  one tick per midnight, ~7-8; the month ~11).
 ## Granularity is chosen automatically from the span:
 ##   span <= 2 days  -> hour-aligned: ticks snapped to the top of the hour
 ##                      (e.g. 14:00) - i.e. the day page and telemetry
