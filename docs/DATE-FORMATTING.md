@@ -113,7 +113,8 @@ Add these under `[Extras] → [[Formatting]]` (next to the existing `datetime_gr
 ```
 
 > Avoid commas inside a format value - the config parser treats a comma as a list separator.
-> `%a, %d %b` will misbehave; use `%a %d %b` instead.
+> `%a, %d %b` will misbehave; use `%a %d %b` instead or put the format in quotation marks:
+> `"%a, %d %b"`.
 
 Defining names is optional - you can also write a literal format inline. Names pay off when you reuse a
 format (see the next section). You can reference these in the examples below.

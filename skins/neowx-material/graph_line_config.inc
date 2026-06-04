@@ -27,7 +27,7 @@ chart: {
             csv: {
                 headerCategory: 'DateTime',
                 dateFormatter(timestamp) {
-                    return moment.unix(timestamp).toISOString()
+                    return moment(timestamp).toISOString()
                 }
             }
         }
@@ -64,11 +64,10 @@ markers: {
 
 xaxis: {
     type: 'datetime',
-    tickAmount: 8,
+    #include "graph_tick_amount.inc"
     trim: true,
     labels: {
         hideOverlappingLabels: true,
-        tickAmount: 8,
         rotateAlways: false,
         hideOverlappingLabels: true,
         showDuplicates: false,
@@ -81,7 +80,7 @@ xaxis: {
             // only occurrences of ":MM" to Moment's minutes token ":mm" so we don't
             // change months (MM) to minutes.
             fmt = fmt.replace(/:MM/g, ':mm');
-            return moment.unix(timestamp).format(fmt);
+            return moment(timestamp).format(fmt);
         }
     }
 },
@@ -109,7 +108,7 @@ tooltip: {
             #include "graph_date_format.inc"
             var fmt = "$gdf_fmt";
             fmt = fmt.replace(/:MM/g, ':mm');
-            return moment.unix(val).format(fmt);
+            return moment(val).format(fmt);
         }
     }
 },

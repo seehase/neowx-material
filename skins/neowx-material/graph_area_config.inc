@@ -19,7 +19,7 @@ fill: {
 xaxis: {
     type: 'datetime',
     hideOverlappingLabels: true,
-    tickAmount: 8,
+    #include "graph_tick_amount.inc"
     labels: {
         formatter: function(val, timestamp) {
             #set global $gdf_base = 'datetime_graph_label'
@@ -29,7 +29,7 @@ xaxis: {
             // only occurrences of ":MM" to Moment's minutes token ":mm" so we don't
             // change months (MM) to minutes.
             fmt = fmt.replace(/:MM/g, ':mm');
-            return moment.unix(timestamp).format(fmt);
+            return moment(timestamp).format(fmt);
         }
     }
 },
@@ -41,7 +41,7 @@ tooltip: {
             var fmt = "$gdf_fmt";
             // convert minute token if needed (':MM' -> ':mm')
             fmt = fmt.replace(/:MM/g, ':mm');
-            return moment.unix(val).format(fmt);
+            return moment(val).format(fmt);
         }
     }
 },

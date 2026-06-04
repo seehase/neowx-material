@@ -29,7 +29,7 @@ tooltip: {
             var fmt = "$gdf_fmt";
             fmt = fmt.replace(/:MM/g, ':mm');
             // the first argument is 'value' (timestamp), use that
-            return moment.unix(value).format(fmt);
+            return moment(value).format(fmt);
         }
     }
 },
