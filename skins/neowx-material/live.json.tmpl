@@ -1,0 +1,54 @@
+#encoding UTF-8
+#import time
+## +-------------------------------------------------------------------------+
+## |    live.json.tmpl       Always-current data for non-current page chrome  |
+## +-------------------------------------------------------------------------+
+##
+## This file is regenerated on EVERY report cycle (see [[LiveData]] in
+## skin.conf). Static / frozen pages (archive month + year summaries) fetch it
+## client-side via js/neowx-live.js so their header date, almanac and footer
+## versions stay current even though the HTML itself is never rebuilt.
+##
+## All times below are the STATION's local time (the machine weewx runs on),
+## matching the live "current" page.
+#set $date_fmt = $Extras.Formatting.get('date', '%x')
+#set $datetime_fmt = $Extras.Formatting.get('datetime', '%x %H:%M')
+#if $almanac.hasExtras
+#set $has_extras = "true"
+#else
+#set $has_extras = "false"
+#end if
+{
+    "today": "$time.strftime('%Y-%m-%d')",
+    "date": "$time.strftime($date_fmt)",
+    "year": "$time.strftime('%Y')",
+    "generated": "$time.strftime('%Y-%m-%dT%H:%M:%S')",
+    "versions": {
+        "weewx": "$station.version",
+        "skin": "$Extras.version"
+    },
+    "uptime": {
+        "station": "$station.uptime.long_form",
+        "server": "$station.os_uptime.long_form"
+    },
+    "almanac": {
+        "hasExtras": $has_extras,
+        "sunrise": "$almanac.sunrise",
+        "sunset": "$almanac.sunset"#slurp
+#if $almanac.hasExtras
+,
+        "sun": {
+            "rise": "$almanac.sun.rise",
+            "set": "$almanac.sun.set"
+        },
+        "moon": {
+            "rise": "$almanac.moon.rise",
+            "set": "$almanac.moon.set"
+        },
+        "moon_phase": "$almanac.moon_phase",
+        "moon_index": $almanac.moon_index,
+        "moon_fullness": "$almanac.moon_fullness"
+#end if
+
+    }
+}

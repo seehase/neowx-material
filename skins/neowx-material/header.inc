@@ -12,6 +12,34 @@
         <!-- End Google Tag Manager (noscript) -->
     #end if
 
+    #if $active_nav != 'current'
+        ## Anti-flash guard (non-current pages): hide the fields that neowx-live.js
+        ## replaces from live.json, so this page's stale build-time values (e.g. an
+        ## old date / sun-moon times on a day-old archive page) don't flash before
+        ## the fetch resolves. JS-gated via the nx-live-pending class, so no-JS
+        ## visitors still see the server-rendered fallback. visibility:hidden keeps
+        ## the layout from shifting. The inline setTimeout is a safety net: if
+        ## neowx-live.js never runs (e.g. fails to load), the fields still reveal.
+        <script>
+            document.documentElement.classList.add('nx-live-pending');
+            setTimeout(function () {
+                document.documentElement.classList.remove('nx-live-pending');
+            }, 5000);
+        </script>
+        <style>
+            .nx-live-pending #header-date,
+            .nx-live-pending #alm-sun-rise, .nx-live-pending #alm-sun-set,
+            .nx-live-pending #alm-sunrise, .nx-live-pending #alm-sunset,
+            .nx-live-pending #alm-moon-rise, .nx-live-pending #alm-moon-set,
+            .nx-live-pending #alm-moon-icon, .nx-live-pending #alm-moon-fullness,
+            .nx-live-pending #footer-year,
+            .nx-live-pending #footer-weewx-version, .nx-live-pending #footer-skin-version,
+            .nx-live-pending #footer-station-uptime, .nx-live-pending #footer-server-uptime {
+                visibility: hidden;
+            }
+        </style>
+    #end if
+
     <header>
 
         <nav class="navbar navbar-expand-lg navbar-dark $Extras.color" style="padding: 0.4rem 1rem; min-height: 5.2rem;">
@@ -43,7 +71,8 @@
                         #if $active_nav == 'current'
                             <div id="current-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$current.dateTime.format($date_format)</div>
                         #else
-                            <div style="white-space:nowrap; font-size:0.95rem; color:#fff;">$time.strftime($date_format)</div>
+                            <!-- Server value is the page's build date (fallback); neowx-live.js overwrites it with today's date from live.json -->
+                            <div id="header-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$time.strftime($date_format)</div>
                         #end if
                         <!-- Icon container: position:relative so OFFLINE badge can float below without affecting row height -->
                         <div style="position:relative; display:flex; flex-direction:column; gap:0.1rem;">
@@ -76,6 +105,17 @@
                                         </div>
                                     #end if
                                 #else
+                                    <!-- Calendar icon: hidden by default; neowx-live.js reveals it when this
+                                         page's build date (data-generated-date) differs from today. The title
+                                         shows when the page content was generated. -->
+                                    <div id="generated-status" class="text-white" style="display:none;"
+                                         data-generated-ts="$time.time()"
+                                         data-old-threshold="$Extras.Header.get('old_page_threshold_minutes', '1440')">
+                                        <span class="mdi mdi-calendar-clock"
+                                              data-toggle="tooltip" data-placement="bottom"
+                                              style="vertical-align:middle;"
+                                              title="$time.strftime($Extras.Formatting.get('datetime_generated', '%d.%m.%Y %H:%M'))"></span>
+                                    </div>
                                     <!-- Transparent spacer — keeps icon-column height identical to current page -->
                                     <span style="font-size:1.1rem; color:transparent;" aria-hidden="true">&#9632;</span>
                                 #end if
@@ -227,15 +267,16 @@
                 #if $almanac.hasExtras
                     <ul class="navbar-nav nav-flex-icons flex-shrink-0 ml-3" style="line-height: 1.5; padding-top: .25rem;">
                         <li class="nav-item mr-4 text-white">
-                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sun.rise <br>
-                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sun.set
+                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> <span id="alm-sun-rise">$almanac.sun.rise</span> <br>
+                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> <span id="alm-sun-set">$almanac.sun.set</span>
                         </li>
                         <li class="nav-item mr-4 text-white" style="line-height: 1.5">
-                            <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> $almanac.moon.rise <br>
-                            <i class="wi wi-moonset mr-1" style="opacity: .75"></i> $almanac.moon.set
+                            <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> <span id="alm-moon-rise">$almanac.moon.rise</span> <br>
+                            <i class="wi wi-moonset mr-1" style="opacity: .75"></i> <span id="alm-moon-set">$almanac.moon.set</span>
                         </li>
                         <li class="nav-item mr-2 text-white text-center" style="line-height: 1.5">
-                            <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
+                            <span id="alm-moon-phase" title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
+                                <span id="alm-moon-icon">
                                 #if $almanac.moon_index == 0
                                     <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
                                 #else if $almanac.moon_index == 1
@@ -255,7 +296,8 @@
                                 #else
                                     <i class="wi wi-moon-waning-crescent-3 mr-1" style="opacity: .75"></i>
                                 #end if
-                                $almanac.moon_fullness%
+                                </span>
+                                <span id="alm-moon-fullness">$almanac.moon_fullness</span>%
                             </span><br>
                             <a href="almanac.html" class="text-white" style="opacity: .6">
                                 $gettext("more")
@@ -265,8 +307,8 @@
                 #else
                     <ul class="navbar-nav nav-flex-icons flex-shrink-0 ml-3" style="line-height: 1.5; padding-top: .25rem;">
                         <li class="nav-item mr-4 text-white">
-                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sunrise <br>
-                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sunset
+                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> <span id="alm-sunrise">$almanac.sunrise</span> <br>
+                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> <span id="alm-sunset">$almanac.sunset</span>
                         </li>
                     </ul>
                 #end if

@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.62.2",
+            version="1.63.0",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoweewx",
@@ -90,8 +90,10 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/img/splash/splash_750x1334.png",
                         "skins/neowx-material/img/splash/splash_828x1792.png",
                         "skins/neowx-material/index.html.tmpl",
+                        "skins/neowx-material/live.json.tmpl",
                         "skins/neowx-material/js/app.js",
                         "skins/neowx-material/js/neowx-date-format.js",
+                        "skins/neowx-material/js/neowx-live.js",
                         "skins/neowx-material/js/bootstrap.min.js",
                         "skins/neowx-material/js.inc",
                         "skins/neowx-material/js/jquery.min.js",
