@@ -173,6 +173,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/month.html.tmpl",
                         "skins/neowx-material/skin.conf",
                         "skins/neowx-material/telemetry.html.tmpl",
+                        "skins/neowx-material/trend_indicator.inc",
                         "skins/neowx-material/weather-icons/README.md",
                         "skins/neowx-material/weather-icons/css/weather-icons.min.css",
                         "skins/neowx-material/weather-icons/css/weather-icons-wind.min.css",
