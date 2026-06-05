@@ -58,20 +58,30 @@
         #end if
         #set $_mag = abs($_tv)
         #if $_mag < 0.1 * $_scale
+            ## steady
             <i class="wi wi-direction-right" title="$gettext('trend'): $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else
             #set $_dir = 'up' if $_tv > 0 else 'down'
+            #set $_double = False
             #if $_mag >= 6.0 * $_scale
-                #set $_chev = 'mdi-chevron-triple-' + $_dir
+                ## very rapidly: two straight arrows
+                #set $_wic = 'wi-direction-' + $_dir
+                #set $_double = True
                 #set $_word = 'Rising very rapidly' if $_dir == 'up' else 'Falling very rapidly'
             #else if $_mag >= 3.6 * $_scale
-                #set $_chev = 'mdi-chevron-double-' + $_dir
+                ## quickly: one straight arrow
+                #set $_wic = 'wi-direction-' + $_dir
                 #set $_word = 'Rising quickly' if $_dir == 'up' else 'Falling quickly'
             #else
-                #set $_chev = 'mdi-chevron-' + $_dir
+                ## slowly / rising: one diagonal arrow
+                #set $_wic = 'wi-direction-up-right' if $_dir == 'up' else 'wi-direction-down-right'
                 #set $_word = 'Rising' if $_dir == 'up' else 'Falling'
             #end if
-            <i class="mdi $_chev" title="$_word: $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+            #if $_double
+                <span title="$_word: $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
+            #else
+                <i class="wi $_wic" title="$_word: $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+            #end if
         #end if
     #else
         #if $_tv > $_band
