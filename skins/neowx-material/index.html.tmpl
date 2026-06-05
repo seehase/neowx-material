@@ -111,6 +111,11 @@
                         <h3 class="h5-responsive $Extras.color-text">
                             $getVar('obs.label.' + name)
 
+                            ## --- TEMP trend diagnostic (remove after testing) ---
+                            #set $_dbg_in  = $name in $Extras.Appearance.show_trend_on
+                            #set $_dbg_raw = $getVar('trend.' + $name + '.raw', 'NO-TREND-KEY')
+                            <!-- nwm-trend-dbg name="$name" inlist="$_dbg_in" raw="$_dbg_raw" -->
+
                             #if $name in $Extras.Appearance.show_trend_on and $getVar('trend.' + name + '.raw') is not None
 
                                 #set global $_trend_obs = $name
