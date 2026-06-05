@@ -136,11 +136,17 @@
     }
 
     function run() {
-        fetch('live.json?_=' + new Date().getTime(), { cache: 'no-store' })
-            .then(function (resp) {
-                if (!resp.ok) { throw new Error('live.json HTTP ' + resp.status); }
-                return resp.json();
-            })
+        // Reuse the early fetch kicked off in head.inc when available, so the
+        // request has been in flight (and usually resolved) while the heavy JS
+        // libs downloaded. Fall back to fetching here if it isn't present.
+        var pending = window.NX_LIVE_DATA ||
+            fetch('live.json?_=' + new Date().getTime(), { cache: 'no-store' })
+                .then(function (resp) {
+                    if (!resp.ok) { throw new Error('live.json HTTP ' + resp.status); }
+                    return resp.json();
+                });
+
+        pending
             .then(function (data) {
                 apply(data);
                 revealLive(); // reveal with fresh values applied — no stale flash
@@ -153,9 +159,9 @@
             });
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', run);
-    } else {
-        run();
-    }
+    // js.inc (and therefore this script) is included after header.inc + footer.inc,
+    // so every node we touch already exists. Run now instead of waiting for
+    // DOMContentLoaded — that wait would delay the update until the charts and the
+    // MQTT CDN script finish loading.
+    run();
 })();

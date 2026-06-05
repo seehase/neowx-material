@@ -7,6 +7,25 @@
 <meta http-equiv="x-ua-compatible" content="ie=edge">
 <!-- NeoWX Material skin v$Extras.version -->
 
+## Pre-warm the live.json fetch as early as possible (before the heavy JS libs and
+## charts load) so neowx-live.js can update the header/footer of non-current pages
+## without waiting on the charts. The promise is consumed later in neowx-live.js.
+<script>
+    window.NX_LIVE_DATA = (function () {
+        try {
+            return fetch('live.json?_=' + Date.now(), { cache: 'no-store' })
+                .then(function (r) {
+                    if (!r.ok) { throw new Error('live.json HTTP ' + r.status); }
+                    return r.json();
+                });
+        } catch (e) { return Promise.reject(e); }
+    })();
+    // No-op handler so an unused/failed pre-warm (e.g. current page with uptime
+    // off) doesn't surface as an unhandled rejection. neowx-live.js attaches its
+    // own then/catch to the same promise independently.
+    window.NX_LIVE_DATA.catch(function () {});
+</script>
+
 <meta name="description" content="$Extras.Header.description">
 <meta name="keywords" content="$Extras.Header.keywords">
 
