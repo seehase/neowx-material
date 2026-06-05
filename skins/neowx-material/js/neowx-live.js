@@ -122,6 +122,12 @@
         revealGeneratedIcon(data.today);
     }
 
+    function revealLive() {
+        // Undo the anti-flash guard from header.inc: reveals the live fields once
+        // their values have been applied (or, on failure, the server fallback).
+        document.documentElement.classList.remove('nx-live-pending');
+    }
+
     function todayBrowserLocal() {
         // Fallback for the calendar icon when live.json can't be fetched.
         var d = new Date();
@@ -135,11 +141,15 @@
                 if (!resp.ok) { throw new Error('live.json HTTP ' + resp.status); }
                 return resp.json();
             })
-            .then(apply)
+            .then(function (data) {
+                apply(data);
+                revealLive(); // reveal with fresh values applied — no stale flash
+            })
             .catch(function () {
                 // Keep server-rendered fallbacks; still flag a stale build date
-                // using the browser's local date as a best effort.
+                // using the browser's local date as a best effort, then reveal.
                 revealGeneratedIcon(todayBrowserLocal());
+                revealLive();
             });
     }
 

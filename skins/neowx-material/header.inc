@@ -12,6 +12,34 @@
         <!-- End Google Tag Manager (noscript) -->
     #end if
 
+    #if $active_nav != 'current'
+        ## Anti-flash guard (non-current pages): hide the fields that neowx-live.js
+        ## replaces from live.json, so this page's stale build-time values (e.g. an
+        ## old date / sun-moon times on a day-old archive page) don't flash before
+        ## the fetch resolves. JS-gated via the nx-live-pending class, so no-JS
+        ## visitors still see the server-rendered fallback. visibility:hidden keeps
+        ## the layout from shifting. The inline setTimeout is a safety net: if
+        ## neowx-live.js never runs (e.g. fails to load), the fields still reveal.
+        <script>
+            document.documentElement.classList.add('nx-live-pending');
+            setTimeout(function () {
+                document.documentElement.classList.remove('nx-live-pending');
+            }, 5000);
+        </script>
+        <style>
+            .nx-live-pending #header-date,
+            .nx-live-pending #alm-sun-rise, .nx-live-pending #alm-sun-set,
+            .nx-live-pending #alm-sunrise, .nx-live-pending #alm-sunset,
+            .nx-live-pending #alm-moon-rise, .nx-live-pending #alm-moon-set,
+            .nx-live-pending #alm-moon-icon, .nx-live-pending #alm-moon-fullness,
+            .nx-live-pending #footer-year,
+            .nx-live-pending #footer-weewx-version, .nx-live-pending #footer-skin-version,
+            .nx-live-pending #footer-station-uptime, .nx-live-pending #footer-server-uptime {
+                visibility: hidden;
+            }
+        </style>
+    #end if
+
     <header>
 
         <nav class="navbar navbar-expand-lg navbar-dark $Extras.color" style="padding: 0.4rem 1rem; min-height: 5.2rem;">
