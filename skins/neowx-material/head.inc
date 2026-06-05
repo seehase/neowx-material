@@ -93,7 +93,7 @@
 <link rel="stylesheet" href="css/bootstrap.min.css">
 
 ## MDB + skin style
-<link rel="stylesheet" href="css/style.min.css">
+<link rel="stylesheet" href="css/style.min.css?v=$Extras.version">
 
 ## Weather Icons
 <link rel="stylesheet" href="weather-icons/css/weather-icons.min.css">

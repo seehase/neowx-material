@@ -19,11 +19,11 @@
 #end if
 <script src="js/vendor/apexcharts/apexcharts.min.js"></script>
 ## NeoWX Material chart helpers (shared date formatter)
-<script type="text/javascript" src="js/neowx-date-format.js"></script>
+<script type="text/javascript" src="js/neowx-date-format.js?v=$Extras.version"></script>
 ## NeoWX Material App
-<script type="text/javascript" src="js/app.js"></script>
+<script type="text/javascript" src="js/app.js?v=$Extras.version"></script>
 ## Keeps header/footer chrome current on non-current (incl. frozen archive) pages
-<script type="text/javascript" src="js/neowx-live.js"></script>
+<script type="text/javascript" src="js/neowx-live.js?v=$Extras.version"></script>
 
 <script type="text/javascript">
     // Show/update status label only if configured threshold > 0 in skin.conf
