@@ -111,7 +111,7 @@
                         <h3 class="h5-responsive $Extras.color-text">
                             $getVar('obs.label.' + name)
 
-                            #if $name in $Extras.Appearance.show_trend_on and $getVar('trend.' + name + '.raw') is not None
+                            #if $name in $Extras.Appearance.show_trend_on
 
                                 #set global $_trend_obs = $name
                                 #include "trend_indicator.inc"
