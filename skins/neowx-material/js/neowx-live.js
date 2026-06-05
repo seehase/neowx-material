@@ -6,6 +6,11 @@
 // server-rendered date / almanac / versions would otherwise stay frozen at
 // build time.
 //
+// The footer uptime is also synced on the CURRENT page, so every page shows the
+// same live value: the current page's server-baked uptime is captured at page
+// generation and would otherwise read slightly older than the non-current pages,
+// which fetch live.json at view time.
+//
 // On load we fetch live.json (regenerated every report cycle) and overwrite the
 // id'd nodes. If the fetch fails, the server-rendered values simply remain as a
 // graceful fallback.
@@ -15,9 +20,12 @@
 (function () {
     'use strict';
 
-    var dateNode = document.getElementById('header-date');
-    if (!dateNode) {
-        return; // current page (or header not present) — nothing to do
+    var isNonCurrent = !!document.getElementById('header-date');
+    var hasUptime = !!document.getElementById('footer-station-uptime') ||
+                    !!document.getElementById('footer-server-uptime');
+
+    if (!isNonCurrent && !hasUptime) {
+        return; // current page with uptime disabled — nothing to sync
     }
 
     var MOON_ICONS = [
@@ -93,16 +101,22 @@
         }
     }
 
+    function applyUptime(data) {
+        // Runs on every page (incl. current) so all pages agree.
+        if (!data.uptime) { return; }
+        setText('footer-station-uptime', data.uptime.station);
+        setText('footer-server-uptime', data.uptime.server);
+    }
+
     function apply(data) {
+        applyUptime(data);
+        if (!isNonCurrent) { return; } // current page: uptime is all we sync
+
         setText('header-date', data.date);
         setText('footer-year', data.year);
         if (data.versions) {
             setText('footer-weewx-version', data.versions.weewx);
             setText('footer-skin-version', data.versions.skin);
-        }
-        if (data.uptime) {
-            setText('footer-station-uptime', data.uptime.station);
-            setText('footer-server-uptime', data.uptime.server);
         }
         applyAlmanac(data.almanac);
         revealGeneratedIcon(data.today);
