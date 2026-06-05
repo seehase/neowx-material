@@ -43,7 +43,8 @@
                         #if $active_nav == 'current'
                             <div id="current-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$current.dateTime.format($date_format)</div>
                         #else
-                            <div style="white-space:nowrap; font-size:0.95rem; color:#fff;">$time.strftime($date_format)</div>
+                            <!-- Server value is the page's build date (fallback); neowx-live.js overwrites it with today's date from live.json -->
+                            <div id="header-date" style="white-space:nowrap; font-size:0.95rem; color:#fff;">$time.strftime($date_format)</div>
                         #end if
                         <!-- Icon container: position:relative so OFFLINE badge can float below without affecting row height -->
                         <div style="position:relative; display:flex; flex-direction:column; gap:0.1rem;">
@@ -76,6 +77,16 @@
                                         </div>
                                     #end if
                                 #else
+                                    <!-- Calendar icon: hidden by default; neowx-live.js reveals it when this
+                                         page's build date (data-generated-date) differs from today. The title
+                                         shows when the page content was generated. -->
+                                    <div id="generated-status" class="text-white" style="display:none;"
+                                         data-generated-date="$time.strftime('%Y-%m-%d')">
+                                        <span class="mdi mdi-calendar-clock"
+                                              data-toggle="tooltip" data-placement="bottom"
+                                              style="vertical-align:middle;"
+                                              title="$time.strftime($Extras.Formatting.get('datetime', '%x %H:%M'))"></span>
+                                    </div>
                                     <!-- Transparent spacer — keeps icon-column height identical to current page -->
                                     <span style="font-size:1.1rem; color:transparent;" aria-hidden="true">&#9632;</span>
                                 #end if
@@ -227,15 +238,16 @@
                 #if $almanac.hasExtras
                     <ul class="navbar-nav nav-flex-icons flex-shrink-0 ml-3" style="line-height: 1.5; padding-top: .25rem;">
                         <li class="nav-item mr-4 text-white">
-                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sun.rise <br>
-                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sun.set
+                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> <span id="alm-sun-rise">$almanac.sun.rise</span> <br>
+                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> <span id="alm-sun-set">$almanac.sun.set</span>
                         </li>
                         <li class="nav-item mr-4 text-white" style="line-height: 1.5">
-                            <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> $almanac.moon.rise <br>
-                            <i class="wi wi-moonset mr-1" style="opacity: .75"></i> $almanac.moon.set
+                            <i class="wi wi-moonrise mr-1" style="opacity: .75"></i> <span id="alm-moon-rise">$almanac.moon.rise</span> <br>
+                            <i class="wi wi-moonset mr-1" style="opacity: .75"></i> <span id="alm-moon-set">$almanac.moon.set</span>
                         </li>
                         <li class="nav-item mr-2 text-white text-center" style="line-height: 1.5">
-                            <span title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
+                            <span id="alm-moon-phase" title="$almanac.moon_phase" data-toggle="tooltip" data-html="true">
+                                <span id="alm-moon-icon">
                                 #if $almanac.moon_index == 0
                                     <i class="wi wi-moon-new mr-1" style="opacity: .75"></i>
                                 #else if $almanac.moon_index == 1
@@ -255,7 +267,8 @@
                                 #else
                                     <i class="wi wi-moon-waning-crescent-3 mr-1" style="opacity: .75"></i>
                                 #end if
-                                $almanac.moon_fullness%
+                                </span>
+                                <span id="alm-moon-fullness">$almanac.moon_fullness</span>%
                             </span><br>
                             <a href="almanac.html" class="text-white" style="opacity: .6">
                                 $gettext("more")
@@ -265,8 +278,8 @@
                 #else
                     <ul class="navbar-nav nav-flex-icons flex-shrink-0 ml-3" style="line-height: 1.5; padding-top: .25rem;">
                         <li class="nav-item mr-4 text-white">
-                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> $almanac.sunrise <br>
-                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> $almanac.sunset
+                            <i class="wi wi-sunrise mr-1" style="opacity: .75"></i> <span id="alm-sunrise">$almanac.sunrise</span> <br>
+                            <i class="wi wi-sunset mr-1" style="opacity: .75"></i> <span id="alm-sunset">$almanac.sunset</span>
                         </li>
                     </ul>
                 #end if

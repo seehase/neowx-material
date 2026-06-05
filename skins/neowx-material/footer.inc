@@ -110,13 +110,15 @@
 
     ## Copyright
     <div class="footer-copyright text-center py-3">
-        &copy; $current.dateTime.format("%Y") $Extras.Footer.name
+        ## Server values are the page's build-time values (fallback); on non-current
+        ## pages neowx-live.js overwrites the id'd spans with current values from live.json.
+        &copy; <span id="footer-year">$current.dateTime.format("%Y")</span> $Extras.Footer.name
 
         #if $Extras.Footer.support_weewx == "yes"
             <span class="mx-2">&bull;</span>
             Powered by <a href="https://weewx.com" target="_blank">weewx</a>
             #if $Extras.Footer.show_version == "yes"
-                v$station.version
+                v<span id="footer-weewx-version">$station.version</span>
             #end if
         #end if
 
@@ -125,7 +127,7 @@
             <a href="https://github.com/seehase/neowx-material" target="_blank">Fork of NeoWX Material</a> skin
 
             #if $Extras.Footer.show_version == "yes"
-                v$Extras.version
+                v<span id="footer-skin-version">$Extras.version</span>
             #end if
         #end if
 

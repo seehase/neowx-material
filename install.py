@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.62.2",
+            version="1.63.0",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoweewx",
