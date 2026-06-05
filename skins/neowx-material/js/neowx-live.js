@@ -100,6 +100,10 @@
             setText('footer-weewx-version', data.versions.weewx);
             setText('footer-skin-version', data.versions.skin);
         }
+        if (data.uptime) {
+            setText('footer-station-uptime', data.uptime.station);
+            setText('footer-server-uptime', data.uptime.server);
+        }
         applyAlmanac(data.almanac);
         revealGeneratedIcon(data.today);
     }

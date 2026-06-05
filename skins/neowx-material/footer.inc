@@ -29,11 +29,11 @@
                     #if $Extras.Footer.show_uptime == "yes"
                         <tr>
                             <td>$gettext("station_uptime"):</td>
-                            <td>$station.uptime.long_form</td>
+                            <td id="footer-station-uptime">$station.uptime.long_form</td>
                         </tr>
                         <tr>
                             <td>$gettext("server_uptime"):</td>
-                            <td>$station.os_uptime.long_form</td>
+                            <td id="footer-server-uptime">$station.os_uptime.long_form</td>
                         </tr>
                     #end if
                     #if $Extras.Footer.show_telemetry == "yes"
