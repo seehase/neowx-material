@@ -19,6 +19,10 @@
 ## Every other observation uses the simple up / steady / down arrow with a
 ## per-observation dead-band.
 ## ---------------------------------------------------------------------------
+## A Cheetah #include runs in its own scope and does NOT see the caller's
+## local loop variable $name, so the caller passes it via the $_trend_obs
+## global (see index.html.tmpl). Alias it back to $name for use below.
+#set $name = $_trend_obs
 #set $_pressure = $name in ('barometer', 'pressure', 'altimeter')
 ## Per-observation [canonical unit ('' = use the display unit), dead-band].
 #set $_bands = {'outTemp': ['degree_C', 0.5], 'inTemp': ['degree_C', 0.5], 'ET': ['mm', 0.02]}

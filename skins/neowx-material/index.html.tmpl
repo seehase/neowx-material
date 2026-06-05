@@ -113,6 +113,7 @@
 
                             #if $name in $Extras.Appearance.show_trend_on and $getVar('trend.' + name + '.raw') is not None
 
+                                #set global $_trend_obs = $name
                                 #include "trend_indicator.inc"
 
                 #else if $name == 'windSpeed'
