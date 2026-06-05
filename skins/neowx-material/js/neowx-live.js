@@ -46,34 +46,27 @@
         if (el) { el.textContent = value; }
     }
 
-    function daysBetween(builtStr, todayStr) {
-        // Whole days from built date to today (both 'YYYY-MM-DD', station-local).
-        // Compared at UTC midnight so DST/timezone never shifts the day count.
-        var b = String(builtStr).split('-');
-        var t = String(todayStr).split('-');
-        if (b.length !== 3 || t.length !== 3) { return null; }
-        var bUTC = Date.UTC(+b[0], +b[1] - 1, +b[2]);
-        var tUTC = Date.UTC(+t[0], +t[1] - 1, +t[2]);
-        if (isNaN(bUTC) || isNaN(tUTC)) { return null; }
-        return Math.round((tUTC - bUTC) / 86400000);
-    }
-
-    function revealGeneratedIcon(today) {
+    function revealGeneratedIcon() {
         // Show the calendar icon when this page's content is "old" enough. The
-        // threshold (days) is baked from old_page_threshold_days; 0 = always show.
+        // threshold (minutes) is baked from old_page_threshold_minutes; 0 = always.
+        // data-generated-ts is an absolute epoch, so the comparison against the
+        // browser clock is timezone-independent. Needs no live.json — runs as soon
+        // as the script does.
         var status = document.getElementById('generated-status');
         if (!status) { return; }
 
         var threshold = parseInt(status.getAttribute('data-old-threshold'), 10);
-        if (isNaN(threshold)) { threshold = 1; }
+        if (isNaN(threshold)) { threshold = 1440; }
 
         if (threshold === 0) {
             status.style.display = '';
             return;
         }
 
-        var diff = daysBetween(status.getAttribute('data-generated-date'), today);
-        if (diff !== null && diff >= threshold) {
+        var generatedTs = Number(status.getAttribute('data-generated-ts')); // epoch seconds
+        if (!generatedTs) { return; }
+        var ageMinutes = (Date.now() / 1000 - generatedTs) / 60;
+        if (ageMinutes >= threshold) {
             status.style.display = '';
         }
     }
@@ -140,7 +133,6 @@
             setText('footer-skin-version', data.versions.skin);
         }
         applyAlmanac(data.almanac);
-        revealGeneratedIcon(data.today);
     }
 
     function revealLive() {
@@ -149,14 +141,11 @@
         document.documentElement.classList.remove('nx-live-pending');
     }
 
-    function todayBrowserLocal() {
-        // Fallback for the calendar icon when live.json can't be fetched.
-        var d = new Date();
-        function pad(n) { return (n < 10 ? '0' : '') + n; }
-        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-    }
-
     function run() {
+        // The calendar icon depends only on baked data + the browser clock, so
+        // reveal it right away — no need to wait on live.json.
+        revealGeneratedIcon();
+
         // Reuse the early fetch kicked off in head.inc when available, so the
         // request has been in flight (and usually resolved) while the heavy JS
         // libs downloaded. Fall back to fetching here if it isn't present.
@@ -173,9 +162,7 @@
                 revealLive(); // reveal with fresh values applied — no stale flash
             })
             .catch(function () {
-                // Keep server-rendered fallbacks; still flag a stale build date
-                // using the browser's local date as a best effort, then reveal.
-                revealGeneratedIcon(todayBrowserLocal());
+                // Keep server-rendered fallbacks, then reveal them.
                 revealLive();
             });
     }

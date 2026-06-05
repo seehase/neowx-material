@@ -109,8 +109,8 @@
                                          page's build date (data-generated-date) differs from today. The title
                                          shows when the page content was generated. -->
                                     <div id="generated-status" class="text-white" style="display:none;"
-                                         data-generated-date="$time.strftime('%Y-%m-%d')"
-                                         data-old-threshold="$Extras.Header.get('old_page_threshold_days', '1')">
+                                         data-generated-ts="$time.time()"
+                                         data-old-threshold="$Extras.Header.get('old_page_threshold_minutes', '1440')">
                                         <span class="mdi mdi-calendar-clock"
                                               data-toggle="tooltip" data-placement="bottom"
                                               style="vertical-align:middle;"
