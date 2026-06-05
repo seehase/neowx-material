@@ -46,13 +46,34 @@
         if (el) { el.textContent = value; }
     }
 
+    function daysBetween(builtStr, todayStr) {
+        // Whole days from built date to today (both 'YYYY-MM-DD', station-local).
+        // Compared at UTC midnight so DST/timezone never shifts the day count.
+        var b = String(builtStr).split('-');
+        var t = String(todayStr).split('-');
+        if (b.length !== 3 || t.length !== 3) { return null; }
+        var bUTC = Date.UTC(+b[0], +b[1] - 1, +b[2]);
+        var tUTC = Date.UTC(+t[0], +t[1] - 1, +t[2]);
+        if (isNaN(bUTC) || isNaN(tUTC)) { return null; }
+        return Math.round((tUTC - bUTC) / 86400000);
+    }
+
     function revealGeneratedIcon(today) {
-        // Show the calendar icon only when this page was built on a different
-        // day than "today". The tooltip (build datetime) is baked server-side.
+        // Show the calendar icon when this page's content is "old" enough. The
+        // threshold (days) is baked from old_page_threshold_days; 0 = always show.
         var status = document.getElementById('generated-status');
         if (!status) { return; }
-        var built = status.getAttribute('data-generated-date');
-        if (built && today && built !== today) {
+
+        var threshold = parseInt(status.getAttribute('data-old-threshold'), 10);
+        if (isNaN(threshold)) { threshold = 1; }
+
+        if (threshold === 0) {
+            status.style.display = '';
+            return;
+        }
+
+        var diff = daysBetween(status.getAttribute('data-generated-date'), today);
+        if (diff !== null && diff >= threshold) {
             status.style.display = '';
         }
     }

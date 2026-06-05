@@ -109,11 +109,12 @@
                                          page's build date (data-generated-date) differs from today. The title
                                          shows when the page content was generated. -->
                                     <div id="generated-status" class="text-white" style="display:none;"
-                                         data-generated-date="$time.strftime('%Y-%m-%d')">
+                                         data-generated-date="$time.strftime('%Y-%m-%d')"
+                                         data-old-threshold="$Extras.Header.get('old_page_threshold_days', '1')">
                                         <span class="mdi mdi-calendar-clock"
                                               data-toggle="tooltip" data-placement="bottom"
                                               style="vertical-align:middle;"
-                                              title="$time.strftime($Extras.Formatting.get('datetime', '%x %H:%M'))"></span>
+                                              title="$time.strftime($Extras.Formatting.get('datetime_generated', '%d.%m.%Y %H:%M'))"></span>
                                     </div>
                                     <!-- Transparent spacer — keeps icon-column height identical to current page -->
                                     <span style="font-size:1.1rem; color:transparent;" aria-hidden="true">&#9632;</span>
