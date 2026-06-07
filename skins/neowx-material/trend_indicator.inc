@@ -64,9 +64,11 @@
         #set $_tv = $_curvh.raw - $_oldvh.raw
     #end if
     #set $_disp = $_curvh.raw - $_oldvh.raw
-    ## hours actually covered by the data (first reading -> now), which after a
-    ## restart / new install / data gap can be far less than the requested span
-    #set $_elapsed = (float($current.dateTime.raw) - float($_binder.firsttime.raw)) / 3600.0
+    ## seconds (then hours) actually covered by the data (first reading -> now),
+    ## which after a restart / new install / data gap can be far less than the
+    ## requested span. Kept in seconds so the snap test below is exact.
+    #set $_secs    = float($current.dateTime.raw) - float($_binder.firsttime.raw)
+    #set $_elapsed = $_secs / 3600.0
 #except
     #set $_tv = None
 #end try
@@ -77,8 +79,14 @@
 #if $_tv is not None and $_elapsed is not None and $_elapsed >= $_min_hours
     #set $_lbl    = $getVar('unit.label.' + $name, '')
     #set $_disp_r = round($_disp, 2)
-    ## actual elapsed span, shown in the tooltip instead of a hard-coded "3 h"
-    #set $_win    = '%g h' % round($_elapsed, 1)
+    ## Effective window: the actual elapsed span, but snapped to the full target
+    ## when within 5 minutes of it (archive timing rarely lands exactly on now-3h),
+    ## so the normal case reads a clean "3 h" with nominal thresholds.
+    #set $_win_h = $_elapsed
+    #if abs($_secs - float($_hours) * 3600.0) <= 300.0
+        #set $_win_h = float($_hours)
+    #end if
+    #set $_win = '%g h' % round($_win_h, 1)
     #if $_pressure
         ## Decimals per pressure display unit (small inHg/kPa deltas need more).
         #set $_dec    = {'inHg': 4, 'kPa': 3, 'mmHg': 2, 'hPa': 1, 'mbar': 1}.get($_du, 2)
@@ -86,8 +94,8 @@
     #end if
     #if $_pressure and $_mode != 'strict'
         ## Pressure tendency categories, in canonical mbar. The thresholds are
-        ## defined per 3 h, so scale them to the actual elapsed span.
-        #set $_scale = $_elapsed / 3.0
+        ## defined per 3 h, so scale them to the effective (snapped) span.
+        #set $_scale = $_win_h / 3.0
         #if $_scale <= 0
             #set $_scale = 1.0
         #end if

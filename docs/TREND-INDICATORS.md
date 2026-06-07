@@ -61,7 +61,8 @@ span between the first available reading and now, not a fixed 3 hours:
   isn't enough data for a meaningful tendency.
 - Between 1 and 3 hours, the pressure thresholds are **scaled to the real span** (so a
   rate that would be "rising" over 3 h is still classified correctly over a shorter
-  window), and the tooltip shows the true interval, e.g. `(over 1.5 h)`.
+  window), and the tooltip shows the true interval, e.g. `(over 1.5 h)`. A span within
+  **5 minutes** of the full 3 hours is treated as a complete window and shown as `3 h`.
 
 ## Threshold styles (`trend_type`)
 
