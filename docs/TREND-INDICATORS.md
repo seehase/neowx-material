@@ -48,11 +48,20 @@ for the other observations too.
 > **Why not WeeWX `$trend`?** `$trend` only returns a value when an archive record
 > lands within a small grace window of *exactly* `now − 3h`; on many stations that
 > made the arrows disappear intermittently. The skin computes the change itself, so an
-> arrow appears whenever there is any recent data.
+> arrow appears whenever there is enough recent data.
 
 The change is evaluated in a **canonical unit** (see
 [Unit independence](#unit-independence)) to decide the direction and tier, while the
 **tooltip** always shows the change in *your* display units.
+
+**Short windows (restarts, new installs, data gaps).** The skin uses the *actual*
+span between the first available reading and now, not a fixed 3 hours:
+
+- If less than **1 hour** of recent history exists, the trend is **hidden** — there
+  isn't enough data for a meaningful tendency.
+- Between 1 and 3 hours, the pressure thresholds are **scaled to the real span** (so a
+  rate that would be "rising" over 3 h is still classified correctly over a shorter
+  window), and the tooltip shows the true interval, e.g. `(over 1.5 h)`.
 
 ## Threshold styles (`trend_type`)
 
@@ -132,7 +141,8 @@ threshold would treat °F and °C differently.
 ## Tooltips
 
 The tooltip names the category and shows the signed change in your display units over the
-3-hour window, e.g. `Rapidly Rising: +0.1181 inHg (over 3 h)`.
+window actually covered by the data, e.g. `Rapidly Rising: +0.1181 inHg (over 3 h)` (or
+`(over 1.5 h)` shortly after a restart — see [How a trend is calculated](#how-a-trend-is-calculated)).
 
 Pressure is rounded to a unit-appropriate precision so small changes remain visible:
 
@@ -177,7 +187,12 @@ Arrows are drawn with the bundled [Weather Icons](https://erikflowers.github.io/
 **No arrow appears for an observation**
 - Confirm the observation name is listed in `show_trend_on` (names are case-sensitive and
   must match the WeeWX field, e.g. `outTemp`, not `Outside Temperature`).
-- The observation needs at least one archive record within the last 3 hours.
+- The observation needs archive records within the last 3 hours.
+
+**No arrow right after a restart, new install, or data gap**
+- The trend is hidden until at least **1 hour** of recent history is available, so the
+  tendency isn't computed from just a few minutes of data. It returns automatically once
+  the window is wide enough.
 
 **The barometer almost never leaves "steady" (or flickers constantly)**
 - That's the threshold style. The steady band is ±0.5 hPa in `strict` and ±0.7 hPa in

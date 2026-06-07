@@ -56,6 +56,7 @@
 ## canonical-unit delta (decision) and display-unit delta (tooltip)
 #set $_tv = None
 #set $_disp = None
+#set $_elapsed = None
 #try
     #if $_unit
         #set $_tv = $getattr($_curvh, $_unit).raw - $getattr($_oldvh, $_unit).raw
@@ -63,20 +64,30 @@
         #set $_tv = $_curvh.raw - $_oldvh.raw
     #end if
     #set $_disp = $_curvh.raw - $_oldvh.raw
+    ## hours actually covered by the data (first reading -> now), which after a
+    ## restart / new install / data gap can be far less than the requested span
+    #set $_elapsed = (float($current.dateTime.raw) - float($_binder.firsttime.raw)) / 3600.0
 #except
     #set $_tv = None
 #end try
-#if $_tv is not None
+## Require enough recent history for a meaningful tendency: with only a few
+## minutes of data the 3-hour pressure categories and "over N h" label would be
+## misleading, so suppress the indicator until the window is wide enough.
+#set $_min_hours = 1.0
+#if $_tv is not None and $_elapsed is not None and $_elapsed >= $_min_hours
     #set $_lbl    = $getVar('unit.label.' + $name, '')
     #set $_disp_r = round($_disp, 2)
+    ## actual elapsed span, shown in the tooltip instead of a hard-coded "3 h"
+    #set $_win    = '%g h' % round($_elapsed, 1)
     #if $_pressure
         ## Decimals per pressure display unit (small inHg/kPa deltas need more).
         #set $_dec    = {'inHg': 4, 'kPa': 3, 'mmHg': 2, 'hPa': 1, 'mbar': 1}.get($_du, 2)
         #set $_disp_s = ('%+.' + str($_dec) + 'f') % $_disp
     #end if
     #if $_pressure and $_mode != 'strict'
-        ## Pressure tendency categories, in canonical mbar, scaled to the window.
-        #set $_scale = float($_hours) / 3.0
+        ## Pressure tendency categories, in canonical mbar. The thresholds are
+        ## defined per 3 h, so scale them to the actual elapsed span.
+        #set $_scale = $_elapsed / 3.0
         #if $_scale <= 0
             #set $_scale = 1.0
         #end if
@@ -86,7 +97,7 @@
         #if $_mode == 'davis'
             ## Davis Vantage (3 h, hPa): steady <0.7, slowly 0.7-2.0, rapidly >=2.0
             #if $_mag < 0.7 * $_scale
-                <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+                <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
             #else
                 #set $_verb = 'Rising' if $_tv > 0 else 'Falling'
                 #if $_mag >= 2.0 * $_scale
@@ -96,13 +107,13 @@
                     #set $_wic  = 'wi-direction-' + $_ud + '-right'
                     #set $_word = $_verb + ' slowly'
                 #end if
-                <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+                <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
             #end if
         #else
             ## multi / WMO-style (3 h, hPa): steady <0.7, slowly 0.7-2.0,
             ## rising 2.0-5.0, rapidly >=5.0 (doubled arrow).
             #if $_mag < 0.7 * $_scale
-                <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+                <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
             #else
                 #set $_dir = 'Rising' if $_tv > 0 else 'Falling'
                 #set $_double = False
@@ -121,9 +132,9 @@
                     #set $_word = 'Slowly ' + $_dir
                 #end if
                 #if $_double
-                    <span title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
+                    <span title="$_word: $_disp_s$_lbl (over $_win)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
                 #else
-                    <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+                    <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
                 #end if
             #end if
         #end if
@@ -132,11 +143,11 @@
         ## non-pressure path for multi/davis. Canonical dead-band per family.
         #set $_simp = $_disp_s if $_pressure else $_disp_r
         #if $_tv > $_band
-            <i class="wi wi-direction-up-right" title="Rising: $_simp$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-up-right" title="Rising: $_simp$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
         #else if $_tv < -$_band
-            <i class="wi wi-direction-down-right" title="Falling: $_simp$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-down-right" title="Falling: $_simp$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
         #else
-            <i class="wi wi-direction-right" title="Steady: $_simp$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-right" title="Steady: $_simp$_lbl (over $_win)" data-toggle="tooltip" data-html="true"></i>
         #end if
     #end if
 #end if
