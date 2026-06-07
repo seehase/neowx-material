@@ -89,7 +89,7 @@
     #set $_win = '%g h' % round($_win_h, 1)
     #if $_pressure
         ## Decimals per pressure display unit (small inHg/kPa deltas need more).
-        #set $_dec    = {'inHg': 4, 'kPa': 3, 'mmHg': 2, 'hPa': 1, 'mbar': 1}.get($_du, 2)
+        #set $_dec    = {'inHg': 3, 'kPa': 2, 'mmHg': 2, 'hPa': 1, 'mbar': 1}.get($_du, 2)
         #set $_disp_s = ('%+.' + str($_dec) + 'f') % $_disp
     #end if
     #if $_pressure and $_mode != 'strict'

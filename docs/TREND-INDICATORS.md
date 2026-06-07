@@ -33,7 +33,7 @@ Two settings under `[[Appearance]]` in `skin.conf` control everything:
 
 **Result:** each observation listed in `show_trend_on` shows a ↗ / → / ↘ arrow (and,
 for the barometer in `multi`/`davis`, a graded tendency) with a tooltip such as
-`Slowly Rising: +0.0089 inHg (over 3 h)`.
+`Slowly Rising: +0.009 inHg (over 3 h)`.
 
 ## How a trend is calculated
 
@@ -142,15 +142,15 @@ threshold would treat °F and °C differently.
 ## Tooltips
 
 The tooltip names the category and shows the signed change in your display units over the
-window actually covered by the data, e.g. `Rapidly Rising: +0.1181 inHg (over 3 h)` (or
+window actually covered by the data, e.g. `Rapidly Rising: +0.118 inHg (over 3 h)` (or
 `(over 1.5 h)` shortly after a restart — see [How a trend is calculated](#how-a-trend-is-calculated)).
 
 Pressure is rounded to a unit-appropriate precision so small changes remain visible:
 
 | Pressure unit | Decimal places |
 |---|---|
-| inHg | 4 |
-| kPa | 3 |
+| inHg | 3 |
+| kPa | 2 |
 | mmHg | 2 |
 | hPa / mbar | 1 |
 
