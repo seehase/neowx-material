@@ -16,14 +16,21 @@
 ## imperial for ANY observation. Units not listed (percent, UV index, ppm,
 ## ug/m3, W/m2, counts) are already comparable across systems -> no conversion.
 ##
-## Barometric pressure additionally uses the WMO/NWS 3-hour tendency categories
-## (steady / slowly / quickly / very rapidly) shown with Weather-Icons arrows
-## (steeper = faster; two arrows = very rapidly). Everything else uses a simple
-## up / steady / down arrow with a per-family dead-band. The tooltip shows the
-## change in the user's display units.
+## Barometric pressure can use richer tendency categories selected by
+## $Extras.Appearance.trend_type:
+##   multi  - WMO/NWS-style steady/slowly/rising/rapidly (default); the arrow
+##            steepens as it climbs and is doubled for the rapid tier.
+##   davis  - Davis Vantage steady/slowly/rapidly thresholds.
+##   strict - simple up/steady/down, same as every other obs (no rapid tier).
+## Every obs (including pressure in strict) still decides direction in the
+## canonical unit, and the tooltip shows the change in the user's display units.
 ## ---------------------------------------------------------------------------
 #set $name = $_trend_obs
 #set $_hours = 3
+#set $_mode = str($getVar('Extras.Appearance.trend_type', 'multi')).lower()
+#if $_mode not in ('strict', 'multi', 'davis')
+    #set $_mode = 'multi'
+#end if
 #set $_pressure = $name in ('barometer', 'pressure', 'altimeter')
 ## display unit -> canonical unit (only families whose unit varies by system)
 #set $_canon = {
@@ -66,46 +73,70 @@
         ## Decimals per pressure display unit (small inHg/kPa deltas need more).
         #set $_dec    = {'inHg': 4, 'kPa': 3, 'mmHg': 2, 'hPa': 1, 'mbar': 1}.get($_du, 2)
         #set $_disp_s = ('%+.' + str($_dec) + 'f') % $_disp
+    #end if
+    #if $_pressure and $_mode != 'strict'
+        ## Pressure tendency categories, in canonical mbar, scaled to the window.
         #set $_scale = float($_hours) / 3.0
         #if $_scale <= 0
             #set $_scale = 1.0
         #end if
         #set $_mag = abs($_tv)
-        #if $_mag < 0.25 * $_scale
-            ## steady
-            <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
-        #else
-            ## $_ud feeds the (lowercase) Weather-Icons class; $_dir is the word.
-            #set $_ud  = 'up' if $_tv > 0 else 'down'
-            #set $_dir = 'Rising' if $_tv > 0 else 'Falling'
-            #set $_double = False
-            #if $_mag >= 6.0 * $_scale
-                ## rapidly: two straight arrows
-                #set $_wic = 'wi-direction-' + $_ud
-                #set $_double = True
-                #set $_word = 'Rapidly ' + $_dir
-            #else if $_mag >= 3.6 * $_scale
-                ## one straight arrow
-                #set $_wic = 'wi-direction-' + $_ud
-                #set $_word = $_dir
+        ## $_ud feeds the (lowercase) Weather-Icons class.
+        #set $_ud  = 'up' if $_tv > 0 else 'down'
+        #if $_mode == 'davis'
+            ## Davis Vantage (3 h, hPa): steady <0.7, slowly 0.7-2.0, rapidly >=2.0
+            #if $_mag < 0.7 * $_scale
+                <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
             #else
-                ## slowly: one diagonal arrow
-                #set $_wic = 'wi-direction-' + $_ud + '-right'
-                #set $_word = 'Slowly ' + $_dir
-            #end if
-            #if $_double
-                <span title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
-            #else
+                #set $_verb = 'Rising' if $_tv > 0 else 'Falling'
+                #if $_mag >= 2.0 * $_scale
+                    #set $_wic  = 'wi-direction-' + $_ud
+                    #set $_word = $_verb + ' rapidly'
+                #else
+                    #set $_wic  = 'wi-direction-' + $_ud + '-right'
+                    #set $_word = $_verb + ' slowly'
+                #end if
                 <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            #end if
+        #else
+            ## multi / WMO-style (3 h, hPa): steady <0.25, slowly 0.25-1.5,
+            ## rising 1.5-3.5, rapidly >=3.5 (doubled arrow).
+            #if $_mag < 0.25 * $_scale
+                <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            #else
+                #set $_dir = 'Rising' if $_tv > 0 else 'Falling'
+                #set $_double = False
+                #if $_mag >= 3.5 * $_scale
+                    ## rapidly: two straight arrows
+                    #set $_wic  = 'wi-direction-' + $_ud
+                    #set $_double = True
+                    #set $_word = 'Rapidly ' + $_dir
+                #else if $_mag >= 1.5 * $_scale
+                    ## rising: one straight arrow
+                    #set $_wic  = 'wi-direction-' + $_ud
+                    #set $_word = $_dir
+                #else
+                    ## slowly: one diagonal arrow
+                    #set $_wic  = 'wi-direction-' + $_ud + '-right'
+                    #set $_word = 'Slowly ' + $_dir
+                #end if
+                #if $_double
+                    <span title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
+                #else
+                    <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+                #end if
             #end if
         #end if
     #else
+        ## Simple up / steady / down: strict mode for every obs, plus the
+        ## non-pressure path for multi/davis. Canonical dead-band per family.
+        #set $_simp = $_disp_s if $_pressure else $_disp_r
         #if $_tv > $_band
-            <i class="wi wi-direction-up-right" title="Rising: $_disp_r$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-up-right" title="Rising: $_simp$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else if $_tv < -$_band
-            <i class="wi wi-direction-down-right" title="Falling: $_disp_r$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-down-right" title="Falling: $_simp$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else
-            <i class="wi wi-direction-right" title="Steady: $_disp_r$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-right" title="Steady: $_simp$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #end if
     #end if
 #end if
