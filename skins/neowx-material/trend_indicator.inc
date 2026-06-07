@@ -75,8 +75,9 @@
             ## steady
             <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else
+            ## $_ud feeds the (lowercase) Weather-Icons class; $_dir is the word.
             #set $_ud  = 'up' if $_tv > 0 else 'down'
-            #set $_dir = 'rising' if $_tv > 0 else 'falling'
+            #set $_dir = 'Rising' if $_tv > 0 else 'Falling'
             #set $_double = False
             #if $_mag >= 6.0 * $_scale
                 ## rapidly: two straight arrows
@@ -86,7 +87,7 @@
             #else if $_mag >= 3.6 * $_scale
                 ## one straight arrow
                 #set $_wic = 'wi-direction-' + $_ud
-                #set $_word = $_dir.capitalize()
+                #set $_word = $_dir
             #else
                 ## slowly: one diagonal arrow
                 #set $_wic = 'wi-direction-' + $_ud + '-right'
@@ -100,11 +101,11 @@
         #end if
     #else
         #if $_tv > $_band
-            <i class="wi wi-direction-up-right" title="$gettext('trend'): $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-up-right" title="Rising: $_disp_r$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else if $_tv < -$_band
-            <i class="wi wi-direction-down-right" title="$gettext('trend'): $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-down-right" title="Falling: $_disp_r$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else
-            <i class="wi wi-direction-right" title="$gettext('trend'): $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-right" title="Steady: $_disp_r$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #end if
     #end if
 #end if
