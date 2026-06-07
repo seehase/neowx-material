@@ -67,7 +67,7 @@
             #set $_scale = 1.0
         #end if
         #set $_mag = abs($_tv)
-        #if $_mag < 0.1 * $_scale
+        #if $_mag < 0.25 * $_scale
             ## steady
             <i class="wi wi-direction-right" title="$gettext('trend'): $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else
