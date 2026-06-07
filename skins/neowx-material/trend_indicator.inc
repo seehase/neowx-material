@@ -36,7 +36,8 @@
 }
 ## "steady" dead-band per canonical unit (default 0.5 for unit-agnostic obs)
 #set $_deadbands = {'degree_C':0.5, 'mm':0.2, 'mm_per_hour':0.2, 'km_per_hour':1.0, 'meter':10.0, 'km':0.5}
-#set $_unit = $_canon.get($getVar('unit.unit_type.' + $name, ''), '')
+#set $_du   = $getVar('unit.unit_type.' + $name, '')
+#set $_unit = $_canon.get($_du, '')
 #if $_pressure
     #set $_unit = 'mbar'
 #end if
@@ -62,6 +63,9 @@
     #set $_lbl    = $getVar('unit.label.' + $name, '')
     #set $_disp_r = round($_disp, 2)
     #if $_pressure
+        ## Decimals per pressure display unit (small inHg/kPa deltas need more).
+        #set $_dec    = {'inHg': 4, 'kPa': 3, 'mmHg': 2, 'hPa': 1, 'mbar': 1}.get($_du, 2)
+        #set $_disp_s = ('%+.' + str($_dec) + 'f') % $_disp
         #set $_scale = float($_hours) / 3.0
         #if $_scale <= 0
             #set $_scale = 1.0
@@ -69,28 +73,29 @@
         #set $_mag = abs($_tv)
         #if $_mag < 0.25 * $_scale
             ## steady
-            <i class="wi wi-direction-right" title="$gettext('trend'): $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+            <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
         #else
-            #set $_dir = 'up' if $_tv > 0 else 'down'
+            #set $_ud  = 'up' if $_tv > 0 else 'down'
+            #set $_dir = 'rising' if $_tv > 0 else 'falling'
             #set $_double = False
             #if $_mag >= 6.0 * $_scale
-                ## very rapidly: two straight arrows
-                #set $_wic = 'wi-direction-' + $_dir
+                ## rapidly: two straight arrows
+                #set $_wic = 'wi-direction-' + $_ud
                 #set $_double = True
-                #set $_word = 'Rising very rapidly' if $_dir == 'up' else 'Falling very rapidly'
+                #set $_word = 'Rapidly ' + $_dir
             #else if $_mag >= 3.6 * $_scale
-                ## quickly: one straight arrow
-                #set $_wic = 'wi-direction-' + $_dir
-                #set $_word = 'Rising quickly' if $_dir == 'up' else 'Falling quickly'
+                ## one straight arrow
+                #set $_wic = 'wi-direction-' + $_ud
+                #set $_word = $_dir.capitalize()
             #else
-                ## slowly / rising: one diagonal arrow
-                #set $_wic = 'wi-direction-up-right' if $_dir == 'up' else 'wi-direction-down-right'
-                #set $_word = 'Rising' if $_dir == 'up' else 'Falling'
+                ## slowly: one diagonal arrow
+                #set $_wic = 'wi-direction-' + $_ud + '-right'
+                #set $_word = 'Slowly ' + $_dir
             #end if
             #if $_double
-                <span title="$_word: $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
+                <span title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"><i class="wi $_wic"></i><i class="wi $_wic"></i></span>
             #else
-                <i class="wi $_wic" title="$_word: $_disp_r$_lbl ($_hours h)" data-toggle="tooltip" data-html="true"></i>
+                <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
             #end if
         #end if
     #else
