@@ -5,36 +5,47 @@
 ## $name, so the caller passes it via the $_trend_obs global. The caller only
 ## guarantees $name is in show_trend_on.
 ##
-## We compute the change OURSELVES rather than use WeeWX $trend: $trend returns
+## We compute the change OURSELVES rather than use WeeWX $trend (which returns
 ## None unless an archive record lands within a small grace window of exactly
-## (now - time_delta), which fails intermittently on coarser archive intervals.
-## Here we use (current reading) - (oldest reading in the last N hours), which
-## has a value whenever there is any recent data.
+## now - time_delta): (current reading) - (oldest reading in the last N hours,
+## via span(hour_delta=N).<obs>.first). That has a value whenever there is any
+## recent data.
 ##
-## The direction decision is made in a canonical unit per observation
-## (barometer->hPa, temp->degC, ET->mm) so arrows behave the same in metric and
-## imperial. Pressure uses the WMO/NWS 3-hour tendency categories shown with MDI
-## single/double/triple chevrons; everything else uses a simple up/steady/down
-## arrow with a per-observation dead-band. The tooltip shows the change in the
-## user's display units.
+## The direction is decided in a CANONICAL unit per unit-family, derived from
+## the obs's current display unit, so trends behave identically in metric and
+## imperial for ANY observation. Units not listed (percent, UV index, ppm,
+## ug/m3, W/m2, counts) are already comparable across systems -> no conversion.
 ##
-## A debug HTML comment (<!-- nwm-trend ... -->) is emitted for every card so
-## you can see the current/old values and the timestamp the "old" reading came
-## from. Remove it once verified.
+## Barometric pressure additionally uses the WMO/NWS 3-hour tendency categories
+## (steady / slowly / quickly / very rapidly) shown with Weather-Icons arrows
+## (steeper = faster; two arrows = very rapidly). Everything else uses a simple
+## up / steady / down arrow with a per-family dead-band. The tooltip shows the
+## change in the user's display units.
 ## ---------------------------------------------------------------------------
 #set $name = $_trend_obs
 #set $_hours = 3
 #set $_pressure = $name in ('barometer', 'pressure', 'altimeter')
-#set $_bands = {'outTemp': ['degree_C', 0.5], 'inTemp': ['degree_C', 0.5], 'ET': ['mm', 0.02]}
-#set $_cfg  = $_bands.get($name, ['', 0.5])
-#set $_unit = 'mbar' if $_pressure else $_cfg[0]
-#set $_band = $_cfg[1]
-## Current reading, and the oldest reading in the last $_hours hours.
-#set $_curvh   = $getattr($current, $name)
-#set $_binder  = $getattr($span($hour_delta=$_hours), $name)
-#set $_oldvh   = $_binder.first
-#set $_oldtime = $_binder.firsttime
-## Canonical-unit delta (decision) and display-unit delta (tooltip).
+## display unit -> canonical unit (only families whose unit varies by system)
+#set $_canon = {
+    'inHg':'mbar', 'mmHg':'mbar', 'kPa':'mbar', 'hPa':'mbar', 'mbar':'mbar',
+    'degree_F':'degree_C', 'degree_K':'degree_C', 'degree_C':'degree_C',
+    'inch':'mm', 'cm':'mm', 'mm':'mm',
+    'inch_per_hour':'mm_per_hour', 'cm_per_hour':'mm_per_hour', 'mm_per_hour':'mm_per_hour',
+    'mile_per_hour':'km_per_hour', 'knot':'km_per_hour', 'meter_per_second':'km_per_hour', 'beaufort':'km_per_hour', 'km_per_hour':'km_per_hour',
+    'foot':'meter', 'meter':'meter', 'mile':'km', 'km':'km'
+}
+## "steady" dead-band per canonical unit (default 0.5 for unit-agnostic obs)
+#set $_deadbands = {'degree_C':0.5, 'mm':0.2, 'mm_per_hour':0.2, 'km_per_hour':1.0, 'meter':10.0, 'km':0.5}
+#set $_unit = $_canon.get($getVar('unit.unit_type.' + $name, ''), '')
+#if $_pressure
+    #set $_unit = 'mbar'
+#end if
+#set $_band = $_deadbands.get($_unit, 0.5)
+## current reading and the oldest reading in the last $_hours hours
+#set $_curvh  = $getattr($current, $name)
+#set $_binder = $getattr($span($hour_delta=$_hours), $name)
+#set $_oldvh  = $_binder.first
+## canonical-unit delta (decision) and display-unit delta (tooltip)
 #set $_tv = None
 #set $_disp = None
 #try
@@ -47,7 +58,6 @@
 #except
     #set $_tv = None
 #end try
-<!-- nwm-trend obs="$name" unit="$_unit" now="$_curvh" now_time="$current.dateTime" old="$_oldvh" old_time="$_oldtime" canon_delta="$_tv" disp_delta="$_disp" -->
 #if $_tv is not None
     #set $_lbl    = $getVar('unit.label.' + $name, '')
     #set $_disp_r = round($_disp, 2)
