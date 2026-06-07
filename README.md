@@ -144,6 +144,12 @@ Compact cheat-sheet for the multi-axis syntax:
 - Minimal working configuration snippets
 - All supported keys at a glance
 
+### 📈 [Trend Indicators – Usage Guide](docs/TREND-INDICATORS.md)
+How the current-page trend arrows work and how to tune them:
+- Unit-aware direction (metric / imperial / other behave identically)
+- `trend_type` styles: `multi` (WMO/NWS), `davis` (Davis Vantage), `strict`
+- Threshold tables, tooltip precision, and `show_trend_on` reference
+
 **Quick Links:**
 - [Installation](#-installation) • [Configuration](#️-configuration) • [Troubleshooting](#-contribution--support) • [Contributing](#-contribution--support)
 
