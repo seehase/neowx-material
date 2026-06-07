@@ -99,19 +99,19 @@
                 <i class="wi $_wic" title="$_word: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
             #end if
         #else
-            ## multi / WMO-style (3 h, hPa): steady <0.25, slowly 0.25-1.5,
-            ## rising 1.5-3.5, rapidly >=3.5 (doubled arrow).
-            #if $_mag < 0.25 * $_scale
+            ## multi / WMO-style (3 h, hPa): steady <0.7, slowly 0.7-2.0,
+            ## rising 2.0-5.0, rapidly >=5.0 (doubled arrow).
+            #if $_mag < 0.7 * $_scale
                 <i class="wi wi-direction-right" title="Steady: $_disp_s$_lbl (over $_hours h)" data-toggle="tooltip" data-html="true"></i>
             #else
                 #set $_dir = 'Rising' if $_tv > 0 else 'Falling'
                 #set $_double = False
-                #if $_mag >= 3.5 * $_scale
+                #if $_mag >= 5.0 * $_scale
                     ## rapidly: two straight arrows
                     #set $_wic  = 'wi-direction-' + $_ud
                     #set $_double = True
                     #set $_word = 'Rapidly ' + $_dir
-                #else if $_mag >= 1.5 * $_scale
+                #else if $_mag >= 2.0 * $_scale
                     ## rising: one straight arrow
                     #set $_wic  = 'wi-direction-' + $_ud
                     #set $_word = $_dir

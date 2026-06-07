@@ -66,13 +66,13 @@ The barometer arrow steepens as the change grows, and doubles for the rapid tier
 
 | 3-hour change | inHg equiv. | Arrow | Tooltip word |
 |---|---|---|---|
-| ≥ +3.5 hPa | ≥ +0.103 | ↑↑ | Rapidly Rising |
-| +1.5 … +3.5 hPa | +0.044 … +0.103 | ↑ | Rising |
-| +0.25 … +1.5 hPa | +0.007 … +0.044 | ↗ | Slowly Rising |
-| −0.25 … +0.25 hPa | ±0.007 | → | Steady |
-| −0.25 … −1.5 hPa | −0.007 … −0.044 | ↘ | Slowly Falling |
-| −1.5 … −3.5 hPa | −0.044 … −0.103 | ↓ | Falling |
-| ≤ −3.5 hPa | ≤ −0.103 | ↓↓ | Rapidly Falling |
+| ≥ +5.0 hPa | ≥ +0.148 | ↑↑ | Rapidly Rising |
+| +2.0 … +5.0 hPa | +0.059 … +0.148 | ↑ | Rising |
+| +0.7 … +2.0 hPa | +0.021 … +0.059 | ↗ | Slowly Rising |
+| −0.7 … +0.7 hPa | ±0.021 | → | Steady |
+| −0.7 … −2.0 hPa | −0.021 … −0.059 | ↘ | Slowly Falling |
+| −2.0 … −5.0 hPa | −0.059 … −0.148 | ↓ | Falling |
+| ≤ −5.0 hPa | ≤ −0.148 | ↓↓ | Rapidly Falling |
 
 ### `davis` — Davis Vantage thresholds
 
@@ -162,7 +162,7 @@ Arrows are drawn with the bundled [Weather Icons](https://erikflowers.github.io/
   want the most information at a glance. *(Default.)*
 - **`davis`** — pick this if you're used to a Davis Vantage console and want the arrows
   to match its rise/fall rate descriptions.
-- **`strict`** — the simplest, least "twitchy" option: just up / steady / down for
+- **`strict`** — the simplest, least cluttered option: just up / steady / down for
   everything, with no rapid tier.
 
 ## Configuration reference
@@ -180,8 +180,9 @@ Arrows are drawn with the bundled [Weather Icons](https://erikflowers.github.io/
 - The observation needs at least one archive record within the last 3 hours.
 
 **The barometer almost never leaves "steady" (or flickers constantly)**
-- That's the threshold style. `strict` has the widest steady band per change; `multi`
-  has the narrowest (±0.25 hPa). Switch `trend_type` to taste.
+- That's the threshold style. The steady band is ±0.5 hPa in `strict` and ±0.7 hPa in
+  `multi`/`davis`; beyond it, `multi` adds graded rising/rapid tiers while `strict` shows
+  a single rising/falling arrow. Switch `trend_type` to taste.
 
 **The tooltip value looks rounded/coarse for pressure**
 - inHg/kPa changes are tiny, so they use extra decimal places (see
