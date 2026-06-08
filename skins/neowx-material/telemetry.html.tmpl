@@ -233,7 +233,10 @@
             #elif $percentage > 100
                 #set percentage = 100
             #end if
-            #return int($percentage)
+            ## Nudge by a tiny epsilon before truncating: a mathematically integral
+            ## result (e.g. 57/100*100 = 56.9999999 in float) would otherwise
+            ## truncate one short. Genuine fractional percentages are unaffected.
+            #return int($percentage + 0.0000001)
         #else
             #return None
         #end if
