@@ -70,31 +70,35 @@ All three styles share the same unit-canonical engine; they differ only in the b
 thresholds and how many tiers are shown. Non-pressure observations use a simple
 up / steady / down arrow in every style.
 
+In the tables below, **Δ** is the pressure change over the window. The ranges are
+half-open so every value maps to exactly one tier (a value exactly on a boundary falls
+into the *faster* tier — e.g. Δ = +2.0 hPa is "Rising", not "Slowly Rising").
+
 ### `multi` (default) — WMO/NWS-style multi-tier
 
 The barometer arrow steepens as the change grows, and doubles for the rapid tier.
 
-| 3-hour change | inHg equiv. | Arrow | Tooltip word |
+| Change (Δ) | inHg equiv. | Arrow | Tooltip word |
 |---|---|---|---|
-| ≥ +5.0 hPa | ≥ +0.148 | ↑↑ | Rapidly Rising |
-| +2.0 … +5.0 hPa | +0.059 … +0.148 | ↑ | Rising |
-| +0.7 … +2.0 hPa | +0.021 … +0.059 | ↗ | Slowly Rising |
-| −0.7 … +0.7 hPa | ±0.021 | → | Steady |
-| −0.7 … −2.0 hPa | −0.021 … −0.059 | ↘ | Slowly Falling |
-| −2.0 … −5.0 hPa | −0.059 … −0.148 | ↓ | Falling |
-| ≤ −5.0 hPa | ≤ −0.148 | ↓↓ | Rapidly Falling |
+| Δ ≥ +5.0 hPa | ≥ +0.148 | ↑↑ | Rapidly Rising |
+| +2.0 ≤ Δ < +5.0 hPa | +0.059 … +0.148 | ↑ | Rising |
+| +0.7 ≤ Δ < +2.0 hPa | +0.021 … +0.059 | ↗ | Slowly Rising |
+| −0.7 < Δ < +0.7 hPa | within ±0.021 | → | Steady |
+| −2.0 < Δ ≤ −0.7 hPa | −0.021 … −0.059 | ↘ | Slowly Falling |
+| −5.0 < Δ ≤ −2.0 hPa | −0.059 … −0.148 | ↓ | Falling |
+| Δ ≤ −5.0 hPa | ≤ −0.148 | ↓↓ | Rapidly Falling |
 
 ### `davis` — Davis Vantage thresholds
 
 Mirrors the 3-level rate descriptions used by Davis Vantage consoles.
 
-| 3-hour change | inHg equiv. | Arrow | Tooltip word |
+| Change (Δ) | inHg equiv. | Arrow | Tooltip word |
 |---|---|---|---|
-| ≥ +2.0 hPa | ≥ +0.059 | ↑ | Rising rapidly |
-| +0.7 … +2.0 hPa | +0.021 … +0.059 | ↗ | Rising slowly |
-| −0.7 … +0.7 hPa | ±0.021 | → | Steady |
-| −0.7 … −2.0 hPa | −0.021 … −0.059 | ↘ | Falling slowly |
-| ≤ −2.0 hPa | ≤ −0.059 | ↓ | Falling rapidly |
+| Δ ≥ +2.0 hPa | ≥ +0.059 | ↑ | Rising rapidly |
+| +0.7 ≤ Δ < +2.0 hPa | +0.021 … +0.059 | ↗ | Rising slowly |
+| −0.7 < Δ < +0.7 hPa | within ±0.021 | → | Steady |
+| −2.0 < Δ ≤ −0.7 hPa | −0.021 … −0.059 | ↘ | Falling slowly |
+| Δ ≤ −2.0 hPa | ≤ −0.059 | ↓ | Falling rapidly |
 
 These hPa cut-points reproduce Davis's published inHg table (≈ 0.02 inHg and 0.06 inHg).
 
@@ -103,11 +107,11 @@ These hPa cut-points reproduce Davis's published inHg table (≈ 0.02 inHg and 0
 Every observation, including the barometer, uses a single steady band and a simple
 rising / steady / falling arrow — no rapid tier, no doubled arrows.
 
-| 3-hour change (barometer) | Arrow | Tooltip word |
+| Change (Δ, barometer) | Arrow | Tooltip word |
 |---|---|---|
-| ≥ +0.5 hPa | ↗ | Rising |
-| −0.5 … +0.5 hPa | → | Steady |
-| ≤ −0.5 hPa | ↘ | Falling |
+| Δ > +0.5 hPa | ↗ | Rising |
+| −0.5 ≤ Δ ≤ +0.5 hPa | → | Steady |
+| Δ < −0.5 hPa | ↘ | Falling |
 
 The `0.5 hPa` band is the canonical pressure dead-band; the same single-band logic
 applies to all other observations (see the table below).
