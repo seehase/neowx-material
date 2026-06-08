@@ -54,11 +54,18 @@ def wing_full(wing):
     )
 
 
-def fill_band(wing, f):
-    xi, xo, d = wing
+def frontier(wing, f):
+    """Frontier (xf, hhf) of the fill at fraction f for a wing. Clamps f to [0,1]."""
+    xi, xo, _ = wing
     f = max(0.0, min(1.0, f))
     xf = xi + f * (xo - xi)
     hhf = HH_I + f * (HH_O - HH_I)
+    return xf, hhf
+
+
+def fill_band(wing, f):
+    xi, xo, d = wing
+    xf, hhf = frontier(wing, f)
     si, sf = sag(HH_I), sag(hhf)
     return (
         "M %s %s L %s %s Q %s %s %s %s L %s %s Q %s %s %s %s Z" % (
@@ -83,7 +90,7 @@ def cone_svg(percentage, threshold=30, width=120):
             width, int(width * 24 / 120),
             wing_full(LEFT), DIM, wing_full(RIGHT), DIM,
             fill_band(LEFT, f), color, fill_band(RIGHT, f), color,
-            DOT_R,
+            _fmt(DOT_R),
         )
     )
 
@@ -107,22 +114,27 @@ def write_preview():
 
 
 def check():
+    # Outer-tip sagitta is an exact closed-form value for the chosen constants.
     assert abs(sag(HH_O) - 5.0) < 1e-6, "sag(HH_O) should be 5.0"
-    # f=1 fill frontier reaches the outer tip x on both wings.
-    for wing, xo in ((LEFT, 12.0), (RIGHT, 108.0)):
-        d = fill_band(wing, 1.0)
-        assert (" %s " % _fmt(xo)) in d, "fill at f=1 must reach outer x %s" % xo
-    # Left frontier x decreases monotonically as fill grows.
-    prev = None
-    for i in range(0, 11):
-        f = i / 10.0
-        xf = LEFT[0] + f * (LEFT[1] - LEFT[0])
-        if prev is not None:
-            assert xf < prev, "left frontier x must decrease as f grows"
-        prev = xf
-    # Half-height interpolates between inner and outer.
-    assert abs((HH_I + 0.0 * (HH_O - HH_I)) - 4.75) < 1e-9
-    assert abs((HH_I + 1.0 * (HH_O - HH_I)) - 11.0) < 1e-9
+    for wing, xi, xo in ((LEFT, 52.0, 12.0), (RIGHT, 68.0, 108.0)):
+        # f=0: frontier sits at the inner edge; f=1: frontier reaches the outer tip.
+        xf0, hhf0 = frontier(wing, 0.0)
+        xf1, hhf1 = frontier(wing, 1.0)
+        assert abs(xf0 - xi) < 1e-9, "f=0 frontier must sit at inner x %s" % xi
+        assert abs(xf1 - xo) < 1e-9, "f=1 frontier must reach outer x %s" % xo
+        assert abs(hhf0 - HH_I) < 1e-9, "f=0 half-height must be HH_I"
+        assert abs(hhf1 - HH_O) < 1e-9, "f=1 half-height must be HH_O"
+        # Frontier x moves strictly toward the outer tip as fill grows, and
+        # half-height grows strictly, across the full 0..1 range.
+        prev_x, prev_hh = None, None
+        toward_outer = 1 if xo > xi else -1
+        for i in range(0, 11):
+            f = i / 10.0
+            xf, hhf = frontier(wing, f)
+            if prev_x is not None:
+                assert (xf - prev_x) * toward_outer > 0, "frontier x must move toward outer as f grows"
+                assert hhf > prev_hh, "half-height must grow as f grows"
+            prev_x, prev_hh = xf, hhf
     print("PASS")
 
 
