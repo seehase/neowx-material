@@ -292,6 +292,41 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Render the signal "cone" as a static SVG. Mirrors the geometry in       |
+## | tests/signal-cone-preview.py. percentage 0-100; color is the fill.      |
+## +-------------------------------------------------------------------------+
+#def signalCone($name, $percentage, $color)
+    #import math
+    #set R = 14.6
+    #set cy = 12.0
+    #set hh_i = 4.75
+    #set hh_o = 11.0
+    #set f = float($percentage) / 100.0
+    #if $f < 0.0
+        #set f = 0.0
+    #end if
+    #if $f > 1.0
+        #set f = 1.0
+    #end if
+    ## Sagitta (bulge depth) for inner, outer, and frontier edges.
+    #set si = $R - math.sqrt($R * $R - $hh_i * $hh_i)
+    #set so = $R - math.sqrt($R * $R - $hh_o * $hh_o)
+    #set hhf = $hh_i + $f * ($hh_o - $hh_i)
+    #set sf = $R - math.sqrt($R * $R - $hhf * $hhf)
+    ## Frontier x for each wing (inner -> outer).
+    #set xfL = 52.0 + $f * (12.0 - 52.0)
+    #set xfR = 68.0 + $f * (108.0 - 68.0)
+    ## Constant y edges: top_i=7.25 bot_i=16.75 top_o=1 bot_o=23, center=12.
+    <svg viewBox="0 0 120 24" width="120" height="24" style="display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 52 7.25 L 12 1 Q ${"%.3f" % (12.0 - 2 * $so)} 12 12 23 L 52 16.75 Q ${"%.3f" % (52.0 - 2 * $si)} 12 52 7.25 Z" fill="#4a4a4a"/>
+        <path d="M 68 7.25 L 108 1 Q ${"%.3f" % (108.0 + 2 * $so)} 12 108 23 L 68 16.75 Q ${"%.3f" % (68.0 + 2 * $si)} 12 68 7.25 Z" fill="#4a4a4a"/>
+        <path d="M 52 7.25 L ${"%.3f" % $xfL} ${"%.3f" % (12.0 - $hhf)} Q ${"%.3f" % ($xfL - 2 * $sf)} 12 ${"%.3f" % $xfL} ${"%.3f" % (12.0 + $hhf)} L 52 16.75 Q ${"%.3f" % (52.0 - 2 * $si)} 12 52 7.25 Z" fill="$color"/>
+        <path d="M 68 7.25 L ${"%.3f" % $xfR} ${"%.3f" % (12.0 - $hhf)} Q ${"%.3f" % ($xfR + 2 * $sf)} 12 ${"%.3f" % $xfR} ${"%.3f" % (12.0 + $hhf)} L 68 16.75 Q ${"%.3f" % (68.0 + 2 * $si)} 12 68 7.25 Z" fill="$color"/>
+        <circle cx="60" cy="12" r="3.5" fill="#ddd"/>
+    </svg>
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Helper function to get chart value for battery fields                   |
 ## | Returns the numeric chart position based on mapping order               |
 ## | For voltage-based sensors, returns the raw value                        |
