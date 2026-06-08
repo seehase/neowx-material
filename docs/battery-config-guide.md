@@ -125,6 +125,69 @@ The battery gauge will:
 
 ---
 
+### Signal Indicator (For Signal-Strength Sensors)
+
+If a sensor reports a signal-strength value (e.g. `rxCheckPercent`, a 0–100% link
+quality), configure it as a **signal indicator**. Instead of the horizontal battery
+bar, the card shows a WiFi-style "cone": two parenthesis-shaped wings that fill from
+the center outward in proportion to the percentage — green normally, red below a
+threshold.
+
+#### Configuration Options:
+
+```ini
+[[[[rxCheckPercent]]]]
+    enabled = yes
+    max_signal = 100      # raw value that represents 100%
+    min_signal = 0        # raw value that represents 0% (default: 0)
+    low_threshold = 30    # below this %, the cone turns red
+```
+
+#### How It Works:
+
+1. **max_signal**: the raw value that maps to 100% (for `rxCheckPercent`, `100`).
+2. **min_signal**: the raw value that maps to 0% (usually `0`).
+3. **low_threshold**: percentage below which the cone fill turns red (reuses the same
+   key as the voltage gauge; default `20`).
+
+Percentage = (current − min_signal) ÷ (max_signal − min_signal) × 100, clamped to
+0–100.
+
+#### Example:
+
+```ini
+[[Appearance]]
+    telemetry_order = rxCheckPercent, consBatteryVoltage
+    telemetry_chart_order = rxCheckPercent
+
+[[Telemetry]]
+    allow_zero_values = yes
+    [[[BatteryFields]]]
+        [[[[rxCheckPercent]]]]
+            enabled = yes
+            max_signal = 100
+            min_signal = 0
+            low_threshold = 30
+```
+
+- 100% → full green cone
+- 70% → green cone filled ~70% from the center out
+- 20% → red, lightly filled cone (below the 30% threshold)
+
+**Signal vs. voltage:** a field is a *signal* sensor when `max_signal` is set and a
+*voltage* sensor when `max_voltage` is set — use one or the other, not both. If both
+are set, signal mode wins. In charts, signal fields plot their raw numeric value
+(like voltage fields), not status positions.
+
+#### Quick Reference — Signal Configuration
+| Setting | Purpose | Example |
+|---------|---------|---------|
+| `max_signal` | Raw value = 100% | `100` |
+| `min_signal` | Raw value = 0% | `0` |
+| `low_threshold` | Percentage to turn red | `30` |
+
+---
+
 ### Step 3: Configure Text Labels
 
 **Rule:** The number must match what your station reports.
