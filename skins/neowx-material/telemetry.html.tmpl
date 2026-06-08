@@ -135,6 +135,27 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Check if a battery field is signal-based (has max_signal configured)    |
+## +-------------------------------------------------------------------------+
+#def isSignalBased($name)
+    #try
+        #set max_s = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_signal', None)
+        #if $max_s is not None and str($max_s).strip() != '' and str($max_s) != 'None'
+            #try
+                #set test_float = float($max_s)
+                #return True
+            #except
+                #return False
+            #end try
+        #else
+            #return False
+        #end if
+    #except
+        #return False
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Helper function to map battery values                                   |
 ## | Only maps status-based sensors, not voltage-based sensors               |
 ## +-------------------------------------------------------------------------+
