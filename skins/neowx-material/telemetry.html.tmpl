@@ -257,7 +257,8 @@
 
 ## +-------------------------------------------------------------------------+
 ## | Helper function to calculate signal percentage                          |
-## | Returns percentage (0-100) based on current value vs max_signal         |
+## | Returns percentage (0-100) based on current value vs max_signal.        |
+## | Returns 0 if max_signal <= min_signal (misconfigured range).            |
 ## +-------------------------------------------------------------------------+
 #def calculateSignalPercentage($name, $value)
     #set p = $rangePercentage($name, $value, 'max_signal', 'min_signal')
@@ -306,11 +307,12 @@
 ## +-------------------------------------------------------------------------+
 ## | Render the signal "cone" as a static SVG. Mirrors the geometry in       |
 ## | tests/signal-cone-preview.py. percentage 0-100; color is the fill.      |
+## | $name is currently unused - reserved for future per-field overrides.    |
 ## +-------------------------------------------------------------------------+
 #def signalCone($name, $percentage, $color)
     #import math
+    ## Center y is the fixed literal 12 throughout the paths below.
     #set R = 14.6
-    #set cy = 12.0
     #set hh_i = 4.75
     #set hh_o = 11.0
     #set f = float($percentage) / 100.0
@@ -341,7 +343,7 @@
 ## +-------------------------------------------------------------------------+
 ## | Helper function to get chart value for battery fields                   |
 ## | Returns the numeric chart position based on mapping order               |
-## | For voltage-based sensors, returns the raw value                        |
+## | For voltage- or signal-based sensors, returns the raw value             |
 ## +-------------------------------------------------------------------------+
 #def getBatteryChartValue($name, $raw_value)
     #if not $isBatteryFieldEnabled($name)
@@ -607,7 +609,7 @@
                                 }
                             }
                         #else
-                            ## Voltage-based or regular sensor: use normal numeric labels
+                            ## Voltage-based, signal-based, or regular sensor: use normal numeric labels
                             labels: {
                                 formatter: function (val) {
                                     return formatNumber(val, "$getVar('unit.format.' + name)") + "$getVar('unit.label.' + name)";
