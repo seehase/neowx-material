@@ -176,6 +176,11 @@
         #return $value
     #end if
 
+    ## Don't map signal-based sensors - return raw value
+    #if $isSignalBased($name)
+        #return $value
+    #end if
+
     ## Only map status-based sensors
     #try
         #set raw_val = str($value).strip()
@@ -348,6 +353,11 @@
         #return $raw_value
     #end if
 
+    ## Don't convert signal-based sensors - use raw value in charts
+    #if $isSignalBased($name)
+        #return $raw_value
+    #end if
+
     ## Only convert status-based sensors to chart positions
     #try
         #set key = str(int(float($raw_value) + 0.000001))
@@ -501,6 +511,7 @@
                 ## Check if this is an enabled battery field for custom Y-axis
                 #set is_battery = $isBatteryFieldEnabled($name)
                 #set is_voltage = $isVoltageBased($name)
+                #set is_signal = $isSignalBased($name)
 
                 ## Read per-field chart_interval: FieldConfiguration takes priority, then BatteryFields, then default_interval from config, then hardcoded 300
                 #set chart_interval = 300
@@ -543,7 +554,7 @@
                     },
                     #end if
                     yaxis: {
-                        #if $is_battery and not $is_voltage
+                        #if $is_battery and not $is_voltage and not $is_signal
                             ## Status-based battery: use custom position labels
                             #try
                                 #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
