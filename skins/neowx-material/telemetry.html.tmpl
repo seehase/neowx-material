@@ -257,19 +257,15 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Helper function to determine battery gauge color                        |
-## | Returns color code based on threshold                                   |
+## | Generic gauge color: red below low_threshold when max_key is set,       |
+## | otherwise green. Shared by voltage and signal modes.                    |
 ## +-------------------------------------------------------------------------+
-#def getBatteryColor($name, $percentage)
+#def getGaugeColor($name, $percentage, $max_key)
     #try
-        ## Check if this is a voltage-based sensor (has max_voltage configured)
-        #set max_v = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_voltage', None)
+        #set max_v = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $max_key, None)
         #if $max_v is None or str($max_v).strip() == '' or str($max_v) == 'None'
-            ## Not voltage-based, return default green
             #return "#4caf50"
         #end if
-
-        ## Get threshold
         #set threshold = float($getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_threshold', '20'))
         #if float($percentage) < $threshold
             #return "#f44336"  ## Red
@@ -279,6 +275,20 @@
     #except
         #return "#4caf50"  ## Default green
     #end try
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper function to determine battery gauge color (voltage threshold)    |
+## +-------------------------------------------------------------------------+
+#def getBatteryColor($name, $percentage)
+    #return $getGaugeColor($name, $percentage, 'max_voltage')
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper function to determine signal cone color (signal threshold)       |
+## +-------------------------------------------------------------------------+
+#def getSignalColor($name, $percentage)
+    #return $getGaugeColor($name, $percentage, 'max_signal')
 #end def
 
 ## +-------------------------------------------------------------------------+
