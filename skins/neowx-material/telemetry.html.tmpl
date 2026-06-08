@@ -189,37 +189,33 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Helper function to calculate battery percentage                         |
-## | Returns percentage (0-100) based on current voltage vs max voltage      |
+## | Parse a numeric value out of a string like "4,5 V" -> 4.5               |
 ## +-------------------------------------------------------------------------+
-#def calculateBatteryPercentage($name, $value)
+#def parseNumericValue($value)
+    #import re
+    #set value_str = str($value).strip()
+    ## Keep only digits, comma, decimal point, minus; normalize comma to period
+    #set numeric_str = re.sub(r'[^0-9,.\-]', '', value_str)
+    #set numeric_str = numeric_str.replace(',', '.')
+    #return float($numeric_str)
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Generic range -> percentage (0-100) for a configured max/min key pair.  |
+## | Returns None when the max key is absent/blank or the range is invalid.  |
+## +-------------------------------------------------------------------------+
+#def rangePercentage($name, $value, $max_key, $min_key)
     #try
-        ## Try to get max_voltage - if it exists, this is a voltage-based sensor
-        #set max_voltage_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_voltage', None)
-
-        ## Check if max_voltage is configured
-        #if $max_voltage_str is None or str($max_voltage_str).strip() == '' or str($max_voltage_str) == 'None'
-            ## Not a voltage sensor, return 100 (full)
-            #return 100
+        #set max_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $max_key, None)
+        #if $max_str is None or str($max_str).strip() == '' or str($max_str) == 'None'
+            #return None
         #end if
-
-        ## Parse the raw value - need to get numeric value from string like "4,5 V"
-        #import re
-        #set value_str = str($value).strip()
-        ## Extract only numbers, comma, decimal point, and minus sign
-        #set numeric_str = re.sub(r'[^0-9,.\-]', '', value_str)
-        ## Replace comma with period for decimal point
-        #set numeric_str = numeric_str.replace(',', '.')
-        #set raw_val = float(numeric_str)
-
-        #set max_voltage = float(str($max_voltage_str).strip())
-        #set min_voltage_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.min_voltage', '0')
-        #set min_voltage = float(str($min_voltage_str).strip())
-
-        ## Calculate percentage within range
-        #if $max_voltage > $min_voltage
-            #set percentage = (($raw_val - $min_voltage) / ($max_voltage - $min_voltage)) * 100
-            ## Clamp between 0 and 100
+        #set raw_val = $parseNumericValue($value)
+        #set max_v = float(str($max_str).strip())
+        #set min_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $min_key, '0')
+        #set min_v = float(str($min_str).strip())
+        #if $max_v > $min_v
+            #set percentage = (($raw_val - $min_v) / ($max_v - $min_v)) * 100
             #if $percentage < 0
                 #set percentage = 0
             #elif $percentage > 100
@@ -227,11 +223,37 @@
             #end if
             #return int($percentage)
         #else
-            #return 100
+            #return None
         #end if
     #except
-        #return 100
+        #return None
     #end try
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper function to calculate battery percentage                         |
+## | Returns percentage (0-100) based on current voltage vs max voltage      |
+## +-------------------------------------------------------------------------+
+#def calculateBatteryPercentage($name, $value)
+    #set p = $rangePercentage($name, $value, 'max_voltage', 'min_voltage')
+    #if $p is None
+        #return 100
+    #else
+        #return $p
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
+## | Helper function to calculate signal percentage                          |
+## | Returns percentage (0-100) based on current value vs max_signal         |
+## +-------------------------------------------------------------------------+
+#def calculateSignalPercentage($name, $value)
+    #set p = $rangePercentage($name, $value, 'max_signal', 'min_signal')
+    #if $p is None
+        #return 0
+    #else
+        #return $p
+    #end if
 #end def
 
 ## +-------------------------------------------------------------------------+
