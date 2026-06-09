@@ -79,6 +79,13 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
 - Wind rose visualization
 - Customizable colors and appearance
 
+### 📈 Unit-Aware Trend Indicators
+- Rising / steady / falling arrows with tooltips on **current-page** values
+- Direction is computed in a canonical unit, so trends behave identically in **metric, imperial, or any other supported unit**
+- Selectable threshold style via `trend_type`: `multi` (WMO/NWS multi-tier, default), `davis` (Davis Vantage), or `strict` (simple up/steady/down)
+- Barometric pressure shows graded tendency (slowly / rising / rapidly) with steeper and doubled arrows
+- Pick which observations show a trend with `show_trend_on`
+
 ### 🔧 Highly Customizable
 - Extensive configuration options in `skin.conf`
 - Reorderable cards and charts
@@ -136,6 +143,12 @@ Full guide to combining sensors with different value ranges on one chart:
 Compact cheat-sheet for the multi-axis syntax:
 - Minimal working configuration snippets
 - All supported keys at a glance
+
+### 📈 [Trend Indicators – Usage Guide](docs/TREND-INDICATORS.md)
+How the current-page trend arrows work and how to tune them:
+- Unit-aware direction (metric / imperial / other behave identically)
+- `trend_type` styles: `multi` (WMO/NWS), `davis` (Davis Vantage), `strict`
+- Threshold tables, tooltip precision, and `show_trend_on` reference
 
 **Quick Links:**
 - [Installation](#-installation) • [Configuration](#️-configuration) • [Troubleshooting](#-contribution--support) • [Contributing](#-contribution--support)
