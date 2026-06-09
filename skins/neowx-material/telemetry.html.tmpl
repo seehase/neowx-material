@@ -62,7 +62,7 @@
                                 #set battery_color = $getBatteryColor($name, $battery_percentage)
                                 <!-- Visual battery gauge -->
                                 <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto; position: relative;">
-                                    <div class="battery-fill" style="background-color: $battery_color;width: $battery_percentage%;height: 100%;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
+                                    <div class="battery-fill" style="background-color: $battery_color;width: $battery_percentage%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
                                     <div style="position: absolute;top: 5px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
                                 </div>
                                 <div class="text-muted font-small mt-1">$battery_percentage%</div>
