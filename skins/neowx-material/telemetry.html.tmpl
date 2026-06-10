@@ -273,6 +273,36 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | State-based percentage for status battery fields.                       |
+## | percentage = (chart position + 1) / (max_chart_position + 1) * 100,     |
+## | honoring flip_values the same way getBatteryChartValue does.            |
+## | Returns None when the field is not an enabled battery field or the      |
+## | raw value has no chart_position_<key> mapping.                          |
+## +-------------------------------------------------------------------------+
+#def calculateStatePercentage($name, $value)
+    #try
+        #if not $isBatteryFieldEnabled($name)
+            #return None
+        #end if
+        #set key = str(int($parseNumericValue($value) + 0.000001))
+        #set chart_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + $key, None)
+        #if $chart_pos is None
+            #return None
+        #end if
+        #set pos = int($chart_pos)
+        #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
+        #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
+            #set pos = $max_pos - $pos
+        #end if
+        ## Same epsilon guard as rangePercentage so integral results don't
+        ## truncate one short.
+        #return int((($pos + 1.0) / ($max_pos + 1.0)) * 100 + 0.0000001)
+    #except
+        #return None
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Generic gauge color: red below low_threshold when max_key is set,       |
 ## | otherwise green. Shared by voltage and signal modes.                    |
 ## +-------------------------------------------------------------------------+
