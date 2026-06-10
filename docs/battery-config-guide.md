@@ -188,6 +188,48 @@ are set, signal mode wins. In charts, signal fields plot their raw numeric value
 
 ---
 
+### Low Threshold for Status Batteries
+
+Status-based fields (discrete states like `0 = OK` / `1 = Low`) automatically get a
+gauge percentage from their chart positions:
+
+**Percentage = (chart position + 1) ÷ (max_chart_position + 1) × 100**
+
+- 2 states: OK → 100%, Low → 50%
+- 5 states: Full → 100%, Good → 80%, Fair → 60%, Low → 40%, Critical → 20%
+- `flip_values = yes` is honored, so the gauge always agrees with the chart.
+
+To turn the gauge **red** when the battery is low, add a threshold on the **raw
+station value**:
+
+```ini
+[[[[outTempBatteryStatus]]]]
+    enabled = yes
+    0 = OK
+    1 = Low
+    chart_position_0 = 1
+    chart_position_1 = 0
+    max_chart_position = 1
+    low_state = 1             # raw value to compare against
+    low_when = at_or_above    # at_or_above (default) | at_or_below
+```
+
+- `low_when = at_or_above`: LOW when the raw value is ≥ `low_state`
+  (e.g. Ecowitt stations, where a high number like 9 means a weak battery).
+- `low_when = at_or_below`: LOW when the raw value is ≤ `low_state`
+  (stations where `1 = OK` and `0 = Low`).
+- Without `low_state`, the gauge shows the state percentage in green and never
+  turns red.
+
+**Two-state fields fill the whole bar red when low** (an at-a-glance alarm). Fields
+with three or more states keep their proportional fill, colored red. The percentage
+text under the bar always shows the computed percentage.
+
+`low_state` is ignored on voltage- and signal-based fields — those use
+`low_threshold` against their computed percentage instead.
+
+---
+
 ### Step 3: Configure Text Labels
 
 **Rule:** The number must match what your station reports.
@@ -533,6 +575,8 @@ If you want to prioritize voltage sensors, you can reorder them:
 | `chart_position_X` | Y-axis position for value X | `chart_position_0 = 1` |
 | `max_chart_position` | Highest position used | `1` for 2 levels, `2` for 3 levels, etc. |
 | `flip_values` | Invert chart display | `yes` or `no` |
+| `low_state` | Raw value threshold for LOW/red (optional) | `1` |
+| `low_when` | LOW when raw is `at_or_above` (default) or `at_or_below` the threshold | `at_or_above` |
 
 ### Voltage-Based Percentage Configuration
 | Setting | Purpose | Example |
@@ -567,6 +611,10 @@ If you want to prioritize voltage sensors, you can reorder them:
 
 **Problem:** Page breaks when sensor doesn't exist
 - **Solution:** Only configure sensors that actually exist, or set `enabled = no`
+
+**Problem:** Status battery gauge stays green even when the station reports Low
+- **Solution:** Add `low_state` (and `low_when` if the low direction is inverted) to the sensor's `BatteryFields` block
+- **Example:** `low_state = 1` with the default `low_when = at_or_above` turns the bar red when the station reports `1`
 
 **Problem:** Battery gauge always shows 100% green (voltage sensors)
 - **Solution:** Configure `max_voltage` and `min_voltage` for voltage-based sensors
