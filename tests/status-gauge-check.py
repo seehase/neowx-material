@@ -93,13 +93,21 @@ def main():
     check('5-state 4 is low', t.isLowState('fiveState', '4'), 'True')
     check('5-state 2 not low', t.isLowState('fiveState', '2'), 'False')
     check('no threshold never low', t.isLowState('noThreshold', '1'), 'False')
+    # flip affects positions/percentage only; the threshold still compares raw
+    check('flipped 1 is low', t.isLowState('flipped', '1'), 'True')
+    check('flipped 0 not low', t.isLowState('flipped', '0'), 'False')
 
     # --- getStateFillWidth: 2-state low -> full bar, else proportional ---
     check('2-state low -> full red bar', t.getStateFillWidth('twoState', 50, True), '100')
     check('2-state ok -> pct', t.getStateFillWidth('twoState', 100, False), '100')
+    check('flipped 2-state low -> full red bar', t.getStateFillWidth('flipped', 50, True), '100')
     check('5-state low -> proportional', t.getStateFillWidth('fiveState', 40, True), '40')
     check('5-state critical -> proportional', t.getStateFillWidth('fiveState', 20, True), '20')
     check('5-state ok -> pct', t.getStateFillWidth('fiveState', 60, False), '60')
+
+    # --- safe defaults on unparseable values ---
+    check('unparseable pct -> None', t.calculateStatePercentage('twoState', 'n/a'), 'None')
+    check('unparseable low -> False', t.isLowState('twoState', 'n/a'), 'False')
 
     # --- regressions: voltage/status behavior unchanged ---
     check('voltage pct', t.calculateBatteryPercentage('volt', '3.6 V'), '80')

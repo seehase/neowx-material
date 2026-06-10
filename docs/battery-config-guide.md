@@ -214,8 +214,10 @@ station value**:
     low_when = at_or_above    # at_or_above (default) | at_or_below
 ```
 
-- `low_when = at_or_above`: LOW when the raw value is ≥ `low_state`
-  (e.g. Ecowitt stations, where a high number like 9 means a weak battery).
+- `low_when = at_or_above`: LOW when the raw value is ≥ `low_state` — any station
+  where a higher number means a weaker battery, like the `0 = OK` / `1 = Low`
+  example above (`low_state = 1`) or Ecowitt's `0 = Normal` / `9 = Low`
+  (`low_state = 9`).
 - `low_when = at_or_below`: LOW when the raw value is ≤ `low_state`
   (stations where `1 = OK` and `0 = Low`).
 - Without `low_state`, the gauge shows the state percentage in green and never

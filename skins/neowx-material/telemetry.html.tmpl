@@ -306,6 +306,9 @@
         #if not $isBatteryFieldEnabled($name)
             #return None
         #end if
+        ## Assumes non-negative state values (int() truncates toward zero, so
+        ## the epsilon would skew exact negatives) - same limitation as the
+        ## key derivation in getBatteryChartValue.
         #set key = str(int($parseNumericValue($value) + 0.000001))
         #set chart_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + $key, None)
         #if $chart_pos is None
@@ -363,6 +366,7 @@
     #try
         #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
     #except
+        ## Unreadable max_chart_position -> keep 1 (2-state full-bar behavior)
         #pass
     #end try
     #if $max_pos == 1
