@@ -8,3 +8,6 @@
 /private/
 /skins/neowx-material/skin.conf.patch
 /todo.md
+/.superpowers/
+/tests/__pycache__/
+/tests/signal-cone-preview.html
