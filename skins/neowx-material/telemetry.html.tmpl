@@ -329,6 +329,28 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Fill width for the status battery bar.                                  |
+## | A LOW 2-state field (max_chart_position == 1) fills the whole bar red   |
+## | as an at-a-glance alarm; everything else fills proportionally.          |
+## +-------------------------------------------------------------------------+
+#def getStateFillWidth($name, $percentage, $is_low)
+    #if not $is_low
+        #return $percentage
+    #end if
+    #set max_pos = 1
+    #try
+        #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
+    #except
+        #pass
+    #end try
+    #if $max_pos == 1
+        #return 100
+    #else
+        #return $percentage
+    #end if
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Generic gauge color: red below low_threshold when max_key is set,       |
 ## | otherwise green. Shared by voltage and signal modes.                    |
 ## +-------------------------------------------------------------------------+
