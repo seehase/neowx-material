@@ -303,6 +303,32 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | Whether a status field's RAW value is on the LOW side of its            |
+## | configured low_state threshold.                                         |
+## | low_when = at_or_above (default): LOW when raw >= low_state.            |
+## | low_when = at_or_below:           LOW when raw <= low_state.            |
+## | Returns False when low_state is not configured (never red).             |
+## +-------------------------------------------------------------------------+
+#def isLowState($name, $value)
+    #try
+        #set low_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_state', None)
+        #if $low_str is None or str($low_str).strip() == '' or str($low_str) == 'None'
+            #return False
+        #end if
+        #set low_v = float(str($low_str).strip())
+        #set raw_v = $parseNumericValue($value)
+        #set direction = str($getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_when', 'at_or_above')).strip().lower()
+        #if $direction == 'at_or_below'
+            #return $raw_v <= $low_v
+        #else
+            #return $raw_v >= $low_v
+        #end if
+    #except
+        #return False
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Generic gauge color: red below low_threshold when max_key is set,       |
 ## | otherwise green. Shared by voltage and signal modes.                    |
 ## +-------------------------------------------------------------------------+
