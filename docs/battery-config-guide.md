@@ -4,6 +4,18 @@
 This feature allows you to convert numeric battery status values (like 0, 1, 9) 
 into human-readable custom text (like "OK", "Low", "Critical") and display them with custom charts.
 
+Each telemetry sensor gets one of three gauge styles, picked automatically from
+the options you configure for it:
+
+| Your sensor reports... | Mode | You configure | The card shows |
+|---|---|---|---|
+| Status codes (0, 1, 9, ...) | **Status battery** | Text labels + chart positions, optional `low_state` | "OK"/"Low" label, bar filled by state, raw value below |
+| A voltage (4.5V, 12.6V, ...) | **Voltage battery** | `max_voltage`, `min_voltage`, `low_threshold` | Voltage, bar filled by percentage, % below |
+| Signal strength (0–100%) | **Signal indicator** | `max_signal`, `min_signal`, `low_threshold` | WiFi-style cone filled by percentage, % below |
+
+All three turn **red** when the value crosses the "low" point you set. Set only
+one of `max_voltage` / `max_signal` per sensor; with neither, it's a status sensor.
+
 ---
 
 ## Step-by-Step Configuration
@@ -24,7 +36,8 @@ Or check your weewx database or reports to see what values appear.
 
 ### Step 2: Understanding the Configuration Structure
 
-For each battery sensor, you need to configure 4 things:
+Here is everything a sensor block can contain. Items 1–4 are the basics for a
+status sensor; 5–7 are optional extras (use the one that fits your sensor type):
 
 ```ini
 [[Telemetry]]
@@ -48,10 +61,18 @@ chart_days = 1
             # 4. FLIP: Whether to flip the chart upside-down
             flip_values = no
             
-            # 5. VOLTAGE-BASED GAUGE (Optional): For voltage sensors (e.g., 0-5V)
+            # 5. LOW STATE (Optional, status sensors): turn the bar red
+            low_state = 9          # raw value that means "low battery"
+            low_when = at_or_above # red when value >= 9 (or use at_or_below)
+            
+            # 6. VOLTAGE-BASED GAUGE (Optional): For voltage sensors (e.g., 0-5V)
             max_voltage = 4.5      # Maximum voltage (100%)
             min_voltage = 0.0      # Minimum voltage (0%)
             low_threshold = 50     # Below this percentage, gauge turns red
+            
+            # 7. SIGNAL INDICATOR (Optional): For signal sensors (e.g., 0-100%)
+            max_signal = 100       # Raw value that means 100%
+            min_signal = 0         # Raw value that means 0%
 ```
 
 ---
@@ -121,7 +142,7 @@ The battery gauge will:
 - Change from **green** to **red** when below the threshold
 - Display the percentage below the gauge (e.g., "80%")
 
-**Note:** For status-based sensors (0=OK, 9=Low), leave out the voltage options and use the standard text label configuration instead.
+**Note:** For status-based sensors (0=OK, 9=Low), leave out the voltage options and use the standard text label configuration instead. Their bar fills automatically from the chart positions, and you can add `low_state` / `low_when` to turn it red — see "Low Threshold for Status Batteries" below.
 
 ---
 
@@ -412,6 +433,8 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             chart_position_9 = 0
             max_chart_position = 1
             flip_values = no
+            low_state = 9             # bar turns red when the station reports 9
+            low_when = at_or_above
 ```
 
 ### Example 2: Simple Battery (0=OK, 1=Change)
@@ -434,6 +457,8 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             chart_position_1 = 0
             max_chart_position = 1
             flip_values = no
+            low_state = 1             # bar turns red when the station reports 1
+            low_when = at_or_above
 ```
 
 ### Example 3: Multi-Level Battery (0-4)
@@ -462,6 +487,8 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             chart_position_4 = 0
             max_chart_position = 4
             flip_values = no
+            low_state = 3             # Low (3) and Critical (4) show in red
+            low_when = at_or_above
 ```
 
 ### Example 4: Voltage-Based Battery (0V to 4.5V with percentage gauge)

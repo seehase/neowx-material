@@ -1,227 +1,244 @@
-# Voltage-Based Battery Gauge Update
+# Telemetry Gauge Update: Voltage, Signal & Status Batteries
 
 ## What Changed?
 
-The telemetry page now supports **percentage-based battery gauges** for voltage sensors with dynamic color coding!
+The telemetry page can now show a meaningful, color-coded gauge for **every** kind
+of battery or signal sensor — not just voltage sensors.
 
 ### Before:
-- Battery gauge always showed 100% green
-- No visual indication of actual battery level
+- Voltage sensors: percentage gauge (green/red)
+- Status sensors (0=OK, 1=Low): gauge always showed 100% green
+- Signal sensors (rxCheckPercent): gauge always showed 100% green
 
 ### After:
-- Battery gauge shows actual percentage based on voltage
-- Green when above threshold
-- Red when below threshold
-- Displays voltage value + percentage
+- **Voltage sensors:** unchanged — percentage gauge from your min/max voltage
+- **Status sensors:** the bar now fills based on which state the battery is in,
+  can turn red on a "low" state, and shows the raw station value under the bar
+- **Signal sensors:** a brand new WiFi-style "cone" indicator that fills from the
+  center outward with the signal percentage
+
+All three turn **red** when the sensor crosses the "low" point you configure.
 
 ---
 
-## Quick Start Configuration
+## The Three Modes at a Glance
 
-Add this to your `skin.conf` under `[Extras]` → `[[Telemetry]]` → `[[[BatteryFields]]]`:
+The skin picks the mode automatically from which options you set:
 
-```ini
-[[Telemetry]]
-    allow_zero_values = yes
-    chart_days = 1
-    
-    [[[BatteryFields]]]
-        [[[[consBatteryVoltage]]]]
-            enabled = yes
-            max_voltage = 4.5      # Your battery's max voltage (100%)
-            min_voltage = 0.0      # Your battery's min voltage (0%)
-            low_threshold = 50     # Below 50%, gauge turns red
-```
+| Your sensor reports... | You set... | You get... |
+|---|---|---|
+| A voltage (4.5V, 12.6V, ...) | `max_voltage` | Battery bar filled by percentage, "%" below |
+| Signal strength (0–100%) | `max_signal` | WiFi-style cone filled by percentage, "%" below |
+| Status codes (0, 1, 9, ...) | text labels + chart positions | Battery bar filled by state, raw value below |
+
+Set only one of `max_voltage` / `max_signal` per sensor. If you set neither, the
+sensor is treated as a status sensor.
 
 ---
 
-## Configuration Options
+## Mode 1: Voltage Battery Gauge
 
-### max_voltage (required for voltage sensors)
-- **Purpose:** The voltage that represents 100% battery
-- **Example:** `max_voltage = 4.5` (for a 4.5V battery)
-- **Default:** 100 (treats value as percentage)
+For sensors that report an actual voltage. You tell the skin what voltage means
+"full" and what means "empty", and it works out the percentage.
 
-### min_voltage (optional)
-- **Purpose:** The voltage that represents 0% battery
-- **Example:** `min_voltage = 0.0`
-- **Default:** 0
-
-### low_threshold (optional)
-- **Purpose:** Percentage below which gauge turns red
-- **Example:** `low_threshold = 50` (red below 50%)
-- **Default:** 20 (red below 20%)
-
----
-
-## Examples
-
-### Example 1: 4.5V Battery (Your Case)
 ```ini
 [[[[consBatteryVoltage]]]]
     enabled = yes
-    max_voltage = 4.5
-    min_voltage = 0.0
-    low_threshold = 50
+    max_voltage = 4.5      # this voltage = 100%
+    min_voltage = 0.0      # this voltage = 0%
+    low_threshold = 50     # below 50%, the bar turns red
 ```
 
 **Results:**
-- 4.5V → 100% green gauge ✅
-- 3.6V → 80% green gauge ✅
-- 2.0V → 44% red gauge ⚠️ (below 50%)
+- 4.5V → 100% green gauge
+- 3.6V → 80% green gauge
+- 2.0V → 44% red gauge (below 50%)
 
-### Example 2: 12V Battery System
+A 12V system works the same way — just use its real range:
+
 ```ini
-[[[[battery12v]]]]
+[[[[supplyVoltage]]]]
     enabled = yes
-    max_voltage = 14.4    # Fully charged
-    min_voltage = 10.5    # Discharged
+    max_voltage = 14.4    # fully charged
+    min_voltage = 10.5    # discharged
     low_threshold = 30
 ```
 
-**Results:**
-- 14.4V → 100% green
-- 12.45V → 50% green
-- 11.0V → 12% red ⚠️ (below 30%)
+If `low_threshold` is left out it defaults to 20 (red below 20%).
 
-### Example 3: 3.3V LiPo Battery
+---
+
+## Mode 2: Signal Indicator (new)
+
+For sensors that report signal strength, like `rxCheckPercent` (the percentage of
+radio packets your console actually received). Instead of a battery bar, the card
+draws a WiFi-style cone — two curved wings around a center dot — that fills from
+the center outward as the signal gets stronger.
+
 ```ini
-[[[[lipoBattery]]]]
+[[[[rxCheckPercent]]]]
     enabled = yes
-    max_voltage = 4.2
-    min_voltage = 3.0
-    low_threshold = 25
+    max_signal = 100      # raw value that means 100%
+    min_signal = 0        # raw value that means 0% (optional, defaults to 0)
+    low_threshold = 30    # below 30%, the cone turns red
 ```
+
+**Results:**
+- 100% → full green cone
+- 70% → green cone filled about 70% of the way out
+- 20% → mostly empty red cone (below the 30% threshold)
+
+`rxCheckPercent` already reports 0–100, so `max_signal = 100` maps it one-to-one.
+If your sensor uses another scale (say 0–255 RSSI), set `max_signal` to that
+full-scale value instead and the skin converts it to a percentage for you.
 
 ---
 
-## Visual Display
+## Mode 3: Status Batteries (improved)
 
-The battery cards now show:
+For sensors that report discrete codes — `0 = OK, 1 = Low`, Ecowitt's
+`0 = Normal, 9 = Low`, or multi-level `0..4` scales. Two things are new here:
 
+**1. The bar now fills based on the state.** No configuration needed beyond the
+chart positions you already have. The best state fills the bar completely; each
+step down fills it less. With two states OK = 100% and Low = 50%; with five
+states you get 100 / 80 / 60 / 40 / 20%. The raw station value (`0`, `1`, `9`...)
+is shown under the bar — for a status sensor that number is usually more useful
+than a percentage.
+
+**2. The bar can turn red when the battery is low.** Tell the skin which raw
+value means "low" and in which direction to compare:
+
+```ini
+[[[[outTempBatteryStatus]]]]
+    enabled = yes
+    0 = OK
+    1 = Low
+    chart_position_0 = 1
+    chart_position_1 = 0
+    max_chart_position = 1
+    low_state = 1             # the station reports 1 when the battery is low
+    low_when = at_or_above    # red when the value is 1 or higher (default)
 ```
-┌──────────────────────────────────┐
-│   Outside Temperature Battery    │
-│                                  │
-│  0.0 V        4.5 V        4.5 V │
-│  (00:00)                 (14:23) │
-│                                  │
-│  [████████████████░░]  ← 80%     │
-│         80%                      │
-└──────────────────────────────────┘
-```
 
-- **Top row:** Sensor name
-- **Second row:** Min value, Current value, Max value (with timestamps)
-- **Third row:** Visual battery gauge (green/red)
-- **Bottom:** Percentage display
+**Results:**
+- Station reports 0 → card says "OK", green bar, "0" below
+- Station reports 1 → card says "Low", **the entire bar turns red**, "1" below
+
+Why a direction setting? Stations disagree about which way is "low":
+
+- Most stations: a **higher** number means a weaker battery (`1 = Low`, Ecowitt
+  `9 = Low`) → use `low_when = at_or_above` (the default, so you can leave it out)
+- A few stations: a **lower** number means a weaker battery (`1 = OK, 0 = Low`)
+  → use `low_when = at_or_below` with `low_state = 0`
+
+For two-state sensors a low battery fills the **whole** bar red, so you can spot
+it from across the room. Sensors with three or more states keep their partial
+fill and just change color — e.g. a 5-state sensor at "Low" shows a 40% red bar.
+
+If you don't set `low_state`, the bar fills by state but never turns red — same
+as not setting `low_threshold` on a voltage sensor.
 
 ---
 
-## Color Coding
+## What the Cards Look Like
 
-| Condition | Color | Hex Code |
-|-----------|-------|----------|
-| Above threshold | Green | #4caf50 |
-| Below threshold | Red | #f44336 |
+```
+┌───────────────────────────┐   ┌───────────────────────────┐   ┌───────────────────────────┐
+│      Console Battery      │   │      Signal Quality       │   │    Transmitter Battery    │
+│                           │   │                           │   │                           │
+│  2.2V     12.6V    13.1V  │   │  98%      100%      100%  │   │  OK        OK         OK  │
+│                           │   │                           │   │                           │
+│   [█████████████░░░]      │   │      ((( ( · ) )))        │   │   [█████████████████]     │
+│         91%               │   │         100%              │   │          0                │
+└───────────────────────────┘   └───────────────────────────┘   └───────────────────────────┘
+       voltage mode                   signal mode                     status mode
+   (percentage below bar)         (cone, % below)              (raw station value below bar)
+```
 
-The gauge smoothly transitions width and color.
+| Condition | Color |
+|-----------|-------|
+| OK / above threshold | Green (`#4caf50`) |
+| Low / below threshold | Red (`#f44336`) |
 
 ---
 
-## For Status-Based Sensors
+## Complete Example Configuration
 
-If your sensor reports status codes (0=OK, 1=Low) instead of voltage:
-- **Don't** add `max_voltage`, `min_voltage`, or `low_threshold`
-- **Do** use the standard text label configuration
-- See the main `battery-config-guide.md` for details
+All three modes side by side:
+
+```ini
+[Extras]
+    [[Telemetry]]
+        allow_zero_values = yes   # needed when a healthy sensor reports 0
+        chart_days = 30
+
+        [[[BatteryFields]]]
+            # Signal strength -> WiFi-style cone
+            [[[[rxCheckPercent]]]]
+                enabled = yes
+                max_signal = 100
+                min_signal = 0
+                low_threshold = 30
+
+            # Voltage sensor -> percentage battery bar
+            [[[[consBatteryVoltage]]]]
+                enabled = yes
+                max_voltage = 13.8
+                min_voltage = 0.0
+                low_threshold = 25
+
+            # Status sensor -> state-based bar, red when the station says low
+            [[[[outTempBatteryStatus]]]]
+                enabled = yes
+                0 = OK
+                1 = Low
+                chart_position_0 = 1
+                chart_position_1 = 0
+                max_chart_position = 1
+                low_state = 1
+                low_when = at_or_above
+```
 
 ---
 
 ## Testing
 
 1. Add the configuration to your `skin.conf`
-2. Restart weewx:
-   ```bash
-   sudo systemctl restart weewx
-   ```
-3. Open the telemetry page
-4. Check the battery gauge shows the correct percentage
-5. Verify color changes to red when below threshold
+2. Restart weewx (`sudo systemctl restart weewx`) or regenerate now with
+   `sudo weectl report run`
+3. Open the telemetry page and check each card shows the right gauge and color
 
 ---
 
 ## Troubleshooting
 
-**Gauge still shows 100%?**
-- Make sure `max_voltage` is set correctly
-- Check your sensor is actually reporting voltage (not status codes)
-- Restart WeeWX after configuration changes: `sudo systemctl restart weewx`
-- WeeWX formats values with units - the template now strips these automatically
+**Voltage gauge still shows 100%?**
+- Make sure `max_voltage` matches your battery's real maximum
+- Check the sensor reports a voltage, not a status code
+- Restart WeeWX after configuration changes
 
-**Wrong percentage?**
-- Verify `max_voltage` matches your battery's actual maximum
-- Example: 4.5V max battery needs `max_voltage = 4.5`
-- If you see 4.5V = 100% but configured `max_voltage = 10.5`, check you restarted WeeWX
+**Status bar stays green even though the station says Low?**
+- Add `low_state` (and `low_when` if your station counts the other way)
+- Without `low_state` the bar fills by state but never turns red
 
-**Charts not showing any values?**
-- This was fixed in the latest update
-- Make sure you have the latest telemetry.html.tmpl
-- For voltage sensors, charts now display raw voltage values
-- Restart WeeWX after updating the template
+**Signal cone never shows?**
+- The cone only appears when `max_signal` is set for that sensor
+- Don't set `max_signal` and `max_voltage` on the same sensor
 
-**Values shown with commas (e.g., "4,5 V") causing issues?**
-- Fixed! The template now automatically strips units and handles both comma and period decimal separators
-- Works with: "4.5 V", "4,5 V", "4.5", "4,5"
-- No configuration needed
+**Card missing entirely?**
+- Set `allow_zero_values = yes` — many healthy sensors report 0 all day, and
+  without this the card is hidden
+- The sensor must also be listed in `telemetry_order` under `[[Appearance]]`
 
-**Not turning red?**
-- Check `low_threshold` value
-- Make sure voltage is actually below the threshold
-
-**Want it to turn red earlier?**
-- Increase the `low_threshold` value
-- Example: `low_threshold = 60` (red below 60%)
-
----
-
-## Complete Example Configuration
-
-```ini
-[Extras]
-    [[Telemetry]]
-        allow_zero_values = yes
-        chart_days = 1
-        
-        [[[BatteryFields]]]
-            # Voltage-based sensors
-            [[[[consBatteryVoltage]]]]
-                enabled = yes
-                max_voltage = 4.5
-                min_voltage = 0.0
-                low_threshold = 50
-            
-            [[[[outTempBatteryVoltage]]]]
-                enabled = yes
-                max_voltage = 4.5
-                min_voltage = 0.0
-                low_threshold = 30
-            
-            # Status-based sensors (no voltage settings)
-            [[[[batteryStatus1]]]]
-                enabled = yes
-                0 = Normal
-                1 = Low
-                chart_position_0 = 1
-                chart_position_1 = 0
-                max_chart_position = 1
-                flip_values = no
-```
+**Values shown with commas (e.g., "4,5 V")?**
+- Handled automatically — units are stripped and both comma and period decimal
+  separators work
 
 ---
 
 ## See Also
 
-- `battery-config-guide.md` - Complete configuration guide
-- `skin.conf` - Your main configuration file
-
+- `battery-config-guide.md` — the complete configuration guide, including chart
+  positions, flip, multi-level states, and display ordering
+- `skin.conf` — your main configuration file
