@@ -57,12 +57,34 @@
                                 $signalCone($name, $signal_percentage, $signal_color)
                                 <div class="text-muted font-small mt-1">$signal_percentage%</div>
                             #else
-                                ## Battery/voltage mode: horizontal fill bar
-                                #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
-                                #set battery_color = $getBatteryColor($name, $battery_percentage)
+                                ## Battery bar mode: voltage %, state-based %, or fallback
+                                #if $isVoltageBased($name)
+                                    ## Voltage mode: percentage from min/max voltage (unchanged)
+                                    #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
+                                    #set battery_color = $getBatteryColor($name, $battery_percentage)
+                                    #set fill_width = $battery_percentage
+                                #else
+                                    #set state_percentage = $calculateStatePercentage($name, $current_value)
+                                    #if $state_percentage is not None
+                                        ## Status mode: percentage from chart positions
+                                        #set battery_percentage = $state_percentage
+                                        #set is_low = $isLowState($name, $current_value)
+                                        #if $is_low
+                                            #set battery_color = "#f44336"  ## Red
+                                        #else
+                                            #set battery_color = "#4caf50"  ## Green
+                                        #end if
+                                        #set fill_width = $getStateFillWidth($name, $battery_percentage, $is_low)
+                                    #else
+                                        ## Fallback: unconfigured/unknown value -> full green (previous behavior)
+                                        #set battery_percentage = 100
+                                        #set battery_color = "#4caf50"
+                                        #set fill_width = 100
+                                    #end if
+                                #end if
                                 <!-- Visual battery gauge -->
                                 <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto; position: relative;">
-                                    <div class="battery-fill" style="background-color: $battery_color;width: $battery_percentage%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
+                                    <div class="battery-fill" style="background-color: $battery_color;width: $fill_width%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
                                     <div style="position: absolute;top: 4px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
                                 </div>
                                 <div class="text-muted font-small mt-1">$battery_percentage%</div>
