@@ -224,8 +224,10 @@ station value**:
   turns red.
 
 **Two-state fields fill the whole bar red when low** (an at-a-glance alarm). Fields
-with three or more states keep their proportional fill, colored red. The percentage
-text under the bar always shows the computed percentage.
+with three or more states keep their proportional fill, colored red. The text under
+the bar shows the raw station value (`0`, `1`, `9`, …); the computed percentage
+still controls the fill width and the red threshold. (Voltage and signal cards keep
+their percentage text.)
 
 `low_state` is ignored on voltage- and signal-based fields — those use
 `low_threshold` against their computed percentage instead.

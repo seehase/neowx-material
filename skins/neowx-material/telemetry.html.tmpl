@@ -63,6 +63,7 @@
                                     #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
                                     #set battery_color = $getBatteryColor($name, $battery_percentage)
                                     #set fill_width = $battery_percentage
+                                    #set show_raw_value = False
                                 #else
                                     #set state_percentage = $calculateStatePercentage($name, $current_value)
                                     #if $state_percentage is not None
@@ -75,11 +76,14 @@
                                             #set battery_color = "#4caf50"  ## Green
                                         #end if
                                         #set fill_width = $getStateFillWidth($name, $battery_percentage, $is_low)
+                                        ## Status fields show the raw station value, not the percentage
+                                        #set show_raw_value = True
                                     #else
                                         ## Fallback: unconfigured/unknown value -> full green (previous behavior)
                                         #set battery_percentage = 100
                                         #set battery_color = "#4caf50"
                                         #set fill_width = 100
+                                        #set show_raw_value = False
                                     #end if
                                 #end if
                                 <!-- Visual battery gauge -->
@@ -87,7 +91,11 @@
                                     <div class="battery-fill" style="background-color: $battery_color;width: $fill_width%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
                                     <div style="position: absolute;top: 4px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
                                 </div>
-                                <div class="text-muted font-small mt-1">$battery_percentage%</div>
+                                #if $show_raw_value
+                                    <div class="text-muted font-small mt-1">$formatBatteryValue($current_value)</div>
+                                #else
+                                    <div class="text-muted font-small mt-1">$battery_percentage%</div>
+                                #end if
                             #end if
                         </div>
 
