@@ -79,7 +79,7 @@
                                         ## Status fields show the raw station value, not the percentage
                                         #set show_raw_value = True
                                     #else
-                                        ## Fallback: unconfigured/unknown value -> full green (previous behavior)
+                                        ## Fallback: keep the old full green bar
                                         #set battery_percentage = 100
                                         #set battery_color = "#4caf50"
                                         #set fill_width = 100
@@ -263,9 +263,7 @@
             #elif $percentage > 100
                 #set percentage = 100
             #end if
-            ## Nudge by a tiny epsilon before truncating: a mathematically integral
-            ## result (e.g. 57/100*100 = 56.9999999 in float) would otherwise
-            ## truncate one short. Genuine fractional percentages are unaffected.
+            ## Tiny epsilon so float results like 56.99999 still read as 57
             #return int($percentage + 0.0000001)
         #else
             #return None
@@ -303,20 +301,16 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | State-based percentage for status battery fields.                       |
-## | percentage = (chart position + 1) / (max_chart_position + 1) * 100,     |
-## | honoring flip_values the same way getBatteryChartValue does.            |
-## | Returns None when the field is not an enabled battery field or the      |
-## | raw value has no chart_position_<key> mapping.                          |
+## | Battery percentage from the state's chart position:                     |
+## | (position + 1) / (max_chart_position + 1) * 100, flip-aware.            |
+## | Returns None when the field/value has no chart position mapping.        |
 ## +-------------------------------------------------------------------------+
 #def calculateStatePercentage($name, $value)
     #try
         #if not $isBatteryFieldEnabled($name)
             #return None
         #end if
-        ## Assumes non-negative state values (int() truncates toward zero, so
-        ## the epsilon would skew exact negatives) - same limitation as the
-        ## key derivation in getBatteryChartValue.
+        ## Assumes non-negative state values, like getBatteryChartValue below
         #set key = str(int($parseNumericValue($value) + 0.000001))
         #set chart_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + $key, None)
         #if $chart_pos is None
@@ -327,8 +321,7 @@
         #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
             #set pos = $max_pos - $pos
         #end if
-        ## Same epsilon guard as rangePercentage so integral results don't
-        ## truncate one short.
+        ## Same epsilon trick as rangePercentage
         #return int((($pos + 1.0) / ($max_pos + 1.0)) * 100 + 0.0000001)
     #except
         #return None
@@ -336,11 +329,9 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Whether a status field's RAW value is on the LOW side of its            |
-## | configured low_state threshold.                                         |
-## | low_when = at_or_above (default): LOW when raw >= low_state.            |
-## | low_when = at_or_below:           LOW when raw <= low_state.            |
-## | Returns False when low_state is not configured (never red).             |
+## | Is the raw value on the LOW side of the low_state threshold?            |
+## | low_when picks the direction: at_or_above (default) or at_or_below.     |
+## | Always False when low_state is not configured.                          |
 ## +-------------------------------------------------------------------------+
 #def isLowState($name, $value)
     #try
@@ -362,9 +353,8 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Fill width for the status battery bar.                                  |
-## | A LOW 2-state field (max_chart_position == 1) fills the whole bar red   |
-## | as an at-a-glance alarm; everything else fills proportionally.          |
+## | Fill width for the status battery bar. A low 2-state battery fills      |
+## | the whole bar red; everything else fills proportionally.                |
 ## +-------------------------------------------------------------------------+
 #def getStateFillWidth($name, $percentage, $is_low)
     #if not $is_low
@@ -374,7 +364,7 @@
     #try
         #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
     #except
-        ## Unreadable max_chart_position -> keep 1 (2-state full-bar behavior)
+        ## Unreadable max_chart_position - treat as 2-state
         #pass
     #end try
     #if $max_pos == 1
@@ -420,13 +410,13 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Render the signal "cone" as a static SVG. Mirrors the geometry in       |
-## | tests/signal-cone-preview.py. percentage 0-100; color is the fill.      |
-## | $name is currently unused - reserved for future per-field overrides.    |
+## | Render the signal "cone" as a static SVG: two parenthesis-style wings   |
+## | around a center dot, filled center-outward by percentage (0-100).       |
+## | $name is unused for now.                                                |
 ## +-------------------------------------------------------------------------+
 #def signalCone($name, $percentage, $color)
     #import math
-    ## Center y is the fixed literal 12 throughout the paths below.
+    ## Center y is always 12 in the paths below
     #set R = 14.6
     #set hh_i = 4.75
     #set hh_o = 11.0
