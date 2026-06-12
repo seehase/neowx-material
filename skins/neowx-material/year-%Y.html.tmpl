@@ -775,7 +775,7 @@
                 ## Build cc_series_pairs from field-name keys or values+column fallback
                 #set $cc_field_map = {}
                 #for $fk, $fv in $cc_page.items()
-                    #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format') and isinstance($fv, (str, list))
+                    #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style') and isinstance($fv, (str, list))
                         #silent $cc_field_map[$fk] = $fv
                     #end if
                 #end for
@@ -844,6 +844,7 @@
                 #set global $cc_scope = 'year'
                 #include "chart_date_format.inc"
                 #include "chart_tick_setup.inc"
+                #include "chart_colors_setup.inc"
 
                 ## Render chart JS
                 #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
@@ -939,6 +940,8 @@
                                 ],
                             #end if
                             series: [
+                                #set $cc_color_list = []
+                                #set $cc_pos = 0
                                 #for $val, $cols in $cc_series_pairs
                                     #if $getVar('year.' + val + '.has_data')
                                         #if len($cols) == 1
@@ -946,17 +949,31 @@
                                                 name: "$getVar('obs.label.' + val)",
                                                 data: [ $getChartData(val, cols[0]) ]
                                             },
+                                            #silent $cc_color_list.append($cc_color_refs[$cc_pos] if $cc_pos < len($cc_color_refs) else 'default')
+                                            #set $cc_pos = $cc_pos + 1
                                         #else
                                             #for $col in $cols
                                                 {
                                                     name: "$getVar('obs.label.' + val) $gettext($col)",
                                                     data: [ $getChartData(val, col) ]
                                                 },
+                                                #silent $cc_color_list.append($cc_color_refs[$cc_pos] if $cc_pos < len($cc_color_refs) else 'default')
+                                                #set $cc_pos = $cc_pos + 1
                                             #end for
                                         #end if
+                                    #else
+                                        #set $cc_pos = $cc_pos + len($cols)
                                     #end if
                                 #end for
-                            ]
+                            ],
+                            #if len($cc_color_refs) > 0 and len($cc_color_list) > 0
+                                #set $cc_color_count = len($cc_color_list)
+                                colors: neowxChartColors([
+                                #for $cref in $cc_color_list
+                                    "$cref",
+                                #end for
+                                ], $cc_color_count, "$x"),
+                            #end if
                         }).render()
                     }
                 #end if
