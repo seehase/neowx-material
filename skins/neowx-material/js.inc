@@ -210,6 +210,7 @@
         palette10: ["#C91EFF", "#A94BFD", "#6C6AFE", "#2983FF", "#009ED8"]
     };
 
+    // ref must be a string (callers pass String(...).trim()).
     function neowxResolveColorRef(ref, activePalette, fallback, chartName) {
         if (!ref || ref.toLowerCase() === 'default') { return fallback; }
         if (/^\d+$/.test(ref)) {
@@ -219,13 +220,19 @@
                 ' out of range (1-' + activePalette.length + ') - using default');
             return fallback;
         }
+        // No CSS color syntax contains ':', so this never shadows a literal color.
         if (ref.indexOf(':') !== -1) {
             var m = /^palette(\d+):(\d+)$/i.exec(ref);
             var pal = m ? NEOWX_PALETTES['palette' + m[1]] : null;
             var slot = m ? parseInt(m[2], 10) : 0;
             if (pal && slot >= 1 && slot <= pal.length) { return pal[slot - 1]; }
-            console.warn('neowx-material: chart "' + chartName + '": unrecognized palette reference "' +
-                ref + '" - using default');
+            if (pal) {
+                console.warn('neowx-material: chart "' + chartName + '": color slot ' + m[2] +
+                    ' out of range (1-' + pal.length + ') - using default');
+            } else {
+                console.warn('neowx-material: chart "' + chartName + '": unrecognized palette reference "' +
+                    ref + '" - using default');
+            }
             return fallback;
         }
         if (typeof CSS !== 'undefined' && CSS.supports && !CSS.supports('color', ref)) {
