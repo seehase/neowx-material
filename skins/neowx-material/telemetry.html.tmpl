@@ -645,6 +645,21 @@
                     #pass
                 #end try
 
+                ## Per-field chart line color: Extras.Telemetry.FieldConfiguration.<field>.colors
+                #set $tc_color_ref = ''
+                #try
+                    #set $_fc_colors = $getVar('Extras.Telemetry.FieldConfiguration.' + $name + '.colors', None)
+                    #if $_fc_colors is not None
+                        #if isinstance($_fc_colors, list)
+                            #set $tc_color_ref = str($_fc_colors[0]).strip().replace('"', '').replace('\\', '') if len($_fc_colors) > 0 else ''
+                        #else
+                            #set $tc_color_ref = str($_fc_colors).strip().replace('"', '').replace('\\', '')
+                        #end if
+                    #end if
+                #except
+                    #set $tc_color_ref = ''
+                #end try
+
                 // currentvalue: --> $chart_interval <--
 
                 new ApexCharts(document.querySelector('#$name-chart'), {
@@ -722,6 +737,9 @@
                             }
                         #end if
                     },
+                    #if $tc_color_ref
+                    colors: neowxChartColors(["$tc_color_ref"], 1, "$name"),
+                    #end if
                     series: [
                         {
                             name: "$getVar('obs.label.' + series)",
