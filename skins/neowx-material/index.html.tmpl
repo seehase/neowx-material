@@ -979,13 +979,6 @@
                         #else
                             #set $cc_vals = [v.strip() for v in str($cc_values_raw).split(',') if v.strip()]
                         #end if
-                        ## Resolve per-series color references: page -> top-level (empty = theme default)
-                        #set $cc_colors_raw = $cc_page.get('colors', $cc.get('colors', []))
-                        #if isinstance($cc_colors_raw, list)
-                            #set $cc_color_refs = [str(c).strip().replace('"', '') for c in $cc_colors_raw if str(c).strip()]
-                        #else
-                            #set $cc_color_refs = [c.strip().replace('"', '') for c in str($cc_colors_raw).split(',') if c.strip()]
-                        #end if
                         ## Build cc_series_pairs from field-name keys or values+column fallback
                         ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
                         #set $cc_field_map = {}
@@ -1059,6 +1052,7 @@
                         #set global $cc_scope = 'current'
                         #include "chart_date_format.inc"
                         #include "chart_tick_setup.inc"
+                        #include "chart_colors_setup.inc"
 
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
@@ -1166,14 +1160,14 @@
                                             #end if
                                             #set $cc_pos = $cc_pos + 1
                                         #end for
-                                    ]
-                                    #if len($cc_color_refs) > 0
+                                    ],
+                                    #if len($cc_color_refs) > 0 and len($cc_color_list) > 0
                                         #set $cc_color_count = len($cc_color_list)
-                                        , colors: neowxChartColors([
+                                        colors: neowxChartColors([
                                         #for $cref in $cc_color_list
                                             "$cref",
                                         #end for
-                                        ], $cc_color_count, "$x")
+                                        ], $cc_color_count, "$x"),
                                     #end if
                                 }).render()
                             }

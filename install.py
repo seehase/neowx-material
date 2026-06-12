@@ -37,6 +37,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/card_datetime.inc",
                         "skins/neowx-material/chart_date_format.inc",
                         "skins/neowx-material/chart_tick_axis.inc",
+                        "skins/neowx-material/chart_colors_setup.inc",
                         "skins/neowx-material/chart_tick_setup.inc",
                         "skins/neowx-material/footer.inc",
                         "skins/neowx-material/forecast.inc",
