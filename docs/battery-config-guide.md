@@ -4,6 +4,18 @@
 This feature allows you to convert numeric battery status values (like 0, 1, 9) 
 into human-readable custom text (like "OK", "Low", "Critical") and display them with custom charts.
 
+Each telemetry sensor gets one of three gauge styles, picked automatically from
+the options you configure for it:
+
+| Your sensor reports... | Mode | You configure | The card shows |
+|---|---|---|---|
+| Status codes (0, 1, 9, ...) | **Status battery** | Text labels + chart positions, optional `low_state` | "OK"/"Low" label, bar filled by state, raw value below |
+| A voltage (4.5V, 12.6V, ...) | **Voltage battery** | `max_voltage`, `min_voltage`, `low_threshold` | Voltage, bar filled by percentage, % below |
+| Signal strength (0–100%) | **Signal indicator** | `max_signal`, `min_signal`, `low_threshold` | WiFi-style cone filled by percentage, % below |
+
+All three turn **red** when the value crosses the "low" point you set. Set only
+one of `max_voltage` / `max_signal` per sensor; with neither, it's a status sensor.
+
 ---
 
 ## Step-by-Step Configuration
@@ -24,7 +36,8 @@ Or check your weewx database or reports to see what values appear.
 
 ### Step 2: Understanding the Configuration Structure
 
-For each battery sensor, you need to configure 4 things:
+Here is everything a sensor block can contain. Items 1–4 are the basics for a
+status sensor; 5–7 are optional extras (use the one that fits your sensor type):
 
 ```ini
 [[Telemetry]]
@@ -48,10 +61,18 @@ chart_days = 1
             # 4. FLIP: Whether to flip the chart upside-down
             flip_values = no
             
-            # 5. VOLTAGE-BASED GAUGE (Optional): For voltage sensors (e.g., 0-5V)
+            # 5. LOW STATE (Optional, status sensors): turn the bar red
+            low_state = 9          # raw value that means "low battery"
+            low_when = at_or_above # red when value >= 9 (or use at_or_below)
+            
+            # 6. VOLTAGE-BASED GAUGE (Optional): For voltage sensors (e.g., 0-5V)
             max_voltage = 4.5      # Maximum voltage (100%)
             min_voltage = 0.0      # Minimum voltage (0%)
             low_threshold = 50     # Below this percentage, gauge turns red
+            
+            # 7. SIGNAL INDICATOR (Optional): For signal sensors (e.g., 0-100%)
+            max_signal = 100       # Raw value that means 100%
+            min_signal = 0         # Raw value that means 0%
 ```
 
 ---
@@ -121,7 +142,116 @@ The battery gauge will:
 - Change from **green** to **red** when below the threshold
 - Display the percentage below the gauge (e.g., "80%")
 
-**Note:** For status-based sensors (0=OK, 9=Low), leave out the voltage options and use the standard text label configuration instead.
+**Note:** For status-based sensors (0=OK, 9=Low), leave out the voltage options and use the standard text label configuration instead. Their bar fills automatically from the chart positions, and you can add `low_state` / `low_when` to turn it red — see "Low Threshold for Status Batteries" below.
+
+---
+
+### Signal Indicator (For Signal-Strength Sensors)
+
+If a sensor reports a signal-strength value (e.g. `rxCheckPercent`, a 0–100% link
+quality), configure it as a **signal indicator**. Instead of the horizontal battery
+bar, the card shows a WiFi-style "cone": two parenthesis-shaped wings that fill from
+the center outward in proportion to the percentage — green normally, red below a
+threshold.
+
+#### Configuration Options:
+
+```ini
+[[[[rxCheckPercent]]]]
+    enabled = yes
+    max_signal = 100      # raw value that represents 100%
+    min_signal = 0        # raw value that represents 0% (default: 0)
+    low_threshold = 30    # below this %, the cone turns red
+```
+
+#### How It Works:
+
+1. **max_signal**: the raw value that maps to 100% (for `rxCheckPercent`, `100`).
+2. **min_signal**: the raw value that maps to 0% (usually `0`).
+3. **low_threshold**: percentage below which the cone fill turns red (reuses the same
+   key as the voltage gauge; default `20`).
+
+Percentage = (current − min_signal) ÷ (max_signal − min_signal) × 100, clamped to
+0–100.
+
+#### Example:
+
+```ini
+[[Appearance]]
+    telemetry_order = rxCheckPercent, consBatteryVoltage
+    telemetry_chart_order = rxCheckPercent
+
+[[Telemetry]]
+    allow_zero_values = yes
+    [[[BatteryFields]]]
+        [[[[rxCheckPercent]]]]
+            enabled = yes
+            max_signal = 100
+            min_signal = 0
+            low_threshold = 30
+```
+
+- 100% → full green cone
+- 70% → green cone filled ~70% from the center out
+- 20% → red, lightly filled cone (below the 30% threshold)
+
+**Signal vs. voltage:** a field is a *signal* sensor when `max_signal` is set and a
+*voltage* sensor when `max_voltage` is set — use one or the other, not both. If both
+are set, signal mode wins. In charts, signal fields plot their raw numeric value
+(like voltage fields), not status positions.
+
+#### Quick Reference — Signal Configuration
+| Setting | Purpose | Example |
+|---------|---------|---------|
+| `max_signal` | Raw value = 100% | `100` |
+| `min_signal` | Raw value = 0% | `0` |
+| `low_threshold` | Percentage to turn red | `30` |
+
+---
+
+### Low Threshold for Status Batteries
+
+Status-based fields (discrete states like `0 = OK` / `1 = Low`) automatically get a
+gauge percentage from their chart positions:
+
+**Percentage = (chart position + 1) ÷ (max_chart_position + 1) × 100**
+
+- 2 states: OK → 100%, Low → 50%
+- 5 states: Full → 100%, Good → 80%, Fair → 60%, Low → 40%, Critical → 20%
+- `flip_values = yes` is honored, so the gauge always agrees with the chart.
+
+To turn the gauge **red** when the battery is low, add a threshold on the **raw
+station value**:
+
+```ini
+[[[[outTempBatteryStatus]]]]
+    enabled = yes
+    0 = OK
+    1 = Low
+    chart_position_0 = 1
+    chart_position_1 = 0
+    max_chart_position = 1
+    low_state = 1             # raw value to compare against
+    low_when = at_or_above    # at_or_above (default) | at_or_below
+```
+
+- `low_when = at_or_above`: LOW when the raw value is ≥ `low_state` — any station
+  where a higher number means a weaker battery, like the `0 = OK` / `1 = Low`
+  example above (`low_state = 1`) or Ecowitt's `0 = Normal` / `9 = Low`
+  (`low_state = 9`).
+- `low_when = at_or_below`: LOW when the raw value is ≤ `low_state`
+  (stations where `1 = OK` and `0 = Low`).
+- Without `low_state`, the gauge shows the state percentage in green and never
+  turns red.
+
+**Two-state fields fill the whole bar red when low** (an at-a-glance alarm). Fields
+with three or more states keep their proportional fill, colored red. The text under
+the bar shows the raw station value (`0`, `1`, `9`, …); the computed percentage
+still controls the fill width and the red threshold. (Voltage and signal cards keep
+their percentage text.)
+
+`low_state` is ignored on voltage- and signal-based fields — those use
+`low_threshold` against their computed percentage instead.
 
 ---
 
@@ -303,6 +433,8 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             chart_position_9 = 0
             max_chart_position = 1
             flip_values = no
+            low_state = 9             # bar turns red when the station reports 9
+            low_when = at_or_above
 ```
 
 ### Example 2: Simple Battery (0=OK, 1=Change)
@@ -325,6 +457,8 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             chart_position_1 = 0
             max_chart_position = 1
             flip_values = no
+            low_state = 1             # bar turns red when the station reports 1
+            low_when = at_or_above
 ```
 
 ### Example 3: Multi-Level Battery (0-4)
@@ -353,6 +487,8 @@ chart_position_9 = 0  # CORRECT! Matches the raw value "9"
             chart_position_4 = 0
             max_chart_position = 4
             flip_values = no
+            low_state = 3             # Low (3) and Critical (4) show in red
+            low_when = at_or_above
 ```
 
 ### Example 4: Voltage-Based Battery (0V to 4.5V with percentage gauge)
@@ -470,6 +606,8 @@ If you want to prioritize voltage sensors, you can reorder them:
 | `chart_position_X` | Y-axis position for value X | `chart_position_0 = 1` |
 | `max_chart_position` | Highest position used | `1` for 2 levels, `2` for 3 levels, etc. |
 | `flip_values` | Invert chart display | `yes` or `no` |
+| `low_state` | Raw value threshold for LOW/red (optional) | `1` |
+| `low_when` | LOW when raw is `at_or_above` (default) or `at_or_below` the threshold | `at_or_above` |
 
 ### Voltage-Based Percentage Configuration
 | Setting | Purpose | Example |
@@ -504,6 +642,10 @@ If you want to prioritize voltage sensors, you can reorder them:
 
 **Problem:** Page breaks when sensor doesn't exist
 - **Solution:** Only configure sensors that actually exist, or set `enabled = no`
+
+**Problem:** Status battery gauge stays green even when the station reports Low
+- **Solution:** Add `low_state` (and `low_when` if the low direction is inverted) to the sensor's `BatteryFields` block
+- **Example:** `low_state = 1` with the default `low_when = at_or_above` turns the bar red when the station reports `1`
 
 **Problem:** Battery gauge always shows 100% green (voltage sensors)
 - **Solution:** Configure `max_voltage` and `min_voltage` for voltage-based sensors
