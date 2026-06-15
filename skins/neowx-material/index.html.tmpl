@@ -689,8 +689,9 @@
                 if (chartElement) {
                     new ApexCharts(chartElement, {
                         ...graph_${type}_config,
+                        ## Per-series colors aligned to emitted series: series1 = slot 0; series2-8
+                        ## each advance a slot, appending a color only when the series has data.
                         #set $sc_color_list = []
-                        #set $sc_pos = 0
                         #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
                         #set $sc_pos = 1
                         #for $sname in [$series2, $series3, $series4, $series5, $series6, $series7, $series8]
