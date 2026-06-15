@@ -1069,6 +1069,11 @@
                                             #end for
                                         ],
                                     #end if
+                                    #if len($axes_list) > 1
+                                    ## Multi-axis assigns each series an axis group, which makes ApexCharts
+                                    ## cluster the legend by axis (out of series order). Keep series order.
+                                    legend: { ...graph_${cc_type}_config.legend, clusterGroupedSeries: false },
+                                    #end if
                                     series: [
                                         #set $cc_color_list = []
                                         #set $cc_pos = 0
