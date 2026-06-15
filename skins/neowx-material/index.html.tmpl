@@ -681,11 +681,33 @@
 
             ## Only add JS chart code if in array
             #if $name in $Extras.Appearance.charts_order
+                #set global $cc_name  = $name
+                #set global $cc_scope = ''
+                #include "chart_colors_setup.inc"
 
                 var chartElement = document.querySelector('#$id');
                 if (chartElement) {
                     new ApexCharts(chartElement, {
                         ...graph_${type}_config,
+                        #set $sc_color_list = []
+                        #set $sc_pos = 0
+                        #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+                        #set $sc_pos = 1
+                        #for $sname in [$series2, $series3, $series4, $series5, $series6, $series7, $series8]
+                            #if $sname != ""
+                                #if $chartHasData($sname)
+                                    #silent $sc_color_list.append($cc_color_refs[$sc_pos] if $sc_pos < len($cc_color_refs) else 'default')
+                                #end if
+                                #set $sc_pos = $sc_pos + 1
+                            #end if
+                        #end for
+                        #if len($cc_color_refs) > 0 and len($sc_color_list) > 0
+                        colors: neowxChartColors([
+                            #for $cref in $sc_color_list
+                            "$cref",
+                            #end for
+                        ], len($sc_color_list), "$name"),
+                        #end if
                         #if $pg_align_mid and $type != 'radar'
                             xaxis: {
                                 ...graph_${type}_config.xaxis,
