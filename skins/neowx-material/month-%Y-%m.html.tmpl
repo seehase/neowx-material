@@ -462,12 +462,38 @@
 
             #if $name in $Extras.Appearance.charts_order
 
+                #set global $cc_name  = $name
+                #set global $cc_scope = ''
+                #include "chart_colors_setup.inc"
+
                 #if $name == "outTemp"
 
                     var chartElement = document.querySelector('#$id');
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${type}_config,
+                            ## Per-series colors aligned to emitted series: outTemp renders min + max,
+                            ## so series1 takes slots 0 and 1; series2-8 each advance a slot, appending
+                            ## a color only when the series has data.
+                            #set $sc_color_list = []
+                            #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+                            #silent $sc_color_list.append($cc_color_refs[1] if len($cc_color_refs) > 1 else 'default')
+                            #set $sc_pos = 2
+                            #for $sname in [$series2, $series3, $series4, $series5, $series6, $series7, $series8]
+                                #if $sname != ""
+                                    #if $getVar('month.' + $sname + '.has_data')
+                                        #silent $sc_color_list.append($cc_color_refs[$sc_pos] if $sc_pos < len($cc_color_refs) else 'default')
+                                    #end if
+                                    #set $sc_pos = $sc_pos + 1
+                                #end if
+                            #end for
+                            #if len($cc_color_refs) > 0 and len($sc_color_list) > 0
+                            colors: neowxChartColors([
+                                #for $cref in $sc_color_list
+                                "$cref",
+                                #end for
+                            ], len($sc_color_list), "$name"),
+                            #end if
                             #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
                                     ...graph_${type}_config.xaxis,
@@ -521,6 +547,26 @@
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${type}_config,
+                            ## Per-series colors aligned to emitted series: series1 = slot 0; series2-8
+                            ## each advance a slot, appending a color only when the series has data.
+                            #set $sc_color_list = []
+                            #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+                            #set $sc_pos = 1
+                            #for $sname in [$series2, $series3, $series4, $series5, $series6, $series7, $series8]
+                                #if $sname != ""
+                                    #if $getVar('month.' + $sname + '.has_data')
+                                        #silent $sc_color_list.append($cc_color_refs[$sc_pos] if $sc_pos < len($cc_color_refs) else 'default')
+                                    #end if
+                                    #set $sc_pos = $sc_pos + 1
+                                #end if
+                            #end for
+                            #if len($cc_color_refs) > 0 and len($sc_color_list) > 0
+                            colors: neowxChartColors([
+                                #for $cref in $sc_color_list
+                                "$cref",
+                                #end for
+                            ], len($sc_color_list), "$name"),
+                            #end if
                             #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
                                     ...graph_${type}_config.xaxis,
