@@ -1092,6 +1092,21 @@
                                         },
                                     #else
                                         ## Multiple axes configuration
+                                        ## Build per-axis lists of the emitted series names so seriesName can be
+                                        ## an ARRAY. An array seriesName makes ApexCharts use its array-style axis
+                                        ## mapping, which avoids a crash in setSeriesYAxisMappings when a series'
+                                        ## index exceeds the y-axis count (e.g. >1 field on an axis, or >2 series).
+                                        #set $axis_series_names = {}
+                                        #for $asn_axis_id in $axes_list
+                                            #silent $axis_series_names[$asn_axis_id] = []
+                                        #end for
+                                        #for $asn_val, $asn_cols in $cc_series_pairs
+                                            #set $asn_axis = $axis_map.get($asn_val, $axes_list[0])
+                                            #if $asn_axis not in $axis_series_names
+                                                #set $asn_axis = $axes_list[0]
+                                            #end if
+                                            #silent $axis_series_names[$asn_axis].append($getVar('obs.label.' + $asn_val))
+                                        #end for
                                         yaxis: [
                                             #for $axis_entry in enumerate($axes_list)
                                                 #set $idx = $axis_entry[0]
@@ -1118,7 +1133,15 @@
                                                 #set $axis_min = $axis_cfg.get('min', None)
                                                 #set $axis_max = $axis_cfg.get('max', None)
                                             {
-                                                seriesName: "$getVar('obs.label.' + $first_field)",
+                                                #set $asn_list = $axis_series_names.get($axis_id, [])
+                                                #if not $asn_list
+                                                    #set $asn_list = [$getVar('obs.label.' + $first_field)]
+                                                #end if
+                                                seriesName: [
+                                                    #for $asn in $asn_list
+                                                        "$asn",
+                                                    #end for
+                                                ],
                                                 #if $axis_title
                                                 title: {
                                                     text: "$axis_title",
