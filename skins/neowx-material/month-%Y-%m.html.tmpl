@@ -492,7 +492,7 @@
                                 #for $cref in $sc_color_list
                                 "$cref",
                                 #end for
-                            ], len($sc_color_list), "$name"),
+                            ], $len($sc_color_list), "$name"),
                             #end if
                             #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
@@ -565,7 +565,7 @@
                                 #for $cref in $sc_color_list
                                 "$cref",
                                 #end for
-                            ], len($sc_color_list), "$name"),
+                            ], $len($sc_color_list), "$name"),
                             #end if
                             #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
