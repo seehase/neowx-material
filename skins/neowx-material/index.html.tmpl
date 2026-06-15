@@ -926,10 +926,23 @@
 
             // Display wind vector chart
 
+            #set global $cc_name  = 'windvec'
+            #set global $cc_scope = ''
+            #include "chart_colors_setup.inc"
+            #set $sc_color_list = []
+            #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+            #silent $sc_color_list.append($cc_color_refs[1] if len($cc_color_refs) > 1 else 'default')
             var windvecchart = document.querySelector('#windvecchart');
             if (windvecchart) {
                 new ApexCharts(windvecchart, {
                     ...graph_radar_config,
+                    #if len($cc_color_refs) > 0
+                    colors: neowxChartColors([
+                        #for $cref in $sc_color_list
+                        "$cref",
+                        #end for
+                    ], $len($sc_color_list), "windvec"),
+                    #end if
                     yaxis: {
                         labels: {
                             formatter: function (val) {
