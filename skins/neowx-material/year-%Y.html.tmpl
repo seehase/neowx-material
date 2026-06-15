@@ -867,10 +867,39 @@
                                 #end if
                             },
                             #end if
-                            #if $cc_tooltip_fmt
+                            #if $cc_tooltip_fmt or len($axes_list) > 1
                             tooltip: {
                                 ...graph_${cc_type}_config.tooltip,
-                                x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") }
+                                #if $cc_tooltip_fmt
+                                x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") },
+                                #end if
+                                #if len($axes_list) > 1
+                                ## Per-series tooltip unit formatter. ApexCharts picks the y-axis label
+                                ## formatter by series index, which mismatches units on multi-axis charts
+                                ## (e.g. >1 series per axis). Key the unit off the series name instead.
+                                #set $series_field_by_name = {}
+                                #for $ttf_val, $ttf_cols in $cc_series_pairs
+                                    #if len($ttf_cols) == 1
+                                        #silent $series_field_by_name[$getVar('obs.label.' + $ttf_val)] = $ttf_val
+                                    #else
+                                        #for $ttf_col in $ttf_cols
+                                            #silent $series_field_by_name[$getVar('obs.label.' + $ttf_val) + ' ' + $gettext($ttf_col)] = $ttf_val
+                                        #end for
+                                    #end if
+                                #end for
+                                y: {
+                                    formatter: function (val, opts) {
+                                        var u = {
+                                            #for $ttn, $ttf in $series_field_by_name.items()
+                                            "$ttn": ["$getVar('unit.format.' + $ttf)", "$getVar('unit.label.' + $ttf)"],
+                                            #end for
+                                        };
+                                        var s = opts.w.config.series[opts.seriesIndex];
+                                        var p = s ? u[s.name] : null;
+                                        return p ? (formatNumber(val, p[0]) + p[1]) : val;
+                                    }
+                                },
+                                #end if
                             },
                             #end if
                             #if len($axes_list) <= 1
