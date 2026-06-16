@@ -189,6 +189,76 @@
         },
     }
 
+    // --- neowxChartColors ---------------------------------------------------
+    // Resolves skin.conf per-series color references into concrete colors.
+    // Accepted per entry: "N" (Nth color of the ACTIVE palette, 1-based),
+    // "paletteN:M" (Mth color of built-in palette N), a literal CSS color,
+    // or "default" (keep the active palette's positional color).
+    // Palette tables mirror getThemePalettes() in
+    // js/vendor/apexcharts/apexcharts.js - keep in sync when upgrading the
+    // vendored ApexCharts build.
+    var NEOWX_PALETTES = {
+        palette1: ["#008FFB", "#00A86F", "#CA8501", "#FF4560", "#846DD5"],
+        palette2: ["#6978CB", "#039DE2", "#49A84D", "#B39105", "#D68000"],
+        palette3: ["#209FCC", "#648291", "#D4526E", "#0FA783", "#A19285"],
+        palette4: ["#2FA59D", "#73A20B", "#099DE1", "#FD5D5D", "#648291"],
+        palette5: ["#2B908F", "#F56566", "#2EAB16", "#FA4443", "#1EA2BD"],
+        palette6: ["#449DD1", "#F86624", "#EA3A4A", "#9C63D1", "#899E2A"],
+        palette7: ["#DF475B", "#1B998B", "#7E75B7", "#F46036", "#B1911B"],
+        palette8: ["#9C63D1", "#F86624", "#B38F04", "#EA3A4A", "#2FA2B3"],
+        palette9: ["#98776F", "#A19285", "#A8705E", "#BA6560", "#A0927F"],
+        palette10: ["#C91EFF", "#A94BFD", "#6C6AFE", "#2983FF", "#009ED8"]
+    };
+
+    // ref must be a string (callers pass String(...).trim()).
+    function neowxResolveColorRef(ref, activePalette, fallback, chartName) {
+        if (!ref || ref.toLowerCase() === 'default') { return fallback; }
+        if (/^\d+$/.test(ref)) {
+            var n = parseInt(ref, 10);
+            if (n >= 1 && n <= activePalette.length) { return activePalette[n - 1]; }
+            console.warn('neowx-material: chart "' + chartName + '": color slot ' + ref +
+                ' out of range (1-' + activePalette.length + ') - using default');
+            return fallback;
+        }
+        // No CSS color syntax contains ':', so this never shadows a literal color.
+        if (ref.indexOf(':') !== -1) {
+            var m = /^palette(\d+):(\d+)$/i.exec(ref);
+            var pal = m ? NEOWX_PALETTES['palette' + m[1]] : null;
+            var slot = m ? parseInt(m[2], 10) : 0;
+            if (pal && slot >= 1 && slot <= pal.length) { return pal[slot - 1]; }
+            if (pal) {
+                console.warn('neowx-material: chart "' + chartName + '": color slot ' + m[2] +
+                    ' out of range (1-' + pal.length + ') - using default');
+            } else {
+                console.warn('neowx-material: chart "' + chartName + '": unrecognized palette reference "' +
+                    ref + '" - using default');
+            }
+            return fallback;
+        }
+        if (typeof CSS !== 'undefined' && CSS.supports && !CSS.supports('color', ref)) {
+            console.warn('neowx-material: chart "' + chartName + '": invalid color "' +
+                ref + '" - using default');
+            return fallback;
+        }
+        return ref;
+    }
+
+    function neowxChartColors(refs, seriesCount, chartName) {
+        var active = NEOWX_PALETTES.palette1;
+        try {
+            var palName = window.Apex.theme.palette;
+            if (NEOWX_PALETTES[palName]) { active = NEOWX_PALETTES[palName]; }
+        } catch (e) {}
+        var out = [];
+        for (var i = 0; i < seriesCount; i++) {
+            var fallback = active[i % active.length];
+            var ref = (refs && i < refs.length && refs[i] != null) ? String(refs[i]).trim() : '';
+            out.push(neowxResolveColorRef(ref, active, fallback, chartName));
+        }
+        return out;
+    }
+    // --- end neowxChartColors -----------------------------------------------
+
     ## Ordinals conversion for W0CHP's custom WindDir Charts:
     function getOrdinalDirection(degrees) {
         var sectors = [

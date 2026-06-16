@@ -467,6 +467,9 @@
         #def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
 
             #if $name in $Extras.Appearance.charts_order
+                #set global $cc_name  = $name
+                #set global $cc_scope = ''
+                #include "chart_colors_setup.inc"
 
                 #if $name == "outTemp"
 
@@ -474,6 +477,28 @@
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${type}_config,
+                            ## Per-series colors aligned to emitted series: outTemp renders min + max,
+                            ## so series1 takes slots 0 and 1; series2-8 each advance a slot, appending
+                            ## a color only when the series has data.
+                            #set $sc_color_list = []
+                            #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+                            #silent $sc_color_list.append($cc_color_refs[1] if len($cc_color_refs) > 1 else 'default')
+                            #set $sc_pos = 2
+                            #for $sname in [$series2, $series3, $series4, $series5, $series6, $series7, $series8]
+                                #if $sname != ""
+                                    #if $getVar('year.' + $sname + '.has_data')
+                                        #silent $sc_color_list.append($cc_color_refs[$sc_pos] if $sc_pos < len($cc_color_refs) else 'default')
+                                    #end if
+                                    #set $sc_pos = $sc_pos + 1
+                                #end if
+                            #end for
+                            #if len($cc_color_refs) > 0 and len($sc_color_list) > 0
+                            colors: neowxChartColors([
+                                #for $cref in $sc_color_list
+                                "$cref",
+                                #end for
+                            ], $len($sc_color_list), "$name"),
+                            #end if
                             #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
                                     ...graph_${type}_config.xaxis,
@@ -527,6 +552,26 @@
                     if (chartElement) {
                         new ApexCharts(chartElement, {
                             ...graph_${type}_config,
+                            ## Per-series colors aligned to emitted series: series1 = slot 0; series2-8
+                            ## each advance a slot, appending a color only when the series has data.
+                            #set $sc_color_list = []
+                            #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+                            #set $sc_pos = 1
+                            #for $sname in [$series2, $series3, $series4, $series5, $series6, $series7, $series8]
+                                #if $sname != ""
+                                    #if $getVar('year.' + $sname + '.has_data')
+                                        #silent $sc_color_list.append($cc_color_refs[$sc_pos] if $sc_pos < len($cc_color_refs) else 'default')
+                                    #end if
+                                    #set $sc_pos = $sc_pos + 1
+                                #end if
+                            #end for
+                            #if len($cc_color_refs) > 0 and len($sc_color_list) > 0
+                            colors: neowxChartColors([
+                                #for $cref in $sc_color_list
+                                "$cref",
+                                #end for
+                            ], $len($sc_color_list), "$name"),
+                            #end if
                             #if $pg_align_mid and $type != 'radar'
                                 xaxis: {
                                     ...graph_${type}_config.xaxis,
@@ -663,10 +708,23 @@
                 avg_values.push(vector_data[item]['amt'] > 0 ? vector_data[item]['sum'] / vector_data[item]['amt'] : 0);
                 max_values.push(vector_data[item]['max']);
             });
+            #set global $cc_name  = 'windvec'
+            #set global $cc_scope = ''
+            #include "chart_colors_setup.inc"
+            #set $sc_color_list = []
+            #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
+            #silent $sc_color_list.append($cc_color_refs[1] if len($cc_color_refs) > 1 else 'default')
             var windvecchart = document.querySelector('#windvecchart');
             if (windvecchart) {
                 new ApexCharts(windvecchart, {
                     ...graph_radar_config,
+                    #if len($cc_color_refs) > 0
+                    colors: neowxChartColors([
+                        #for $cref in $sc_color_list
+                        "$cref",
+                        #end for
+                    ], $len($sc_color_list), "windvec"),
+                    #end if
                     yaxis: { labels: { formatter: function (val) { return formatNumber(val, "$unit.format.windSpeed") + "$unit.label.windSpeed"; } } },
                     series: [
                         { name: "$obs.label.windSpeed", data: avg_values },
@@ -730,7 +788,7 @@
                         ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
                         #set $cc_field_map = {}
                         #for $fk, $fv in $cc_page.items()
-                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format') and isinstance($fv, (str, list))
+                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style') and isinstance($fv, (str, list))
                                 #silent $cc_field_map[$fk] = $fv
                             #end if
                         #end for
@@ -801,6 +859,7 @@
                         #set global $cc_scope = 'year'
                         #include "chart_date_format.inc"
                         #include "chart_tick_setup.inc"
+                        #include "chart_colors_setup.inc"
 
                         ##
                         ## Render the chart JS
@@ -825,10 +884,39 @@
                                         #end if
                                     },
                                     #end if
-                                    #if $cc_tooltip_fmt
+                                    #if $cc_tooltip_fmt or len($axes_list) > 1
                                     tooltip: {
                                         ...graph_${cc_type}_config.tooltip,
-                                        x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") }
+                                        #if $cc_tooltip_fmt
+                                        x: { ...graph_${cc_type}_config.tooltip.x, formatter: neowxDateFormatter("$cc_tooltip_fmt") },
+                                        #end if
+                                        #if len($axes_list) > 1
+                                        ## Per-series tooltip unit formatter. ApexCharts picks the y-axis label
+                                        ## formatter by series index, which mismatches units on multi-axis charts
+                                        ## (e.g. >1 series per axis). Key the unit off the series name instead.
+                                        #set $series_field_by_name = {}
+                                        #for $ttf_val, $ttf_cols in $cc_series_pairs
+                                            #if len($ttf_cols) == 1
+                                                #silent $series_field_by_name[$getVar('obs.label.' + $ttf_val)] = $ttf_val
+                                            #else
+                                                #for $ttf_col in $ttf_cols
+                                                    #silent $series_field_by_name[$getVar('obs.label.' + $ttf_val) + ' ' + $gettext($ttf_col)] = $ttf_val
+                                                #end for
+                                            #end if
+                                        #end for
+                                        y: {
+                                            formatter: function (val, opts) {
+                                                var u = {
+                                                    #for $ttn, $ttf in $series_field_by_name.items()
+                                                    "$ttn": ["$getVar('unit.format.' + $ttf)", "$getVar('unit.label.' + $ttf)"],
+                                                    #end for
+                                                };
+                                                var s = opts.w.config.series[opts.seriesIndex];
+                                                var p = s ? u[s.name] : null;
+                                                return p ? (formatNumber(val, p[0]) + p[1]) : val;
+                                            }
+                                        },
+                                        #end if
                                     },
                                     #end if
                                     #if len($axes_list) <= 1
@@ -842,6 +930,27 @@
                                         },
                                     #else
                                         ## Multiple axes configuration
+                                        ## Build per-axis lists of the emitted series names so seriesName can be
+                                        ## an ARRAY. An array seriesName makes ApexCharts use its array-style axis
+                                        ## mapping, which avoids a crash in setSeriesYAxisMappings when a series'
+                                        ## index exceeds the y-axis count (e.g. >1 field on an axis, or >2 series).
+                                        #set $axis_series_names = {}
+                                        #for $asn_axis_id in $axes_list
+                                            #silent $axis_series_names[$asn_axis_id] = []
+                                        #end for
+                                        #for $asn_val, $asn_cols in $cc_series_pairs
+                                            #set $asn_axis = $axis_map.get($asn_val, $axes_list[0])
+                                            #if $asn_axis not in $axis_series_names
+                                                #set $asn_axis = $axes_list[0]
+                                            #end if
+                                            #if len($asn_cols) == 1
+                                                #silent $axis_series_names[$asn_axis].append($getVar('obs.label.' + $asn_val))
+                                            #else
+                                                #for $asn_col in $asn_cols
+                                                    #silent $axis_series_names[$asn_axis].append($getVar('obs.label.' + $asn_val) + ' ' + $gettext($asn_col))
+                                                #end for
+                                            #end if
+                                        #end for
                                         yaxis: [
                                             #for $axis_entry in enumerate($axes_list)
                                                 #set $idx = $axis_entry[0]
@@ -868,7 +977,15 @@
                                                 #set $axis_min = $axis_cfg.get('min', None)
                                                 #set $axis_max = $axis_cfg.get('max', None)
                                             {
-                                                seriesName: "$getVar('obs.label.' + $first_field)",
+                                                #set $asn_list = $axis_series_names.get($axis_id, [])
+                                                #if not $asn_list
+                                                    #set $asn_list = [$getVar('obs.label.' + $first_field)]
+                                                #end if
+                                                seriesName: [
+                                                    #for $asn in $asn_list
+                                                        "$asn",
+                                                    #end for
+                                                ],
                                                 #if $axis_title
                                                 title: {
                                                     text: "$axis_title",
@@ -897,7 +1014,14 @@
                                             #end for
                                         ],
                                     #end if
+                                    #if len($axes_list) > 1
+                                    ## Multi-axis assigns each series an axis group, which makes ApexCharts
+                                    ## cluster the legend by axis (out of series order). Keep series order.
+                                    legend: { ...graph_${cc_type}_config.legend, clusterGroupedSeries: false },
+                                    #end if
                                     series: [
+                                        #set $cc_color_list = []
+                                        #set $cc_pos = 0
                                         #for $val, $cols in $cc_series_pairs
                                             #if $getVar('year.' + val + '.has_data')
                                                 #if len($cols) == 1
@@ -906,6 +1030,8 @@
                                                         name: "$getVar('obs.label.' + val)",
                                                         data: [ $getChartData(val, cols[0]) ]
                                                     },
+                                                    #silent $cc_color_list.append($cc_color_refs[$cc_pos] if $cc_pos < len($cc_color_refs) else 'default')
+                                                    #set $cc_pos = $cc_pos + 1
                                                 #else
                                                     ## Multiple columns → append column label to series name
                                                     #for $col in $cols
@@ -913,11 +1039,23 @@
                                                             name: "$getVar('obs.label.' + val) $gettext($col)",
                                                             data: [ $getChartData(val, col) ]
                                                         },
+                                                        #silent $cc_color_list.append($cc_color_refs[$cc_pos] if $cc_pos < len($cc_color_refs) else 'default')
+                                                        #set $cc_pos = $cc_pos + 1
                                                     #end for
                                                 #end if
+                                            #else
+                                                #set $cc_pos = $cc_pos + len($cols)
                                             #end if
                                         #end for
-                                    ]
+                                    ],
+                                    #if len($cc_color_refs) > 0 and len($cc_color_list) > 0
+                                        #set $cc_color_count = len($cc_color_list)
+                                        colors: neowxChartColors([
+                                        #for $cref in $cc_color_list
+                                            "$cref",
+                                        #end for
+                                        ], $cc_color_count, "$x"),
+                                    #end if
                                 }).render()
                             }
                         #end if
