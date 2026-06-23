@@ -33,7 +33,7 @@ Two settings under `[[Appearance]]` in `skin.conf` control everything:
 
 **Result:** each observation listed in `show_trend_on` shows a ↗ / → / ↘ arrow (and,
 for the barometer in `multi`/`davis`, a graded tendency) with a tooltip such as
-`Slowly Rising: +0.009 inHg (over 3 h)`.
+`Rising Slowly: +0.009 inHg (over 3 h)`.
 
 ## How a trend is calculated
 
@@ -72,7 +72,7 @@ up / steady / down arrow in every style.
 
 In the tables below, **Δ** is the pressure change over the window. The ranges are
 half-open so every value maps to exactly one tier (a value exactly on a boundary falls
-into the *faster* tier — e.g. Δ = +2.0 hPa is "Rising", not "Slowly Rising").
+into the *faster* tier — e.g. Δ = +2.0 hPa is "Rising", not "Rising Slowly").
 
 ### `multi` (default) — WMO/NWS-style multi-tier
 
@@ -80,13 +80,13 @@ The barometer arrow steepens as the change grows, and doubles for the rapid tier
 
 | Change (Δ) | inHg equiv. | Arrow | Tooltip word |
 |---|---|---|---|
-| Δ ≥ +5.0 hPa | ≥ +0.148 | ↑↑ | Rapidly Rising |
+| Δ ≥ +5.0 hPa | ≥ +0.148 | ↑↑ | Rising Rapidly |
 | +2.0 ≤ Δ < +5.0 hPa | +0.059 … +0.148 | ↑ | Rising |
-| +0.7 ≤ Δ < +2.0 hPa | +0.021 … +0.059 | ↗ | Slowly Rising |
+| +0.7 ≤ Δ < +2.0 hPa | +0.021 … +0.059 | ↗ | Rising Slowly |
 | −0.7 < Δ < +0.7 hPa | within ±0.021 | → | Steady |
-| −2.0 < Δ ≤ −0.7 hPa | −0.021 … −0.059 | ↘ | Slowly Falling |
+| −2.0 < Δ ≤ −0.7 hPa | −0.021 … −0.059 | ↘ | Falling Slowly |
 | −5.0 < Δ ≤ −2.0 hPa | −0.059 … −0.148 | ↓ | Falling |
-| Δ ≤ −5.0 hPa | ≤ −0.148 | ↓↓ | Rapidly Falling |
+| Δ ≤ −5.0 hPa | ≤ −0.148 | ↓↓ | Falling Rapidly |
 
 ### `davis` — Davis Vantage thresholds
 
@@ -94,11 +94,11 @@ Mirrors the 3-level rate descriptions used by Davis Vantage consoles.
 
 | Change (Δ) | inHg equiv. | Arrow | Tooltip word |
 |---|---|---|---|
-| Δ ≥ +2.0 hPa | ≥ +0.059 | ↑ | Rising rapidly |
-| +0.7 ≤ Δ < +2.0 hPa | +0.021 … +0.059 | ↗ | Rising slowly |
+| Δ ≥ +2.0 hPa | ≥ +0.059 | ↑ | Rising Rapidly |
+| +0.7 ≤ Δ < +2.0 hPa | +0.021 … +0.059 | ↗ | Rising Slowly |
 | −0.7 < Δ < +0.7 hPa | within ±0.021 | → | Steady |
-| −2.0 < Δ ≤ −0.7 hPa | −0.021 … −0.059 | ↘ | Falling slowly |
-| Δ ≤ −2.0 hPa | ≤ −0.059 | ↓ | Falling rapidly |
+| −2.0 < Δ ≤ −0.7 hPa | −0.021 … −0.059 | ↘ | Falling Slowly |
+| Δ ≤ −2.0 hPa | ≤ −0.059 | ↓ | Falling Rapidly |
 
 These hPa cut-points reproduce Davis's published inHg table (≈ 0.02 inHg and 0.06 inHg).
 
@@ -146,8 +146,13 @@ threshold would treat °F and °C differently.
 ## Tooltips
 
 The tooltip names the category and shows the signed change in your display units over the
-window actually covered by the data, e.g. `Rapidly Rising: +0.118 inHg (over 3 h)` (or
+window actually covered by the data, e.g. `Rising Rapidly: +0.118 inHg (over 3 h)` (or
 `(over 1.5 h)` shortly after a restart — see [How a trend is calculated](#how-a-trend-is-calculated)).
+
+> **Localization.** The category words (`Rising`, `Falling`, `Steady`, `Rising Slowly`,
+> `Rising Rapidly`, `Falling Slowly`, `Falling Rapidly`) and the word `over` are pulled
+> from the active language file via `[Texts] → [[Trend]]` in `skins/neowx-material/lang/*.conf`.
+> The `davis` style reuses the same phrase keys, so its tooltips read identically to `multi`.
 
 Pressure is rounded to a unit-appropriate precision so small changes remain visible:
 
