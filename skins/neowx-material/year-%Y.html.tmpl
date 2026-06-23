@@ -833,7 +833,7 @@
                 ## Build cc_series_pairs from field-name keys or values+column fallback
                 #set $cc_field_map = {}
                 #for $fk, $fv in $cc_page.items()
-                    #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style') and isinstance($fv, (str, list))
+                    #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style', 'hideinitialvalues') and isinstance($fv, (str, list))
                         #silent $cc_field_map[$fk] = $fv
                     #end if
                 #end for
@@ -912,10 +912,34 @@
                     #except
                         #set $axes_list = ['y1']
                     #end try
+                    ## hideinitialvalues: series that start collapsed (page -> chart level).
+                    #set $cc_hidden_raw = $cc_page.get('hideinitialvalues', $cc.get('hideinitialvalues', ''))
+                    #if isinstance($cc_hidden_raw, list)
+                        #set $cc_hidden_obs = [v.strip() for v in $cc_hidden_raw if v.strip()]
+                    #else
+                        #set $cc_hidden_obs = [v.strip() for v in str($cc_hidden_raw).split(',') if v.strip()]
+                    #end if
+                    #set $cc_hidden_names = []
+                    #for $val, $cols in $cc_series_pairs
+                        #if $val in $cc_hidden_obs and $getVar('year.' + val + '.has_data')
+                            #if len($cols) == 1
+                                #silent $cc_hidden_names.append($getVar('obs.label.' + val))
+                            #else
+                                #for $col in $cols
+                                    #silent $cc_hidden_names.append($getVar('obs.label.' + val) + ' ' + $gettext($col))
+                                #end for
+                            #end if
+                        #end if
+                    #end for
                     var chartElement = document.querySelector('#$cc_id');
                     if (chartElement) {
+                        #if len($cc_hidden_names) > 0
+                        chartElement.style.opacity = '0';
+                        setTimeout(function () { var _e = document.querySelector('#$cc_id'); if (_e) { _e.style.opacity = '1'; } }, 2000);
+                        #end if
                         new ApexCharts(chartElement, {
                             ...graph_${cc_type}_config,
+                            #include "chart_hidden_series.inc"
                             #if $cc_label_fmt or $pg_align_mid or $cc_tick_set
                             xaxis: {
                                 ...graph_${cc_type}_config.xaxis,
