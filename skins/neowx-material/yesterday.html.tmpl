@@ -975,7 +975,7 @@
                             #else
                                 #set $cc_hidden_obs = [v.strip() for v in str($cc_hidden_raw).split(',') if v.strip()]
                             #end if
-                            #set $cc_hidden_names = []
+                            #set global $cc_hidden_names = []
                             #for $val, $cols in $cc_series_pairs
                                 #if $val in $cc_hidden_obs and $getVar('yesterday.' + val + '.has_data')
                                     #if len($cols) == 1
