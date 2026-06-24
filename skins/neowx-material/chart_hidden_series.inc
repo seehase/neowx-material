@@ -22,6 +22,9 @@ chart: {
     events: {
         ...(graph_${_hs_type}_config.chart && graph_${_hs_type}_config.chart.events),
         mounted: function (chartContext) {
+            ## This per-chart mounted overrides the global window.Apex one, so call
+            ## the global handler (axis-alignment registration) ourselves first.
+            if (typeof neowxMountedHandler === 'function') { try { neowxMountedHandler(chartContext); } catch (e) {} }
             try {
                 #for $hn in $cc_hidden_names
                 chartContext.hideSeries("$hn");
