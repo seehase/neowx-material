@@ -7,6 +7,12 @@ $(function () {
 // Number rounding based on weewx values
 // Example: Number: 34.5678 Format: %.2f Result: 34.57
 function formatNumber(no, format) {
+    // Guard non-numeric values (null/undefined for hidden series or null data
+    // gaps): calling .toFixed on them throws and aborts the whole tooltip
+    // render, so the tooltip vanishes after toggling a series off the legend.
+    if (typeof no !== 'number' || !isFinite(no)) {
+        return no;
+    }
     // Extract number of decimal places from format
     format = format.replace(/[^0-9]/g, '');
     return no.toFixed(format);

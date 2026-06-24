@@ -894,7 +894,7 @@
                         ## Build cc_field_map without a generator (avoids Python 3 / Cheetah scope issue)
                         #set $cc_field_map = {}
                         #for $fk, $fv in $cc_page.items()
-                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style') and isinstance($fv, (str, list))
+                            #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style', 'hidevalues') and isinstance($fv, (str, list))
                                 #silent $cc_field_map[$fk] = $fv
                             #end if
                         #end for
@@ -968,10 +968,36 @@
                         ## Render chart JS
                         #if len($cc_series_pairs) > 0 and $x in $Extras.Appearance.charts_order
                             #set $cc_id = $x + "chart"
+                            ## hidevalues: series that start collapsed (page -> chart level).
+                            #set $cc_hidden_raw = $cc_page.get('hidevalues', $cc.get('hidevalues', ''))
+                            #if isinstance($cc_hidden_raw, list)
+                                #set $cc_hidden_obs = [v.strip().replace(' ', '') for v in $cc_hidden_raw if v.strip()]
+                            #else
+                                #set $cc_hidden_obs = [v.strip().replace(' ', '') for v in str($cc_hidden_raw).split(',') if v.strip()]
+                            #end if
+                            #set global $cc_hidden_names = []
+                            #for $val, $cols in $cc_series_pairs
+                                #if len($cols) == 1
+                                    #if ($val in $cc_hidden_obs or ($val + ':' + $cols[0]) in $cc_hidden_obs) and $getVar('yesterday.' + val + '.has_data')
+                                        #silent $cc_hidden_names.append($getVar('obs.label.' + val))
+                                    #end if
+                                #else
+                                    #for $col in $cols
+                                        #if ($val in $cc_hidden_obs or ($val + ':' + $col) in $cc_hidden_obs) and $getVar('yesterday.' + val + '.has_data')
+                                            #silent $cc_hidden_names.append($getVar('obs.label.' + val) + ' ' + $gettext($col))
+                                        #end if
+                                    #end for
+                                #end if
+                            #end for
                             var chartElement = document.querySelector('#$cc_id');
                             if (chartElement) {
+                                #if len($cc_hidden_names) > 0
+                                chartElement.style.opacity = '0';
+                                setTimeout(function () { var _e = document.querySelector('#$cc_id'); if (_e) { _e.style.opacity = '1'; } }, 2000);
+                                #end if
                                 new ApexCharts(chartElement, {
                                     ...graph_${cc_type}_config,
+                                    #include "chart_hidden_series.inc"
                                     #if $cc_label_fmt or $pg_align_mid or $cc_tick_set
                                     xaxis: {
                                         ...graph_${cc_type}_config.xaxis,
