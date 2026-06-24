@@ -389,6 +389,74 @@ flip_values = yes
 
 ---
 
+### Step 7: Value Display (Optional)
+
+Each battery card shows a small **current-value line** next to its gauge — the
+raw value for status fields (e.g. `OK`), or the percentage for voltage/signal
+fields (e.g. `47%`). Two optional keys control whether and where it appears.
+Both work for every battery mode (status, voltage, signal) and for both the
+battery bar and the signal cone. The gauge itself always stays centered in the
+card, whatever you choose.
+
+#### `value_position` — where the value sits relative to the gauge
+
+```ini
+value_position = bottom   # default: below the gauge
+value_position = left     # left of the gauge, vertically centered
+value_position = right    # right of the gauge, vertically centered
+```
+
+```
+   value_position = bottom        value_position = left      value_position = right
+   (default)
+
+        OK                              OK                         OK
+     [####____]                    47 [####____]              [####____] 47
+        47
+```
+
+`left`/`right` place the value beside the gauge without moving it, and add no
+empty space below the gauge (so those cards are a bit shorter than `bottom`
+cards, which carry the value on its own line underneath).
+
+#### `show_value` — whether the value line is shown
+
+```ini
+show_value = yes     # default: show the value
+show_value = no      # hide the value entirely
+show_value = pad     # hide the value but keep its space
+```
+
+- `yes` — the value is shown at the chosen `value_position`.
+- `no` — the value is hidden. With `value_position = bottom` the card becomes a
+  little shorter (the line is gone); with `left`/`right` only the side text
+  disappears (the gauge doesn't move).
+- `pad` — the value is hidden but its space is reserved. This only matters for
+  `value_position = bottom`: it keeps the value line's height so a card with the
+  value hidden stays the same height as its neighbours in the same row. For
+  `left`/`right` the value is beside the gauge (out of the layout flow), so
+  `pad` and `no` look the same.
+
+#### Examples
+
+```ini
+# Voltage shown to the right of the bar, gauge stays centered
+[[[[consBatteryVoltage]]]]
+    value_position = right
+
+# Status gauge only - hide the raw OK/Low text under it
+[[[[outTempBatteryStatus]]]]
+    show_value = no
+
+# Keep the bottom value line's height even though it's hidden, so this card
+# lines up with value-showing cards beside it
+[[[[txBatteryStatus]]]]
+    show_value = pad
+    value_position = bottom
+```
+
+---
+
 ## Common Mistakes
 
 ### ❌ WRONG: Using sequential numbers instead of raw values

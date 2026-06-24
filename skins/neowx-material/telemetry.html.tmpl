@@ -50,12 +50,22 @@
                                 $display_value
                             </h4>
 
+                            ## Value-line display controls (per BatteryFields field).
+                            #set $_show_value = str($getVar('Extras.Telemetry.BatteryFields.' + $name + '.show_value', 'yes')).strip().lower()
+                            #if $_show_value not in ('yes', 'no', 'pad')
+                                #set $_show_value = 'yes'
+                            #end if
+                            #set $_val_pos = str($getVar('Extras.Telemetry.BatteryFields.' + $name + '.value_position', 'bottom')).strip().lower()
+                            #if $_val_pos not in ('bottom', 'left', 'right')
+                                #set $_val_pos = 'bottom'
+                            #end if
+
                             #if $isSignalBased($name)
                                 ## Signal mode: WiFi-style cone (replaces the battery bar)
                                 #set signal_percentage = $calculateSignalPercentage($name, $current_value)
                                 #set signal_color = $getSignalColor($name, $signal_percentage)
-                                $signalCone($name, $signal_percentage, $signal_color)
-                                <div class="text-muted font-small mt-1">$signal_percentage%</div>
+                                #set $_val_text = str($signal_percentage) + '%'
+                                #set $_gauge_mode = 'signal'
                             #else
                                 ## Battery bar mode: voltage %, state-based %, or fallback
                                 #if $isVoltageBased($name)
@@ -63,7 +73,7 @@
                                     #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
                                     #set battery_color = $getBatteryColor($name, $battery_percentage)
                                     #set fill_width = $battery_percentage
-                                    #set show_raw_value = False
+                                    #set $_val_text = str($battery_percentage) + '%'
                                 #else
                                     #set state_percentage = $calculateStatePercentage($name, $current_value)
                                     #if $state_percentage is not None
@@ -77,26 +87,48 @@
                                         #end if
                                         #set fill_width = $getStateFillWidth($name, $battery_percentage, $is_low)
                                         ## Status fields show the raw station value, not the percentage
-                                        #set show_raw_value = True
+                                        #set $_val_text = $formatBatteryValue($current_value)
                                     #else
                                         ## Fallback: keep the old full green bar
                                         #set battery_percentage = 100
                                         #set battery_color = "#4caf50"
                                         #set fill_width = 100
-                                        #set show_raw_value = False
+                                        #set $_val_text = str($battery_percentage) + '%'
                                     #end if
                                 #end if
-                                <!-- Visual battery gauge -->
-                                <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto; position: relative;">
-                                    <div class="battery-fill" style="background-color: $battery_color;width: $fill_width%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
-                                    <div style="position: absolute;top: 4px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
-                                </div>
-                                #if $show_raw_value
-                                    <div class="text-muted font-small mt-1">$formatBatteryValue($current_value)</div>
-                                #else
-                                    <div class="text-muted font-small mt-1">$battery_percentage%</div>
-                                #end if
+                                #set $_gauge_mode = 'bar'
                             #end if
+
+                            ## The gauge sits in a centered max-content wrapper, dead-centre in the
+                            ## card for every value_position. The value never affects the gauge's
+                            ## placement: bottom -> a block below; left/right -> absolutely positioned
+                            ## beside a gauge-only box (vertically centered on the gauge, out of flow,
+                            ## so it adds no height below the gauge).
+                            ## show_value no -> omit the value; pad -> keep it (visibility:hidden).
+                            #set $_val_style = 'visibility: hidden;' if $_show_value == 'pad' else ''
+                            <div style="width: max-content; margin: 0 auto; text-align: center;">
+                                <div style="position: relative; display: inline-block;">
+                                    #if $_gauge_mode == 'signal'
+                                        $signalCone($name, $signal_percentage, $signal_color)
+                                    #else
+                                        <!-- Visual battery gauge -->
+                                        <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto; position: relative;">
+                                            <div class="battery-fill" style="background-color: $battery_color;width: $fill_width%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
+                                            <div style="position: absolute;top: 4px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
+                                        </div>
+                                    #end if
+                                    #if $_show_value != 'no'
+                                        #if $_val_pos == 'left'
+                                            <span class="text-muted font-small" style="position: absolute; right: 100%; margin-right: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap; $_val_style">$_val_text</span>
+                                        #else if $_val_pos == 'right'
+                                            <span class="text-muted font-small" style="position: absolute; left: 100%; margin-left: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap; $_val_style">$_val_text</span>
+                                        #end if
+                                    #end if
+                                </div>
+                                #if $_val_pos == 'bottom' and $_show_value != 'no'
+                                    <div class="text-muted font-small mt-1" style="$_val_style">$_val_text</div>
+                                #end if
+                            </div>
                         </div>
 
                         <div class="col-3 text-muted font-small hi-text">
