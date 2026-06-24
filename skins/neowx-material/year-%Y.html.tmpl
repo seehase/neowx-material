@@ -833,7 +833,7 @@
                 ## Build cc_series_pairs from field-name keys or values+column fallback
                 #set $cc_field_map = {}
                 #for $fk, $fv in $cc_page.items()
-                    #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style', 'hideinitialvalues') and isinstance($fv, (str, list))
+                    #if $fk not in ('column', 'values', 'title', 'charttype', 'yaxis', 'yaxis_config', 'datetime_label_format', 'datetime_tooltip_format', 'colors', 'tick_style', 'hidevalues') and isinstance($fv, (str, list))
                         #silent $cc_field_map[$fk] = $fv
                     #end if
                 #end for
@@ -912,8 +912,8 @@
                     #except
                         #set $axes_list = ['y1']
                     #end try
-                    ## hideinitialvalues: series that start collapsed (page -> chart level).
-                    #set $cc_hidden_raw = $cc_page.get('hideinitialvalues', $cc.get('hideinitialvalues', ''))
+                    ## hidevalues: series that start collapsed (page -> chart level).
+                    #set $cc_hidden_raw = $cc_page.get('hidevalues', $cc.get('hidevalues', ''))
                     #if isinstance($cc_hidden_raw, list)
                         #set $cc_hidden_obs = [v.strip().replace(' ', '') for v in $cc_hidden_raw if v.strip()]
                     #else

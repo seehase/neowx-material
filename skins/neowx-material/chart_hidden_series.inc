@@ -1,7 +1,7 @@
 #encoding UTF-8
 ## +-------------------------------------------------------------------------+
 ## | chart_hidden_series.inc   Collapse series named in $cc_hidden_names on  |
-## | initial render (the "hideinitialvalues" feature) and reveal the chart   |
+## | initial render (the "hidevalues" feature) and reveal the chart   |
 ## | container the caller hid with opacity:0 to avoid a load-in flash.       |
 ## |                                                                         |
 ## | Cheetah #include runs in a scope that only sees GLOBALS (not the        |
