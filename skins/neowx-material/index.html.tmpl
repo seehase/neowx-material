@@ -213,9 +213,17 @@
 ## | Value-cards keep using $day on purpose: they show today's stats.         |
 ## +-------------------------------------------------------------------------+
 ## >>> chartHasData >>>
+## Memoized per render: chartHasData runs a custom-span aggregate query, and the
+## same obs is tested several times per chart (card visibility, hidevalues
+## pre-pass, series-emit loop). The span is constant ($custom_time_delta), so the
+## result only depends on $name - cache it for the report cycle.
+#set global $_chd_cache = {}
 #def chartHasData($name)
-    #set $_chd_obs = $getattr($span($time_delta=$custom_time_delta), $name)
-    #return $_chd_obs.has_data
+    #if $name not in $_chd_cache
+        #set $_chd_obs = $getattr($span($time_delta=$custom_time_delta), $name)
+        #silent $_chd_cache[$name] = $_chd_obs.has_data
+    #end if
+    #return $_chd_cache[$name]
 #end def
 ## <<< chartHasData <<<
 
@@ -1107,7 +1115,7 @@
                             #end if
                             #set global $cc_hidden_names = []
                             #for $val, $cols in $cc_series_pairs
-                                #if $chartHasData(val) and ($val in $cc_hidden_obs or ($val + ':' + $cols[0]) in $cc_hidden_obs)
+                                #if ($val in $cc_hidden_obs or ($val + ':' + $cols[0]) in $cc_hidden_obs) and $chartHasData(val)
                                     #silent $cc_hidden_names.append($getVar('obs.label.' + val))
                                 #end if
                             #end for

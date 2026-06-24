@@ -977,18 +977,16 @@
                             #end if
                             #set global $cc_hidden_names = []
                             #for $val, $cols in $cc_series_pairs
-                                #if $getVar('yesterday.' + val + '.has_data')
-                                    #if len($cols) == 1
-                                        #if $val in $cc_hidden_obs or ($val + ':' + $cols[0]) in $cc_hidden_obs
-                                            #silent $cc_hidden_names.append($getVar('obs.label.' + val))
-                                        #end if
-                                    #else
-                                        #for $col in $cols
-                                            #if $val in $cc_hidden_obs or ($val + ':' + $col) in $cc_hidden_obs
-                                                #silent $cc_hidden_names.append($getVar('obs.label.' + val) + ' ' + $gettext($col))
-                                            #end if
-                                        #end for
+                                #if len($cols) == 1
+                                    #if ($val in $cc_hidden_obs or ($val + ':' + $cols[0]) in $cc_hidden_obs) and $getVar('yesterday.' + val + '.has_data')
+                                        #silent $cc_hidden_names.append($getVar('obs.label.' + val))
                                     #end if
+                                #else
+                                    #for $col in $cols
+                                        #if ($val in $cc_hidden_obs or ($val + ':' + $col) in $cc_hidden_obs) and $getVar('yesterday.' + val + '.has_data')
+                                            #silent $cc_hidden_names.append($getVar('obs.label.' + val) + ' ' + $gettext($col))
+                                        #end if
+                                    #end for
                                 #end if
                             #end for
                             var chartElement = document.querySelector('#$cc_id');
