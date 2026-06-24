@@ -988,18 +988,22 @@
                             ## hideinitialvalues: series that start collapsed (page -> chart level).
                             #set $cc_hidden_raw = $cc_page.get('hideinitialvalues', $cc.get('hideinitialvalues', ''))
                             #if isinstance($cc_hidden_raw, list)
-                                #set $cc_hidden_obs = [v.strip() for v in $cc_hidden_raw if v.strip()]
+                                #set $cc_hidden_obs = [v.strip().replace(' ', '') for v in $cc_hidden_raw if v.strip()]
                             #else
-                                #set $cc_hidden_obs = [v.strip() for v in str($cc_hidden_raw).split(',') if v.strip()]
+                                #set $cc_hidden_obs = [v.strip().replace(' ', '') for v in str($cc_hidden_raw).split(',') if v.strip()]
                             #end if
                             #set global $cc_hidden_names = []
                             #for $val, $cols in $cc_series_pairs
-                                #if $val in $cc_hidden_obs and $getVar('month.' + val + '.has_data')
+                                #if $getVar('month.' + val + '.has_data')
                                     #if len($cols) == 1
-                                        #silent $cc_hidden_names.append($getVar('obs.label.' + val))
+                                        #if $val in $cc_hidden_obs or ($val + ':' + $cols[0]) in $cc_hidden_obs
+                                            #silent $cc_hidden_names.append($getVar('obs.label.' + val))
+                                        #end if
                                     #else
                                         #for $col in $cols
-                                            #silent $cc_hidden_names.append($getVar('obs.label.' + val) + ' ' + $gettext($col))
+                                            #if $val in $cc_hidden_obs or ($val + ':' + $col) in $cc_hidden_obs
+                                                #silent $cc_hidden_names.append($getVar('obs.label.' + val) + ' ' + $gettext($col))
+                                            #end if
                                         #end for
                                     #end if
                                 #end if
