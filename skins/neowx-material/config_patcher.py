@@ -9,7 +9,7 @@ Source: https://github.com/seehase/python-config-patcher
 
 Usage: usage: config_patcher.py [-h] source patch [-o OUTFILE]
 """
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 def parse_config(file_path):
     config = {}
@@ -81,17 +81,38 @@ def write_config(config, patch_config, source_file_path, output_file_path):
     section_stack = []
     deleted_section_level = float('inf')
     comment_buffer = []
+    flushed_kv_for_section = set()
+
+    def flush_new_kv_items_for_section(section_path, section_level):
+        """Write new key-value (non-dict) items from patch that are missing in source.
+        Tracked via flushed_kv_for_section so they are written at most once."""
+        if section_path in flushed_kv_for_section:
+            return
+        flushed_kv_for_section.add(section_path)
+        patch_section = get_section(patch_config, section_path)
+        if not patch_section:
+            return
+        source_section = get_section(source_config, section_path)
+        indent_char = '    '
+        base_indent = indent_char * section_level
+        for pkey, pvalue in patch_section.items():
+            if not isinstance(pvalue, dict) and (not source_section or pkey not in source_section):
+                output_lines.append(f"{base_indent}{pkey} = {pvalue}\n")
 
     def add_new_items_for_section(section_path, section_level):
+        # Flush any new kv items that haven't been written yet (e.g. sections with no subsections)
+        flush_new_kv_items_for_section(section_path, section_level)
+
         patch_section = get_section(patch_config, section_path)
         if not patch_section:
             return
 
         source_section = get_section(source_config, section_path)
 
+        # Only add new subsections here; new kv items were already flushed above
         new_items = {}
         for pkey, pvalue in patch_section.items():
-            if not source_section or pkey not in source_section:
+            if isinstance(pvalue, dict) and (not source_section or pkey not in source_section):
                 new_items[pkey] = pvalue
 
         if new_items:
@@ -120,6 +141,13 @@ def write_config(config, patch_config, source_file_path, output_file_path):
             if get_section(config, path) is None:
                 deleted_section_level = level
                 continue
+
+            # Before writing this subsection header, flush new kv items for the parent section
+            # so they appear before any subsections, not after them.
+            if section_stack:
+                parent_path = tuple(s[1] for s in section_stack)
+                parent_level = section_stack[-1][0]
+                flush_new_kv_items_for_section(parent_path, parent_level)
 
             section_stack.append((level, name))
             output_lines.append(line)
