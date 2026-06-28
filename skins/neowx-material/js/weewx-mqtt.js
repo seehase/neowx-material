@@ -631,7 +631,7 @@ function parseEcowittMessage(rawMessage) {
     if (params.yearlyrainin  !== undefined) r.yearRain_cm          = inToCm(params.yearlyrainin);
 
     // Extra sensors 1–8
-    for (var i = 1; i <= 8; i++) {
+    for (var i = 1; i <= 16; i++) {
         if (params['temp'     + i + 'f'] !== undefined) r['extraTemp'  + i + '_C'] = fToC(params['temp' + i + 'f']);
         if (params['humidity' + i      ] !== undefined) r['extraHumid' + i       ] = pf(params['humidity' + i]);
         if (params['batt'     + i      ] !== undefined) r['extraBattery' + i     ] = pf(params['batt'    + i]);
@@ -640,6 +640,7 @@ function parseEcowittMessage(rawMessage) {
     // Battery / telemetry
     if (params.console_batt !== undefined) r.consBatteryVoltage_volt = pf(params.console_batt);
     if (params.wh65batt     !== undefined) r.outTempBatteryStatus    = pf(params.wh65batt);
+    if (params.soil_ec_batt1 !== undefined) r.soil_ec_batt1    = pf(params.soil_ec_batt1);
 
     // Timestamp  – dateutc arrives as "2026-03-29+20:31:20" after URL-decode
     if (params.dateutc !== undefined) {
