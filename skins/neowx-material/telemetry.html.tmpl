@@ -336,12 +336,13 @@
 ## +-------------------------------------------------------------------------+
 ## | Helper function to calculate signal percentage                          |
 ## | Returns percentage (0-100) based on current value vs max_signal.        |
-## | Returns 0 if max_signal <= min_signal (misconfigured range).            |
+## | If max_signal is not configured, the raw value is used directly as a    |
+## | percentage (clamped to 0-100 by percentValue).                          |
 ## +-------------------------------------------------------------------------+
 #def calculateSignalPercentage($name, $value)
     #set p = $rangePercentage($name, $value, 'max_signal', 'min_signal')
     #if $p is None
-        #return 0
+        #return $percentValue($value)
     #else
         #return $p
     #end if
@@ -681,12 +682,6 @@
                     #set _field_interval = $getVar('Extras.Telemetry.' + $name + '.chart_interval', None)
                     #if $_field_interval is not None and str($_field_interval).strip() != '' and str($_field_interval) != 'None'
                         #set chart_interval = int($_field_interval)
-                    #else
-                        ## Fall back to BatteryFields
-                        #set _battery_interval = $getVar('Extras.Telemetry.' + $name + '.chart_interval', None)
-                        #if _battery_interval is not None and str($_battery_interval).strip() != '' and str($_battery_interval) != 'None'
-                            #set chart_interval = int($_battery_interval)
-                        #end if
                     #end if
                 #except
                     #pass

@@ -137,6 +137,10 @@ alongside scalar settings like `chart_days` without confusion.
 `chart_interval` and `colors` used to live in `[[[FieldConfiguration]]]`; they
 now live in the same per-field block as everything else.
 
+When a field has no `chart_interval`, the global `default_interval` set directly
+under `[[Telemetry]]` is used. If that is also absent, the skin falls back to
+`300` seconds.
+
 ---
 
 ## Sensor types
@@ -260,7 +264,8 @@ The gauge fill percentage comes from the chart position:
 - Two states (0/1): OK → 100%, Low → 50%
 - Five states (0–4): top → 100%, second → 80%, …, bottom → 20%
 
-The displayed value is the mapped label (e.g. `OK`).
+The displayed value is the mapped label (e.g. `OK`). If the station's current
+value has no matching `0 =` / `1 =` / … label, the raw value is shown as-is.
 
 **Optional keys for the low/red threshold:**
 
