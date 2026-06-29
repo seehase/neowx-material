@@ -55,85 +55,99 @@
                                 $display_value
                             </h4>
 
-                            ## Value-line display controls (per BatteryFields field).
-                            #set $_show_value = str($getVar('Extras.Telemetry.BatteryFields.' + $name + '.show_value', 'yes')).strip().lower()
-                            #if $_show_value not in ('yes', 'no', 'pad')
+                            ## Value line: value_position resolves field -> [[Telemetry]] default -> bottom.
+                            ## show_value is yes|no (legacy 'pad' treated as yes).
+                            #set $_show_value = str($getVar('Extras.Telemetry.' + $name + '.show_value', 'yes')).strip().lower()
+                            #if $_show_value != 'no'
                                 #set $_show_value = 'yes'
                             #end if
-                            #set $_val_pos = str($getVar('Extras.Telemetry.BatteryFields.' + $name + '.value_position', 'bottom')).strip().lower()
+                            #set $_val_pos = str($getVar('Extras.Telemetry.' + $name + '.value_position', $getVar('Extras.Telemetry.value_position', 'bottom'))).strip().lower()
                             #if $_val_pos not in ('bottom', 'left', 'right')
                                 #set $_val_pos = 'bottom'
                             #end if
 
-                            #if $isSignalBased($name)
-                                ## Signal mode: WiFi-style cone (replaces the battery bar)
+                            #set $_type = $sensorType($name)
+                            #if $_type == 'signal'
                                 #set signal_percentage = $calculateSignalPercentage($name, $current_value)
                                 #set signal_color = $getSignalColor($name, $signal_percentage)
                                 #set $_val_text = str($signal_percentage) + '%'
                                 #set $_gauge_mode = 'signal'
-                            #else
-                                ## Battery bar mode: voltage %, state-based %, or fallback
-                                #if $isVoltageBased($name)
-                                    ## Voltage mode: percentage from min/max voltage (unchanged)
-                                    #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
-                                    #set battery_color = $getBatteryColor($name, $battery_percentage)
-                                    #set fill_width = $battery_percentage
-                                    #set $_val_text = str($battery_percentage) + '%'
-                                #else
-                                    #set state_percentage = $calculateStatePercentage($name, $current_value)
-                                    #if $state_percentage is not None
-                                        ## Status mode: percentage from chart positions
-                                        #set battery_percentage = $state_percentage
-                                        #set is_low = $isLowState($name, $current_value)
-                                        #if $is_low
-                                            #set battery_color = "#f44336"  ## Red
-                                        #else
-                                            #set battery_color = "#4caf50"  ## Green
-                                        #end if
-                                        #set fill_width = $getStateFillWidth($name, $battery_percentage, $is_low)
-                                        ## Status fields show the raw station value, not the percentage
-                                        #set $_val_text = $formatBatteryValue($current_value)
-                                    #else
-                                        ## Fallback: keep the old full green bar
-                                        #set battery_percentage = 100
-                                        #set battery_color = "#4caf50"
-                                        #set fill_width = 100
-                                        #set $_val_text = str($battery_percentage) + '%'
-                                    #end if
-                                #end if
+                            #else if $_type == 'voltage'
+                                #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
+                                #set battery_color = $getBatteryColor($name, $battery_percentage)
+                                #set fill_width = $battery_percentage
+                                #set $_val_text = str($battery_percentage) + '%'
                                 #set $_gauge_mode = 'bar'
+                            #else if $_type == 'percent'
+                                #set battery_percentage = $percentValue($current_value)
+                                #set battery_color = $getPercentColor($name, $battery_percentage)
+                                #set fill_width = $battery_percentage
+                                #set $_val_text = str($battery_percentage) + '%'
+                                #set $_gauge_mode = 'bar'
+                            #else if $_type == 'status'
+                                #set state_percentage = $calculateStatePercentage($name, $current_value)
+                                #if $state_percentage is not None
+                                    #set battery_percentage = $state_percentage
+                                    #set is_low = $isLowState($name, $current_value)
+                                    #if $is_low
+                                        #set battery_color = "#f44336"
+                                    #else
+                                        #set battery_color = "#4caf50"
+                                    #end if
+                                    #set fill_width = $getStateFillWidth($name, $battery_percentage, $is_low)
+                                #else
+                                    #set battery_percentage = 100
+                                    #set battery_color = "#4caf50"
+                                    #set fill_width = 100
+                                #end if
+                                #set $_val_text = $formatBatteryValue($current_value)
+                                #set $_gauge_mode = 'bar'
+                            #else
+                                ## none -> raw display, no gauge
+                                #set $_gauge_mode = 'none'
                             #end if
 
-                            ## The gauge sits in a centered max-content wrapper, dead-centre in the
-                            ## card for every value_position. The value never affects the gauge's
-                            ## placement: bottom -> a block below; left/right -> absolutely positioned
-                            ## beside a gauge-only box (vertically centered on the gauge, out of flow,
-                            ## so it adds no height below the gauge).
-                            ## show_value no -> omit the value; pad -> keep it (visibility:hidden).
-                            #set $_val_style = 'visibility: hidden;' if $_show_value == 'pad' else ''
-                            <div style="width: max-content; margin: 0 auto; text-align: center;">
-                                <div style="position: relative; display: inline-block;">
-                                    #if $_gauge_mode == 'signal'
-                                        $signalCone($name, $signal_percentage, $signal_color)
-                                    #else
-                                        <!-- Visual battery gauge -->
-                                        <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto; position: relative;">
-                                            <div class="battery-fill" style="background-color: $battery_color;width: $fill_width%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
-                                            <div style="position: absolute;top: 4px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
+                            #if $_gauge_mode == 'none'
+                                ## Raw value only (it's the big value above). When value_position is
+                                ## bottom, reserve the gauge + value-line height so this card lines up
+                                ## with gauge cards in the same row.
+                                #if $_val_pos == 'bottom'
+                                    <div style="visibility: hidden;" aria-hidden="true">
+                                        <div style="width: max-content; margin: 0 auto;">
+                                            <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto;"></div>
                                         </div>
-                                    #end if
-                                    #if $_show_value != 'no'
-                                        #if $_val_pos == 'left'
-                                            <span class="text-muted font-small" style="position: absolute; right: 100%; margin-right: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap; $_val_style">$_val_text</span>
-                                        #else if $_val_pos == 'right'
-                                            <span class="text-muted font-small" style="position: absolute; left: 100%; margin-left: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap; $_val_style">$_val_text</span>
+                                        <div class="text-muted font-small mt-1">&nbsp;</div>
+                                    </div>
+                                #end if
+                            #else
+                                <div style="width: max-content; margin: 0 auto; text-align: center;">
+                                    <div style="position: relative; display: inline-block;">
+                                        #if $_gauge_mode == 'signal'
+                                            $signalCone($name, $signal_percentage, $signal_color)
+                                        #else
+                                            <!-- Visual battery gauge -->
+                                            <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto; position: relative;">
+                                                <div class="battery-fill" style="background-color: $battery_color;width: $fill_width%;height: calc(100% - 2px);margin: 1px 0;border-radius: 2px;transition: width 0.3s ease, background-color 0.3s ease;"></div>
+                                                <div style="position: absolute;top: 4px;left: 100%;width: 6px;height: 14px;background: #555;border-radius: 2px;margin-left: 2px;"></div>
+                                            </div>
+                                        #end if
+                                        #if $_show_value != 'no'
+                                            #if $_val_pos == 'left'
+                                                <span class="text-muted font-small" style="position: absolute; right: 100%; margin-right: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap;">$_val_text</span>
+                                            #else if $_val_pos == 'right'
+                                                <span class="text-muted font-small" style="position: absolute; left: 100%; margin-left: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap;">$_val_text</span>
+                                            #end if
+                                        #end if
+                                    </div>
+                                    #if $_val_pos == 'bottom'
+                                        #if $_show_value != 'no'
+                                            <div class="text-muted font-small mt-1">$_val_text</div>
+                                        #else
+                                            <div class="text-muted font-small mt-1">&nbsp;</div>
                                         #end if
                                     #end if
                                 </div>
-                                #if $_val_pos == 'bottom' and $_show_value != 'no'
-                                    <div class="text-muted font-small mt-1" style="$_val_style">$_val_text</div>
-                                #end if
-                            </div>
+                            #end if
                         </div>
 
                         <div class="col-3 text-muted font-small hi-text">
@@ -172,99 +186,95 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | The explicit gauge type for a field: none (default) / voltage / signal  |
+## | / percent / status. Unset or unrecognized -> none.                      |
+## +-------------------------------------------------------------------------+
+#def sensorType($name)
+    #set $_t = str($getVar('Extras.Telemetry.' + $name + '.sensor_type', 'none')).strip().lower()
+    #if $_t in ('none', 'voltage', 'signal', 'percent', 'status')
+        #return $_t
+    #else
+        #return 'none'
+    #end if
+#end def
+
+## Clamp a (possibly unit-bearing) value to an integer percentage 0-100.
+#def percentValue($value)
+    #try
+        #set $_p = $parseNumericValue($value)
+        #if $_p < 0
+            #set $_p = 0
+        #else if $_p > 100
+            #set $_p = 100
+        #end if
+        #return int($_p + 0.0000001)
+    #except
+        #return 0
+    #end try
+#end def
+
+## Percent-battery color from low_threshold (no max_* range needed).
+#def getPercentColor($name, $percentage)
+    #try
+        #set threshold = float($getVar('Extras.Telemetry.' + $name + '.low_threshold', '20'))
+        #if float($percentage) < $threshold
+            #return "#f44336"
+        #else
+            #return "#4caf50"
+        #end if
+    #except
+        #return "#4caf50"
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Check if a battery field is enabled                                     |
 ## +-------------------------------------------------------------------------+
 #def isBatteryFieldEnabled($name)
-    #try
-        #set enabled = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.enabled', 'no')
-        #if $enabled == 'yes'
-            #return True
-        #else
-            #return False
-        #end if
-    #except
-        #return False
-    #end try
+    #return $sensorType($name) != 'none'
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Check if a battery field is voltage-based (has max_voltage configured)  |
 ## +-------------------------------------------------------------------------+
 #def isVoltageBased($name)
-    #try
-        #set max_v = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_voltage', None)
-        #if $max_v is not None and str($max_v).strip() != '' and str($max_v) != 'None'
-            #try
-                #set test_float = float($max_v)
-                #return True
-            #except
-                #return False
-            #end try
-        #else
-            #return False
-        #end if
-    #except
-        #return False
-    #end try
+    #return $sensorType($name) == 'voltage'
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Check if a battery field is signal-based (has max_signal configured)    |
 ## +-------------------------------------------------------------------------+
 #def isSignalBased($name)
-    #try
-        #set max_s = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_signal', None)
-        #if $max_s is not None and str($max_s).strip() != '' and str($max_s) != 'None'
-            #try
-                #set test_float = float($max_s)
-                #return True
-            #except
-                #return False
-            #end try
-        #else
-            #return False
-        #end if
-    #except
-        #return False
-    #end try
+    #return $sensorType($name) == 'signal'
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Helper function to map battery values                                   |
-## | Only maps status-based sensors, not voltage-based sensors               |
 ## +-------------------------------------------------------------------------+
 #def mapBatteryValue($name, $value)
-    #if not $isBatteryFieldEnabled($name)
-        #return $value
-    #end if
-
-    ## Don't map voltage-based sensors - return raw value
-    #if $isVoltageBased($name)
-        #return $value
-    #end if
-
-    ## Don't map signal-based sensors - return raw value
-    #if $isSignalBased($name)
-        #return $value
-    #end if
-
-    ## Only map status-based sensors
-    #try
-        #set raw_val = str($value).strip()
-        #set key = "0"
-        #if raw_val.replace(".", "").replace("-", "").isdigit()
-            #set key = str(int(float(raw_val) + 0.000001))
-        #end if
-
-        #set mapped = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $key, None)
-        #if $mapped is not None
-            #return $mapped
-        #else
+    #set $_t = $sensorType($name)
+    #if $_t == 'percent'
+        #return str($percentValue($value)) + '%'
+    #else if $_t == 'status'
+        #try
+            #set raw_val = str($value).strip()
+            #set key = "0"
+            #if raw_val.replace(".", "").replace("-", "").isdigit()
+                #set key = str(int(float(raw_val) + 0.000001))
+            #end if
+            #set mapped = $getVar('Extras.Telemetry.' + $name + '.' + $key, None)
+            #if $mapped is not None
+                #return $mapped
+            #else
+                #return $value
+            #end if
+        #except
             #return $value
-        #end if
-    #except
+        #end try
+    #else
+        ## none / voltage / signal -> raw value
         #return $value
-    #end try
+    #end if
 #end def
 
 ## +-------------------------------------------------------------------------+
@@ -285,13 +295,13 @@
 ## +-------------------------------------------------------------------------+
 #def rangePercentage($name, $value, $max_key, $min_key)
     #try
-        #set max_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $max_key, None)
+        #set max_str = $getVar('Extras.Telemetry.' + $name + '.' + $max_key, None)
         #if $max_str is None or str($max_str).strip() == '' or str($max_str) == 'None'
             #return None
         #end if
         #set raw_val = $parseNumericValue($value)
         #set max_v = float(str($max_str).strip())
-        #set min_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $min_key, '0')
+        #set min_str = $getVar('Extras.Telemetry.' + $name + '.' + $min_key, '0')
         #set min_v = float(str($min_str).strip())
         #if $max_v > $min_v
             #set percentage = (($raw_val - $min_v) / ($max_v - $min_v)) * 100
@@ -326,12 +336,13 @@
 ## +-------------------------------------------------------------------------+
 ## | Helper function to calculate signal percentage                          |
 ## | Returns percentage (0-100) based on current value vs max_signal.        |
-## | Returns 0 if max_signal <= min_signal (misconfigured range).            |
+## | If max_signal is not configured, the raw value is used directly as a    |
+## | percentage (clamped to 0-100 by percentValue).                          |
 ## +-------------------------------------------------------------------------+
 #def calculateSignalPercentage($name, $value)
     #set p = $rangePercentage($name, $value, 'max_signal', 'min_signal')
     #if $p is None
-        #return 0
+        #return $percentValue($value)
     #else
         #return $p
     #end if
@@ -349,13 +360,13 @@
         #end if
         ## Assumes non-negative state values, like getBatteryChartValue below
         #set key = str(int($parseNumericValue($value) + 0.000001))
-        #set chart_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + $key, None)
+        #set chart_pos = $getVar('Extras.Telemetry.' + $name + '.chart_position_' + $key, None)
         #if $chart_pos is None
             #return None
         #end if
         #set pos = int($chart_pos)
-        #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
-        #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
+        #set max_pos = int($getVar('Extras.Telemetry.' + $name + '.max_chart_position', '1'))
+        #if $getVar('Extras.Telemetry.' + $name + '.flip_values', 'no') == 'yes'
             #set pos = $max_pos - $pos
         #end if
         ## Same epsilon trick as rangePercentage
@@ -372,13 +383,13 @@
 ## +-------------------------------------------------------------------------+
 #def isLowState($name, $value)
     #try
-        #set low_str = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_state', None)
+        #set low_str = $getVar('Extras.Telemetry.' + $name + '.low_state', None)
         #if $low_str is None or str($low_str).strip() == '' or str($low_str) == 'None'
             #return False
         #end if
         #set low_v = float(str($low_str).strip())
         #set raw_v = $parseNumericValue($value)
-        #set direction = str($getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_when', 'at_or_above')).strip().lower()
+        #set direction = str($getVar('Extras.Telemetry.' + $name + '.low_when', 'at_or_above')).strip().lower()
         #if $direction == 'at_or_below'
             #return $raw_v <= $low_v
         #else
@@ -399,7 +410,7 @@
     #end if
     #set max_pos = 1
     #try
-        #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
+        #set max_pos = int($getVar('Extras.Telemetry.' + $name + '.max_chart_position', '1'))
     #except
         ## Unreadable max_chart_position - treat as 2-state
         #pass
@@ -417,11 +428,11 @@
 ## +-------------------------------------------------------------------------+
 #def getGaugeColor($name, $percentage, $max_key)
     #try
-        #set max_v = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $max_key, None)
+        #set max_v = $getVar('Extras.Telemetry.' + $name + '.' + $max_key, None)
         #if $max_v is None or str($max_v).strip() == '' or str($max_v) == 'None'
             #return "#4caf50"
         #end if
-        #set threshold = float($getVar('Extras.Telemetry.BatteryFields.' + $name + '.low_threshold', '20'))
+        #set threshold = float($getVar('Extras.Telemetry.' + $name + '.low_threshold', '20'))
         #if float($percentage) < $threshold
             #return "#f44336"  ## Red
         #else
@@ -509,7 +520,7 @@
         ## Check if flip is enabled for this specific field
         #set flip = False
         #try
-            #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
+            #if $getVar('Extras.Telemetry.' + $name + '.flip_values', 'no') == 'yes'
                 #set flip = True
             #end if
         #except
@@ -517,11 +528,11 @@
         #end try
 
         ## Get chart position based on key
-        #set chart_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + $key, None)
+        #set chart_pos = $getVar('Extras.Telemetry.' + $name + '.chart_position_' + $key, None)
         #if $chart_pos is not None
             #if $flip
                 ## Invert the position if flip is enabled
-                #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
+                #set max_pos = int($getVar('Extras.Telemetry.' + $name + '.max_chart_position', '1'))
                 #set chart_pos = str($max_pos - int($chart_pos))
             #end if
             #return $chart_pos
@@ -657,7 +668,7 @@
                 #set is_voltage = $isVoltageBased($name)
                 #set is_signal = $isSignalBased($name)
 
-                ## Read per-field chart_interval: FieldConfiguration takes priority, then BatteryFields, then default_interval from config, then hardcoded 300
+                ## Read per-field chart_interval: per-field config under [[Telemetry]] takes priority, then default_interval from config, then hardcoded 300
                 #set chart_interval = 300
                 #try
                     #set _default_interval_str = $getVar('Extras.Telemetry.default_interval', None)
@@ -668,24 +679,18 @@
                     #set chart_interval = 300
                 #end try
                 #try
-                    #set _field_interval = $getVar('Extras.Telemetry.FieldConfiguration.' + $name + '.chart_interval', None)
+                    #set _field_interval = $getVar('Extras.Telemetry.' + $name + '.chart_interval', None)
                     #if $_field_interval is not None and str($_field_interval).strip() != '' and str($_field_interval) != 'None'
                         #set chart_interval = int($_field_interval)
-                    #else
-                        ## Fall back to BatteryFields
-                        #set _battery_interval = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_interval', None)
-                        #if _battery_interval is not None and str($_battery_interval).strip() != '' and str($_battery_interval) != 'None'
-                            #set chart_interval = int($_battery_interval)
-                        #end if
                     #end if
                 #except
                     #pass
                 #end try
 
-                ## Per-field chart line color: Extras.Telemetry.FieldConfiguration.<field>.colors
+                ## Per-field chart line color: Extras.Telemetry.<field>.colors
                 #set $tc_color_ref = ''
                 #try
-                    #set $_fc_colors = $getVar('Extras.Telemetry.FieldConfiguration.' + $name + '.colors', None)
+                    #set $_fc_colors = $getVar('Extras.Telemetry.' + $name + '.colors', None)
                     #if $_fc_colors is not None
                         #if isinstance($_fc_colors, list)
                             #set $tc_color_ref = str($_fc_colors[0]).strip().replace('"', '').replace('\\', '') if len($_fc_colors) > 0 else ''
@@ -716,7 +721,7 @@
                         #if $is_battery and not $is_voltage and not $is_signal
                             ## Status-based battery: use custom position labels
                             #try
-                                #set max_pos = int($getVar('Extras.Telemetry.BatteryFields.' + $name + '.max_chart_position', '1'))
+                                #set max_pos = int($getVar('Extras.Telemetry.' + $name + '.max_chart_position', '1'))
                             #except
                                 #set max_pos = 1
                             #end try
@@ -728,7 +733,7 @@
                                     ## Generate label mapping from config for this specific field
                                     #set flip = False
                                     #try
-                                        #if $getVar('Extras.Telemetry.BatteryFields.' + $name + '.flip_values', 'no') == 'yes'
+                                        #if $getVar('Extras.Telemetry.' + $name + '.flip_values', 'no') == 'yes'
                                             #set flip = True
                                         #end if
                                     #except
@@ -744,7 +749,7 @@
                                         ## Find which key maps to this position
                                         #for $j in range(10)
                                             #try
-                                                #set check_pos = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.chart_position_' + str($j), None)
+                                                #set check_pos = $getVar('Extras.Telemetry.' + $name + '.chart_position_' + str($j), None)
                                                 #if $check_pos is not None and int($check_pos) == $pos
                                                     #set label_key = str($j)
                                                     #break
@@ -755,7 +760,7 @@
                                         #end for
                                         #if $label_key is not None
                                             #try
-                                                #set label_text = $getVar('Extras.Telemetry.BatteryFields.' + $name + '.' + $label_key, $label_key)
+                                                #set label_text = $getVar('Extras.Telemetry.' + $name + '.' + $label_key, $label_key)
                                             #except
                                                 #set label_text = $label_key
                                             #end try
