@@ -172,99 +172,95 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
+## | The explicit gauge type for a field: none (default) / voltage / signal  |
+## | / percent / status. Unset or unrecognized -> none.                      |
+## +-------------------------------------------------------------------------+
+#def sensorType($name)
+    #set $_t = str($getVar('Extras.Telemetry.' + $name + '.sensor_type', 'none')).strip().lower()
+    #if $_t in ('none', 'voltage', 'signal', 'percent', 'status')
+        #return $_t
+    #else
+        #return 'none'
+    #end if
+#end def
+
+## Clamp a (possibly unit-bearing) value to an integer percentage 0-100.
+#def percentValue($value)
+    #try
+        #set $_p = $parseNumericValue($value)
+        #if $_p < 0
+            #set $_p = 0
+        #else if $_p > 100
+            #set $_p = 100
+        #end if
+        #return int($_p + 0.0000001)
+    #except
+        #return 0
+    #end try
+#end def
+
+## Percent-battery color from low_threshold (no max_* range needed).
+#def getPercentColor($name, $percentage)
+    #try
+        #set threshold = float($getVar('Extras.Telemetry.' + $name + '.low_threshold', '20'))
+        #if float($percentage) < $threshold
+            #return "#f44336"
+        #else
+            #return "#4caf50"
+        #end if
+    #except
+        #return "#4caf50"
+    #end try
+#end def
+
+## +-------------------------------------------------------------------------+
 ## | Check if a battery field is enabled                                     |
 ## +-------------------------------------------------------------------------+
 #def isBatteryFieldEnabled($name)
-    #try
-        #set enabled = $getVar('Extras.Telemetry.' + $name + '.enabled', 'no')
-        #if $enabled == 'yes'
-            #return True
-        #else
-            #return False
-        #end if
-    #except
-        #return False
-    #end try
+    #return $sensorType($name) != 'none'
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Check if a battery field is voltage-based (has max_voltage configured)  |
 ## +-------------------------------------------------------------------------+
 #def isVoltageBased($name)
-    #try
-        #set max_v = $getVar('Extras.Telemetry.' + $name + '.max_voltage', None)
-        #if $max_v is not None and str($max_v).strip() != '' and str($max_v) != 'None'
-            #try
-                #set test_float = float($max_v)
-                #return True
-            #except
-                #return False
-            #end try
-        #else
-            #return False
-        #end if
-    #except
-        #return False
-    #end try
+    #return $sensorType($name) == 'voltage'
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Check if a battery field is signal-based (has max_signal configured)    |
 ## +-------------------------------------------------------------------------+
 #def isSignalBased($name)
-    #try
-        #set max_s = $getVar('Extras.Telemetry.' + $name + '.max_signal', None)
-        #if $max_s is not None and str($max_s).strip() != '' and str($max_s) != 'None'
-            #try
-                #set test_float = float($max_s)
-                #return True
-            #except
-                #return False
-            #end try
-        #else
-            #return False
-        #end if
-    #except
-        #return False
-    #end try
+    #return $sensorType($name) == 'signal'
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Helper function to map battery values                                   |
-## | Only maps status-based sensors, not voltage-based sensors               |
 ## +-------------------------------------------------------------------------+
 #def mapBatteryValue($name, $value)
-    #if not $isBatteryFieldEnabled($name)
-        #return $value
-    #end if
-
-    ## Don't map voltage-based sensors - return raw value
-    #if $isVoltageBased($name)
-        #return $value
-    #end if
-
-    ## Don't map signal-based sensors - return raw value
-    #if $isSignalBased($name)
-        #return $value
-    #end if
-
-    ## Only map status-based sensors
-    #try
-        #set raw_val = str($value).strip()
-        #set key = "0"
-        #if raw_val.replace(".", "").replace("-", "").isdigit()
-            #set key = str(int(float(raw_val) + 0.000001))
-        #end if
-
-        #set mapped = $getVar('Extras.Telemetry.' + $name + '.' + $key, None)
-        #if $mapped is not None
-            #return $mapped
-        #else
+    #set $_t = $sensorType($name)
+    #if $_t == 'percent'
+        #return str($percentValue($value)) + '%'
+    #else if $_t == 'status'
+        #try
+            #set raw_val = str($value).strip()
+            #set key = "0"
+            #if raw_val.replace(".", "").replace("-", "").isdigit()
+                #set key = str(int(float(raw_val) + 0.000001))
+            #end if
+            #set mapped = $getVar('Extras.Telemetry.' + $name + '.' + $key, None)
+            #if $mapped is not None
+                #return $mapped
+            #else
+                #return $value
+            #end if
+        #except
             #return $value
-        #end if
-    #except
+        #end try
+    #else
+        ## none / voltage / signal -> raw value
         #return $value
-    #end try
+    #end if
 #end def
 
 ## +-------------------------------------------------------------------------+
