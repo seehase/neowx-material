@@ -31,9 +31,9 @@ All three turn **red** when the sensor crosses the "low" point you configure.
 
 | Your sensor reports... | You set... | You get... |
 |---|---|---|
-| A voltage (4.5V, 12.6V, ...) | `sensor_type = voltage` + `max_voltage` | Battery bar filled by percentage, "%" below |
-| Signal strength (0–100%) | `sensor_type = signal` | WiFi-style cone filled by percentage, "%" below |
-| Status codes (0, 1, 9, ...) | `sensor_type = status` + text labels + chart positions | Battery bar filled by state, raw value below |
+| A voltage (4.5V, 12.6V, ...) | `sensor_type = voltage` + `max_voltage` | Battery bar filled by percentage, value at `value_position` |
+| Signal strength (0–100%) | `sensor_type = signal` | WiFi-style cone filled by percentage, value at `value_position` |
+| Status codes (0, 1, 9, ...) | `sensor_type = status` + text labels + chart positions | Battery bar filled by state, raw value at `value_position` |
 
 ---
 
@@ -221,10 +221,14 @@ All three modes side by side:
 - Make sure `max_voltage` matches your battery's real maximum
 - Check the sensor reports a voltage, not a status code
 - Restart WeeWX after configuration changes
+- If neither `max_voltage` nor `min_voltage` is set, the card now shows the raw
+  value with no gauge (instead of a full bar), so a missing range is obvious
 
 **Status bar stays green even though the station says Low?**
 - Add `low_state` (and `low_when` if your station counts the other way)
 - Without `low_state` the bar fills by state but never turns red
+- If a reported value has no matching `chart_position_<value>`, the card shows the
+  raw value with no gauge (instead of a green bar) so the gap is visible
 
 **Signal cone never shows?**
 - The cone only appears when `sensor_type = signal` is set for that sensor

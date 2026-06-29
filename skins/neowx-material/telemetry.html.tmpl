@@ -13,13 +13,10 @@
     #if $value is None
         –
     #else
-        #import re
         #try
-            ## Strip any unit/label the WeeWX value carries (e.g. "0,0 V" -> "0") so
-            ## a status field whose WeeWX type is volts still shows a clean number
-            ## rather than a voltage. Comma is treated as the decimal separator.
-            #set $_num = re.sub(r'[^0-9,.\-]', '', str($value)).replace(",", ".")
-            ${"%.0f" % float($_num)}
+            ## Strip any unit/label the value carries (e.g. "0,0 V" -> "0") via
+            ## parseNumericValue, so a status field stored as volts shows a clean number.
+            ${"%.0f" % $parseNumericValue($value)}
         #except
             $value
         #end try
@@ -639,7 +636,7 @@
                         [$record.start.raw * 1000, $data],
                     #end if
                 #except
-
+                    ## Skip records with no data for this field (sparse sensors).
                 #end try
             #end for
         #end def

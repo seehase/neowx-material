@@ -155,7 +155,7 @@ turns red below `low_threshold` percent.
     sensor_type = voltage
     max_voltage = 4.5       # voltage that represents 100%
     min_voltage = 0.0       # voltage that represents 0%
-    low_threshold = 20      # percentage below which the bar turns red (default: 20)
+    low_threshold = 20      # optional; below this % the bar turns red (default: 20)
     chart_interval = 300
 ```
 
@@ -218,7 +218,7 @@ Draws a horizontal battery bar filled directly from the field value (treated as
 ```ini
 [[[extraBattery7]]]
     sensor_type = percent
-    low_threshold = 20      # percentage below which the bar turns red (default: 20)
+    low_threshold = 20      # optional; below this % the bar turns red (default: 20)
 ```
 
 The displayed value reads `X%` (clamped to 0–100, no decimals).
