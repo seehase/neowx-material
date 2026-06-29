@@ -335,8 +335,11 @@ chart_position_9 = 0
 ### `sensor_type = none`
 
 Shows the raw field value with no gauge. The title and the min/max columns still
-appear. When `value_position = bottom`, the card reserves the same vertical space
-as a gauge card so it lines up neatly next to its neighbours.
+appear. When `value_position = bottom` (the default), the card reserves the same
+vertical space as a gauge card so it lines up neatly next to its neighbours. With
+`value_position = left` or `right` no space is reserved, so a `none` card will be
+shorter than gauge cards in the same row. `show_value` has no visible effect on a
+`none` card — the raw value is always shown in the card heading.
 
 ```ini
 [[[supplyVoltage]]]
@@ -580,9 +583,13 @@ Controls the order of historical charts. Only fields listed here get a chart.
 - Add `low_state` (and `low_when` if needed) to the field block
 - Example: `low_state = 1` with `low_when = at_or_above` turns red when the
   station reports `1`
+- If a reported value has no matching `chart_position_<value>`, the card shows the
+  raw value with no gauge (instead of a green bar) so the gap is visible
 
 **Problem:** Voltage gauge shows 100% green regardless of voltage
-- Check `max_voltage` and `min_voltage` are set correctly for your battery range
+- Check `max_voltage` and `min_voltage` are set correctly for your battery range.
+  If neither is set the card shows the raw value with no gauge (instead of a full
+  bar), so a missing range is obvious
 
 **Problem:** Voltage gauge doesn't turn red when low
 - Adjust `low_threshold` (default is 20%). Example: `low_threshold = 50` turns
@@ -591,7 +598,8 @@ Controls the order of historical charts. Only fields listed here get a chart.
 **Problem:** Cards in the same row are different heights
 - Make sure all cards use `value_position = bottom` (the default). Cards using
   `left` or `right` are a little shorter because the value sits beside the gauge
-  rather than on its own line
+  rather than on its own line. A `sensor_type = none` card with `left` or `right`
+  is also shorter — switch it to `bottom` to match gauge cards
 
 **Problem:** Config from before the overhaul stopped working
 - See the **Migration** section at the top of this guide

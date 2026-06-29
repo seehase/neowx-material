@@ -74,10 +74,15 @@
                                 #set $_gauge_mode = 'signal'
                             #else if $_type == 'voltage'
                                 #set battery_percentage = $calculateBatteryPercentage($name, $current_value)
-                                #set battery_color = $getBatteryColor($name, $battery_percentage)
-                                #set fill_width = $battery_percentage
-                                #set $_val_text = str($battery_percentage) + '%'
-                                #set $_gauge_mode = 'bar'
+                                #if $battery_percentage is None
+                                    ## No usable max_voltage/min_voltage range: show raw value, no gauge
+                                    #set $_gauge_mode = 'none'
+                                #else
+                                    #set battery_color = $getBatteryColor($name, $battery_percentage)
+                                    #set fill_width = $battery_percentage
+                                    #set $_val_text = str($battery_percentage) + '%'
+                                    #set $_gauge_mode = 'bar'
+                                #end if
                             #else if $_type == 'percent'
                                 #set battery_percentage = $percentValue($current_value)
                                 #set battery_color = $getPercentColor($name, $battery_percentage)
@@ -85,6 +90,7 @@
                                 #set $_val_text = str($battery_percentage) + '%'
                                 #set $_gauge_mode = 'bar'
                             #else if $_type == 'status'
+                                #set $_val_text = $formatBatteryValue($current_value)
                                 #set state_percentage = $calculateStatePercentage($name, $current_value)
                                 #if $state_percentage is not None
                                     #set battery_percentage = $state_percentage
@@ -95,13 +101,11 @@
                                         #set battery_color = "#4caf50"
                                     #end if
                                     #set fill_width = $getStateFillWidth($name, $battery_percentage, $is_low)
+                                    #set $_gauge_mode = 'bar'
                                 #else
-                                    #set battery_percentage = 100
-                                    #set battery_color = "#4caf50"
-                                    #set fill_width = 100
+                                    ## No chart position mapping for this value: show raw, no gauge
+                                    #set $_gauge_mode = 'none'
                                 #end if
-                                #set $_val_text = $formatBatteryValue($current_value)
-                                #set $_gauge_mode = 'bar'
                             #else
                                 ## none -> raw display, no gauge
                                 #set $_gauge_mode = 'none'
@@ -213,36 +217,27 @@
     #end try
 #end def
 
-## Percent-battery color from low_threshold (no max_* range needed).
+## Percent-battery color: same low_threshold logic as the shared gauge color.
 #def getPercentColor($name, $percentage)
-    #try
-        #set threshold = float($getVar('Extras.Telemetry.' + $name + '.low_threshold', '20'))
-        #if float($percentage) < $threshold
-            #return "#f44336"
-        #else
-            #return "#4caf50"
-        #end if
-    #except
-        #return "#4caf50"
-    #end try
+    #return $getGaugeColor($name, $percentage)
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Check if a battery field is enabled                                     |
+## | True when the field has an explicit gauge (sensor_type != none).        |
 ## +-------------------------------------------------------------------------+
 #def isBatteryFieldEnabled($name)
     #return $sensorType($name) != 'none'
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Check if a battery field is voltage-based (has max_voltage configured)  |
+## | True when the field's sensor_type is 'voltage'.                         |
 ## +-------------------------------------------------------------------------+
 #def isVoltageBased($name)
     #return $sensorType($name) == 'voltage'
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Check if a battery field is signal-based (has max_signal configured)    |
+## | True when the field's sensor_type is 'signal'.                          |
 ## +-------------------------------------------------------------------------+
 #def isSignalBased($name)
     #return $sensorType($name) == 'signal'
@@ -321,16 +316,12 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Helper function to calculate battery percentage                         |
-## | Returns percentage (0-100) based on current voltage vs max voltage      |
+## | Battery percentage from voltage vs the max_voltage/min_voltage range.    |
+## | Returns None when no usable range is configured, so the caller can show  |
+## | the raw value with no gauge instead of a misleading full bar.           |
 ## +-------------------------------------------------------------------------+
 #def calculateBatteryPercentage($name, $value)
-    #set p = $rangePercentage($name, $value, 'max_voltage', 'min_voltage')
-    #if $p is None
-        #return 100
-    #else
-        #return $p
-    #end if
+    #return $rangePercentage($name, $value, 'max_voltage', 'min_voltage')
 #end def
 
 ## +-------------------------------------------------------------------------+
@@ -423,15 +414,12 @@
 #end def
 
 ## +-------------------------------------------------------------------------+
-## | Generic gauge color: red below low_threshold when max_key is set,       |
-## | otherwise green. Shared by voltage and signal modes.                    |
+## | Gauge color: red below low_threshold (default 20), otherwise green.      |
+## | The percentage is already computed from the field's range (or the raw   |
+## | value when no range is set), so no max_* key is needed here.            |
 ## +-------------------------------------------------------------------------+
-#def getGaugeColor($name, $percentage, $max_key)
+#def getGaugeColor($name, $percentage)
     #try
-        #set max_v = $getVar('Extras.Telemetry.' + $name + '.' + $max_key, None)
-        #if $max_v is None or str($max_v).strip() == '' or str($max_v) == 'None'
-            #return "#4caf50"
-        #end if
         #set threshold = float($getVar('Extras.Telemetry.' + $name + '.low_threshold', '20'))
         #if float($percentage) < $threshold
             #return "#f44336"  ## Red
@@ -447,14 +435,14 @@
 ## | Helper function to determine battery gauge color (voltage threshold)    |
 ## +-------------------------------------------------------------------------+
 #def getBatteryColor($name, $percentage)
-    #return $getGaugeColor($name, $percentage, 'max_voltage')
+    #return $getGaugeColor($name, $percentage)
 #end def
 
 ## +-------------------------------------------------------------------------+
 ## | Helper function to determine signal cone color (signal threshold)       |
 ## +-------------------------------------------------------------------------+
 #def getSignalColor($name, $percentage)
-    #return $getGaugeColor($name, $percentage, 'max_signal')
+    #return $getGaugeColor($name, $percentage)
 #end def
 
 ## +-------------------------------------------------------------------------+
@@ -510,6 +498,11 @@
 
     ## Don't convert signal-based sensors - use raw value in charts
     #if $isSignalBased($name)
+        #return $raw_value
+    #end if
+
+    ## Percent sensors: plot the raw 0-100 value directly
+    #if $sensorType($name) == 'percent'
         #return $raw_value
     #end if
 
@@ -663,10 +656,7 @@
 
             #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
 
-                ## Check if this is an enabled battery field for custom Y-axis
-                #set is_battery = $isBatteryFieldEnabled($name)
-                #set is_voltage = $isVoltageBased($name)
-                #set is_signal = $isSignalBased($name)
+                ## (Y-axis label style is decided per sensor_type below.)
 
                 ## Read per-field chart_interval: per-field config under [[Telemetry]] takes priority, then default_interval from config, then hardcoded 300
                 #set chart_interval = 300
@@ -718,8 +708,8 @@
                     },
                     #end if
                     yaxis: {
-                        #if $is_battery and not $is_voltage and not $is_signal
-                            ## Status-based battery: use custom position labels
+                        #if $sensorType($name) == 'status'
+                            ## Status sensor: use custom position labels
                             #try
                                 #set max_pos = int($getVar('Extras.Telemetry.' + $name + '.max_chart_position', '1'))
                             #except
