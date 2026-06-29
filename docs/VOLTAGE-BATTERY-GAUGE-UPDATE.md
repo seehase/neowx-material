@@ -239,6 +239,6 @@ All three modes side by side:
 
 ## See Also
 
-- `battery-config-guide.md` — the complete configuration guide, including chart
+- `TELEMETRY-CONFIG-GUIDE.md` — the complete configuration guide, including chart
   positions, flip, multi-level states, and display ordering
 - `skin.conf` — your main configuration file

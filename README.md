@@ -119,7 +119,7 @@ Never lose your settings again! Automate configuration updates with:
 - Automated weekly updates with cron jobs
 - Real-world examples and best practices
 
-### 🔋 [Battery Configuration Guide](docs/battery-config-guide.md)
+### 🔋 [Telemetry Configuration Guide](docs/TELEMETRY-CONFIG-GUIDE.md)
 Monitor all your weather station sensors:
 - Battery status tracking for multiple sensors
 - Telemetry page setup
