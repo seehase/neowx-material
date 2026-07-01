@@ -58,12 +58,9 @@
                             #if $_show_value != 'no'
                                 #set $_show_value = 'yes'
                             #end if
-                            ## value_position is set once at the [[Telemetry]] level (not per field):
-                            ## bottom | left | right | none. 'none' hides the value line entirely.
-                            #set $_val_pos = str($getVar('Extras.Telemetry.value_position', 'bottom')).strip().lower()
-                            #if $_val_pos not in ('bottom', 'left', 'right', 'none')
-                                #set $_val_pos = 'bottom'
-                            #end if
+                            ## value_position (a single [[Telemetry]]-level setting) is resolved once per
+                            ## page into $_tele_val_pos; fall back to bottom if rendered out of context.
+                            #set $_val_pos = $getVar('_tele_val_pos', 'bottom')
 
                             #set $_type = $sensorType($name)
                             #if $_type == 'signal'
@@ -176,7 +173,7 @@
     #if not ($_nm in ('hr', 'hrc') or $_nm[:3] in ('hr:', 'hr ') or $_nm[:4] in ('hrc:', 'hrc '))
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-xl-6 mb-4">
-            <div class="card card-chart" id="${name}-chart-card" data-name="$name">
+            <div class="card card-chart h-100" id="${name}-chart-card" data-name="$name">
                 <div class="card-body text-center">
                     <h5 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
@@ -578,6 +575,12 @@
                     <div class="col-12 mb-4 text-center">
                         <h2 class="h2-responsive text-dark">$gettext("telemetry")</h2>
                     </div>
+
+                    ## value_position is a single [[Telemetry]]-level setting; resolve it once per page.
+                    #set global $_tele_val_pos = str($getVar('Extras.Telemetry.value_position', 'bottom')).strip().lower()
+                    #if $_tele_val_pos not in ('bottom', 'left', 'right', 'none')
+                        #set global $_tele_val_pos = 'bottom'
+                    #end if
 
                     #for $x in $Extras.Appearance.telemetry_order
                         $batteryCard($x)
