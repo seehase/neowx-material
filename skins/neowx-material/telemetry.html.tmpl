@@ -52,8 +52,8 @@
                                 $display_value
                             </h4>
 
-                            ## Value line: value_position resolves field -> [[Telemetry]] default -> bottom.
-                            ## show_value is yes|no (legacy 'pad' treated as yes).
+                            ## Value line: value_position comes from the [[Telemetry]] level (default bottom).
+                            ## show_value is yes|no per field (legacy 'pad' treated as yes).
                             #set $_show_value = str($getVar('Extras.Telemetry.' + $name + '.show_value', 'yes')).strip().lower()
                             #if $_show_value != 'no'
                                 #set $_show_value = 'yes'
