@@ -358,7 +358,7 @@ Set a global default directly under `[[Telemetry]]`, then override per field:
 
 ```ini
 [[Telemetry]]
-    value_position = bottom     # global default: bottom | left | right
+    value_position = bottom     # global default: bottom | left | right | none
 
     [[[consBatteryVoltage]]]
         value_position = right  # this field overrides the global default
@@ -366,6 +366,11 @@ Set a global default directly under `[[Telemetry]]`, then override per field:
 
 Resolution order: field's own `value_position` → `[[Telemetry]]` default →
 `bottom`.
+
+Set `value_position = none` (typically as the global default under
+`[[Telemetry]]`) to hide the value line for **every** sensor — the gauges still
+render, just without the value text. When `value_position = none`, `show_value`
+has no effect. You can also set it on a single field to hide just that value.
 
 ```
    value_position = bottom        value_position = left      value_position = right
@@ -390,6 +395,7 @@ show_value = no     # hide the value entirely
 - `yes` — value is shown at the chosen `value_position`.
 - `no` — value is hidden. With `value_position = bottom` the reserved space is
   kept so the card height stays consistent with its neighbours.
+- Has no effect when `value_position = none` (the value line is already hidden).
 
 **Note:** The old `show_value = pad` option is removed. Bottom spacing is now
 automatic; delete any `pad` lines from your config.
@@ -516,14 +522,14 @@ Controls the order of historical charts. Only fields listed here get a chart.
 | `allow_zero_values` | Show fields whose value is 0 | `no` |
 | `chart_days` | Days of history in charts | `30` |
 | `default_interval` | Default chart data-point interval (seconds) | `300` |
-| `value_position` | Default value line placement for all cards | `bottom` |
+| `value_position` | Default value line placement for all cards (`none` hides all values) | `bottom` |
 
 ### Per-field keys — all sensor types
 
 | Key | Purpose | Values |
 |---|---|---|
 | `sensor_type` | Gauge style | `none` \| `voltage` \| `signal` \| `percent` \| `status` |
-| `value_position` | Override global placement | `bottom` \| `left` \| `right` |
+| `value_position` | Override global placement (`none` hides the value) | `bottom` \| `left` \| `right` \| `none` |
 | `show_value` | Show or hide the value | `yes` \| `no` |
 | `chart_interval` | Chart data-point interval for this field | seconds |
 | `colors` | Chart color override | e.g. `palette1:3` |

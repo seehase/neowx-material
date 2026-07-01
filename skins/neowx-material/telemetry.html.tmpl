@@ -58,8 +58,10 @@
                             #if $_show_value != 'no'
                                 #set $_show_value = 'yes'
                             #end if
+                            ## value_position: bottom | left | right | none.
+                            ## 'none' hides the value line entirely (show_value has no effect then).
                             #set $_val_pos = str($getVar('Extras.Telemetry.' + $name + '.value_position', $getVar('Extras.Telemetry.value_position', 'bottom'))).strip().lower()
-                            #if $_val_pos not in ('bottom', 'left', 'right')
+                            #if $_val_pos not in ('bottom', 'left', 'right', 'none')
                                 #set $_val_pos = 'bottom'
                             #end if
 
