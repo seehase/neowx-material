@@ -74,8 +74,11 @@ def format_new_items(items, level, indent_char='    '):
 
 def write_config(config, patch_config, source_file_path, output_file_path):
     source_config = parse_config(source_file_path)
-    with open(source_file_path, 'r') as f:
-        source_lines = f.readlines()
+    try:
+        with open(source_file_path, 'r') as f:
+            source_lines = f.readlines()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Source config file not found: {source_file_path}")
 
     output_lines = []
     section_stack = []

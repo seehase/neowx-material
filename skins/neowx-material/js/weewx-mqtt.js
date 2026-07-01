@@ -200,7 +200,7 @@ function updateDateTime(payload, skipped) {
         payloadUnixTime = parseFloat(payload[timestampField]);
         payloadDate = new Date(payloadUnixTime * 1000);
         debugLog('Using timestamp from payload field "' + timestampField + '": ' + payloadUnixTime +
-                 (skipped ? ' (timestamp check was skipped)' : ''));
+            (skipped ? ' (timestamp check was skipped)' : ''));
     } else {
         // Fallback: if timestamp field not in payload, use current time
         payloadDate = new Date();
@@ -332,9 +332,9 @@ function formatDateTime(date, format) {
     var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     var dayNamesShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                      'July', 'August', 'September', 'October', 'November', 'December'];
+        'July', 'August', 'September', 'October', 'November', 'December'];
     var monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     var dayName = dayNames[date.getDay()];
     var dayNameShort = dayNamesShort[date.getDay()];
@@ -631,7 +631,7 @@ function parseEcowittMessage(rawMessage) {
     if (params.yearlyrainin  !== undefined) r.yearRain_cm          = inToCm(params.yearlyrainin);
 
     // Extra sensors 1–8
-    for (var i = 1; i <= 8; i++) {
+    for (var i = 1; i <= 16; i++) {
         if (params['temp'     + i + 'f'] !== undefined) r['extraTemp'  + i + '_C'] = fToC(params['temp' + i + 'f']);
         if (params['humidity' + i      ] !== undefined) r['extraHumid' + i       ] = pf(params['humidity' + i]);
         if (params['batt'     + i      ] !== undefined) r['extraBattery' + i     ] = pf(params['batt'    + i]);
@@ -640,6 +640,7 @@ function parseEcowittMessage(rawMessage) {
     // Battery / telemetry
     if (params.console_batt !== undefined) r.consBatteryVoltage_volt = pf(params.console_batt);
     if (params.wh65batt     !== undefined) r.outTempBatteryStatus    = pf(params.wh65batt);
+    if (params.soil_ec_batt1 !== undefined) r.soil_ec_batt1    = pf(params.soil_ec_batt1);
 
     // Timestamp  – dateutc arrives as "2026-03-29+20:31:20" after URL-decode
     if (params.dateutc !== undefined) {
@@ -708,14 +709,14 @@ function ecowittHeatindex(T, RH) {
     if (T < 26.7) return T;
     var F  = T * 9 / 5 + 32;
     var HI = -42.379
-             + 2.04901523  * F
-             + 10.14333127 * RH
-             - 0.22475541  * F  * RH
-             - 0.00683783  * F  * F
-             - 0.05391553  * RH * RH
-             + 0.00122874  * F  * F  * RH
-             + 0.00085282  * F  * RH * RH
-             - 0.00000199  * F  * F  * RH * RH;
+        + 2.04901523  * F
+        + 10.14333127 * RH
+        - 0.22475541  * F  * RH
+        - 0.00683783  * F  * F
+        - 0.05391553  * RH * RH
+        + 0.00122874  * F  * F  * RH
+        + 0.00085282  * F  * RH * RH
+        - 0.00000199  * F  * F  * RH * RH;
     return (HI - 32) * 5 / 9;
 }
 
