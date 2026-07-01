@@ -30,7 +30,7 @@
 #def batteryCard($name)
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card card-value" id="${name}-value" data-name="$name">
+            <div class="card card-value h-100" id="${name}-value" data-name="$name">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
