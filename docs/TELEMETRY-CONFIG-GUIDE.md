@@ -75,7 +75,7 @@ Both are gone. Every field now has a single block directly under `[[Telemetry]]`
 [[Telemetry]]
     allow_zero_values = yes
     chart_days = 1
-    value_position = bottom         # global default (bottom | left | right)
+    value_position = bottom         # global only (bottom | left | right | none)
 
     [[[outTempBatteryStatus]]]
         sensor_type = status
@@ -125,9 +125,8 @@ alongside scalar settings like `chart_days` without confusion.
         min_voltage = 0.0
         low_threshold = 20
 
-        # --- value display (override the [[Telemetry]] default) ---
-        value_position = bottom     # bottom | left | right
-        show_value = yes            # yes | no
+        # --- value display ---
+        show_value = yes            # yes | no  (value_position is set globally, under [[Telemetry]])
 
         # --- chart settings ---
         chart_interval = 300        # seconds between chart data points
@@ -354,23 +353,17 @@ This is also the default — a field with no `sensor_type` key behaves as `none`
 
 ### `value_position` — where the value sits relative to the gauge
 
-Set a global default directly under `[[Telemetry]]`, then override per field:
+Set once under `[[Telemetry]]`; it applies to every sensor (it is **not** a
+per-field setting):
 
 ```ini
 [[Telemetry]]
-    value_position = bottom     # global default: bottom | left | right | none
-
-    [[[consBatteryVoltage]]]
-        value_position = right  # this field overrides the global default
+    value_position = bottom     # bottom | left | right | none
 ```
 
-Resolution order: field's own `value_position` → `[[Telemetry]]` default →
-`bottom`.
-
-Set `value_position = none` (typically as the global default under
-`[[Telemetry]]`) to hide the value line for **every** sensor — the gauges still
-render, just without the value text. When `value_position = none`, `show_value`
-has no effect. You can also set it on a single field to hide just that value.
+`value_position = none` hides the value line for **every** sensor — the gauges
+still render, just without the value text. When `value_position = none`,
+`show_value` has no effect.
 
 ```
    value_position = bottom        value_position = left      value_position = right
@@ -463,14 +456,13 @@ automatic; delete any `pad` lines from your config.
 
 ```ini
 [[Telemetry]]
-    value_position = bottom     # default for all fields
+    value_position = right      # applies to every card (global only)
 
-    # Show voltage to the right of the bar
+    # A voltage gauge; its value shows at the global value_position (right)
     [[[consBatteryVoltage]]]
         sensor_type = voltage
         max_voltage = 4.5
         min_voltage = 0.0
-        value_position = right
 
     # Hide the OK/Low label under the status bar
     [[[outTempBatteryStatus]]]
@@ -522,14 +514,13 @@ Controls the order of historical charts. Only fields listed here get a chart.
 | `allow_zero_values` | Show fields whose value is 0 | `no` |
 | `chart_days` | Days of history in charts | `30` |
 | `default_interval` | Default chart data-point interval (seconds) | `300` |
-| `value_position` | Default value line placement for all cards (`none` hides all values) | `bottom` |
+| `value_position` | Value line placement for all cards (`none` hides all values) | `bottom` \| `left` \| `right` \| `none` |
 
 ### Per-field keys — all sensor types
 
 | Key | Purpose | Values |
 |---|---|---|
 | `sensor_type` | Gauge style | `none` \| `voltage` \| `signal` \| `percent` \| `status` |
-| `value_position` | Override global placement (`none` hides the value) | `bottom` \| `left` \| `right` \| `none` |
 | `show_value` | Show or hide the value | `yes` \| `no` |
 | `chart_interval` | Chart data-point interval for this field | seconds |
 | `colors` | Chart color override | e.g. `palette1:3` |
@@ -602,11 +593,10 @@ Controls the order of historical charts. Only fields listed here get a chart.
   red below 50%
 
 **Problem:** Cards in the same row are different heights
-- Give all cards in a row the same `value_position` (set it once as the global
-  default under `[[Telemetry]]`). `bottom` cards are a little taller than
-  `left`/`right`/`none` cards because the value sits on its own line; mixing
-  positions within a row mixes heights. A `sensor_type = none` card matches the
-  gauge cards' height for whichever position you use.
+- All value cards use `h-100` and share the single global `value_position`, so
+  they should already match (including `sensor_type = none` cards). If they look
+  off after an update, hard-reload the page and make sure `css/*` was recopied —
+  a cached stylesheet can mask template changes.
 
 **Problem:** Config from before the overhaul stopped working
 - See the **Migration** section at the top of this guide
