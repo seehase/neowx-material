@@ -111,17 +111,18 @@
                             #end if
 
                             #if $_gauge_mode == 'none'
-                                ## Raw value only (it's the big value above). When value_position is
-                                ## bottom, reserve the gauge + value-line height so this card lines up
-                                ## with gauge cards in the same row.
-                                #if $_val_pos == 'bottom'
-                                    <div style="visibility: hidden;" aria-hidden="true">
-                                        <div style="width: max-content; margin: 0 auto;">
-                                            <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto;"></div>
-                                        </div>
-                                        <div class="text-muted font-small mt-1">&nbsp;</div>
+                                ## Raw value only (it's the big value above). Reserve the gauge's height
+                                ## always, plus the value line's height when value_position = bottom, so a
+                                ## sensor_type = none card lines up with the gauge cards in its row for
+                                ## any value_position. (Gauge bars and the signal cone are both 24px tall.)
+                                <div style="visibility: hidden;" aria-hidden="true">
+                                    <div style="width: max-content; margin: 0 auto;">
+                                        <div class="battery-container" style="border: 2px solid #555; border-radius: 4px; width: 100px; height: 24px; margin: 0 auto;"></div>
                                     </div>
-                                #end if
+                                    #if $_val_pos == 'bottom'
+                                        <div class="text-muted font-small mt-1">&nbsp;</div>
+                                    #end if
+                                </div>
                             #else
                                 <div style="width: max-content; margin: 0 auto; text-align: center;">
                                     <div style="position: relative; display: inline-block;">

@@ -335,11 +335,11 @@ chart_position_9 = 0
 ### `sensor_type = none`
 
 Shows the raw field value with no gauge. The title and the min/max columns still
-appear. When `value_position = bottom` (the default), the card reserves the same
-vertical space as a gauge card so it lines up neatly next to its neighbours. With
-`value_position = left` or `right` no space is reserved, so a `none` card will be
-shorter than gauge cards in the same row. `show_value` has no visible effect on a
-`none` card — the raw value is always shown in the card heading.
+appear, and the card reserves the same height a gauge card occupies (the gauge
+box, plus the value line when `value_position = bottom`), so a `none` card lines
+up neatly next to its gauge neighbours for any `value_position`. `show_value` has
+no visible effect on a `none` card — the raw value is always shown in the card
+heading.
 
 ```ini
 [[[supplyVoltage]]]
@@ -602,10 +602,11 @@ Controls the order of historical charts. Only fields listed here get a chart.
   red below 50%
 
 **Problem:** Cards in the same row are different heights
-- Make sure all cards use `value_position = bottom` (the default). Cards using
-  `left` or `right` are a little shorter because the value sits beside the gauge
-  rather than on its own line. A `sensor_type = none` card with `left` or `right`
-  is also shorter — switch it to `bottom` to match gauge cards
+- Give all cards in a row the same `value_position` (set it once as the global
+  default under `[[Telemetry]]`). `bottom` cards are a little taller than
+  `left`/`right`/`none` cards because the value sits on its own line; mixing
+  positions within a row mixes heights. A `sensor_type = none` card matches the
+  gauge cards' height for whichever position you use.
 
 **Problem:** Config from before the overhaul stopped working
 - See the **Migration** section at the top of this guide
