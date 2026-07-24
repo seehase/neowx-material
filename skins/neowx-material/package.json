@@ -10,7 +10,7 @@
     "sass": "1.101.0"
   },
   "resolutions": {
-    "immutable": "^5.1.5"
+    "immutable": "^5.1.9"
   },
   "scripts": {
     "build-css": "sass --load-path scss scss/style.scss css/style.css",
