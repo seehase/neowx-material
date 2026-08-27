@@ -92,7 +92,7 @@ from weewx.cheetahgenerator import SearchList
 
 log = logging.getLogger(__name__)
 
-VERSION = "2.2.1"
+VERSION = "2.3.0"
 
 # Segment types.  'type' is None for a section with no title, whose items
 # render loose rather than inside a panel.
@@ -114,6 +114,28 @@ SINGLETON_ITEMS = ("forecast",)
 # items_title_align is read by head.inc, not here - it is listed so a panel
 # that sets it is not reported as carrying an unknown setting.
 SETTING_KEYS = ("items", "title", "collapsed", "content", "items_title_align")
+
+# Sub-page override levels inside [[[pages]]].  A page key absent from this
+# map takes no sub-blocks at all, which is how 'week' and 'telemetry' - one
+# template each - are expressed without a special case.
+#
+# Note that a template ALWAYS declares a $subpage name, even those two; only
+# the config sub-block is restricted.  The two ideas are separate and
+# conflating them is the easy mistake here.
+SUBPAGES = {
+    "day": ("current", "yesterday"),
+    "month": ("month", "month_archive"),
+    "year": ("year", "year_archive"),
+}
+
+# Keys valid in a [[[[page]]]] or [[[[[subpage]]]]] block.
+PAGE_SETTING_KEYS = ("sections", "show_embedded", "show_forecast")
+
+# The whole of the defaults table in one line: on for Current, off everywhere
+# else.  Deliberately NOT inherited from the page block - yesterday shares
+# [[[[day]]]] with current but has no embedded region and no forecast today,
+# so a default that inherited would change what upgraders see.
+_DEFAULT_ON_SUBPAGE = "current"
 
 # Order settings from 1.68.x.  Only used to recognise an unmigrated config.
 LEGACY_KEYS = (
@@ -347,50 +369,185 @@ def enable_panels_setting(skin_dict):
     return str(raw).strip().lower() not in FALSE_WORDS
 
 
-def _page_order(appearance, page):
+def _page_entries(appearance, page, subpage):
+    """(page block, sub-block) for one template, either may be None.
+
+    Guards the same two shapes _page_order already guards: a missing block,
+    and a scalar written where a subsection belongs ("pages = today" instead
+    of a [[[[day]]]] block).  Without the hasattr checks, 'in' below becomes a
+    substring test and the indexing raises.
+    """
+    if page is None:
+        return None, None
+    pages = appearance.get("pages")
+    if not pages or not hasattr(pages, "get"):
+        return None, None
+    key = str(page).strip()
+    if key not in pages:
+        return None, None
+    entry = pages[key]
+    if not hasattr(entry, "get"):
+        return None, None
+    if subpage is None:
+        return entry, None
+    sub_key = str(subpage).strip()
+    # Only look for a sub-block where one is actually valid.  'week' has no
+    # SUBPAGES entry, so [[[[[week]]]]] is never consulted even if written -
+    # and Step 5's validation is what tells the user they wrote one.
+    if sub_key not in SUBPAGES.get(key, ()):
+        return entry, None
+    if sub_key not in entry:
+        return entry, None
+    sub = entry[sub_key]
+    if not hasattr(sub, "get"):
+        return entry, None
+    return entry, sub
+
+
+def page_setting(skin_dict, key, page=None, subpage=None):
+    """Resolve one boolean page setting: sub-block, then page, then default.
+
+    Per key independently - a sub-block setting only show_forecast still
+    inherits the page block's show_embedded.
+    """
+    appearance = _appearance(skin_dict)
+    _warn_page_blocks(appearance, page)
+    entry, sub = _page_entries(appearance, page, subpage)
+    for block in (sub, entry):
+        if block is None:
+            continue
+        raw = block.get(key)
+        if raw is None:
+            continue
+        word = str(raw).strip().lower()
+        if word in TRUE_WORDS:
+            return True
+        if word in FALSE_WORDS:
+            return False
+        problem = ("page-setting", str(page), str(subpage), key, str(raw))
+        if not _problem_seen(appearance, problem):
+            _mark_problem(appearance, problem)
+            log.warning(
+                "panelorder: %s = %s on page '%s' is not true or false; "
+                "using the default.",
+                key,
+                raw,
+                subpage or page,
+            )
+        break
+    return str(subpage).strip() == _DEFAULT_ON_SUBPAGE
+
+
+def _warn_page_blocks(appearance, page):
+    """Diagnose a page block: bad sub-block names, absorbed settings, typos.
+
+    configobj folds any plain setting written AFTER a subsection into that
+    subsection.  At five levels deep that stops being an edge case - people
+    naturally write:
+
+        [[[[day]]]]
+            [[[[[current]]]]]
+                show_forecast = true
+            show_embedded = true      # absorbed into current, silently dead
+
+    A recognised page-setting key found inside a subsection that is not a
+    valid sub-page name IS that signature, so it gets named rather than left
+    to be discovered on a live install.
+    """
+    if page is None:
+        return
+    pages = appearance.get("pages")
+    if not pages or not hasattr(pages, "get"):
+        return
+    key = str(page).strip()
+    if key not in pages:
+        return
+    entry = pages[key]
+    if not hasattr(entry, "get"):
+        return
+    valid = SUBPAGES.get(key, ())
+
+    for name in getattr(entry, "sections", []):
+        if name in valid:
+            block = entry[name]
+            for bad in getattr(block, "scalars", []):
+                if bad not in PAGE_SETTING_KEYS:
+                    problem = ("subpage-key", key, name, bad)
+                    if _problem_seen(appearance, problem):
+                        continue
+                    _mark_problem(appearance, problem)
+                    log.warning(
+                        "panelorder: [[[[[%s]]]]] under page '%s' has unknown "
+                        "setting '%s'; ignoring it. Valid settings are %s.",
+                        name, key, bad, ", ".join(PAGE_SETTING_KEYS),
+                    )
+            continue
+
+        problem = ("subpage-name", key, name)
+        if _problem_seen(appearance, problem):
+            continue
+        _mark_problem(appearance, problem)
+        absorbed = [k for k in getattr(entry[name], "scalars", [])
+                    if k in PAGE_SETTING_KEYS]
+        if absorbed:
+            log.error(
+                "panelorder: page '%s' has a subsection '[[[[[%s]]]]]' that "
+                "is not a valid sub-page, and it contains %s. This is almost "
+                "certainly a setting written BELOW a sub-page block - "
+                "configobj folds it into that block, where it stops working. "
+                "Move it ABOVE the sub-page blocks. Valid sub-pages for '%s' "
+                "are: %s.",
+                key, name, ", ".join(absorbed), key,
+                ", ".join(valid) if valid else "none",
+            )
+        else:
+            log.warning(
+                "panelorder: page '%s' has a subsection '[[[[[%s]]]]]' that "
+                "is not a valid sub-page; ignoring it. Valid sub-pages for "
+                "'%s' are: %s.",
+                key, name, key, ", ".join(valid) if valid else "none",
+            )
+
+    for bad in getattr(entry, "scalars", []):
+        if bad in PAGE_SETTING_KEYS:
+            continue
+        problem = ("page-key", key, bad)
+        if _problem_seen(appearance, problem):
+            continue
+        _mark_problem(appearance, problem)
+        log.warning(
+            "panelorder: page '%s' has unknown setting '%s'; ignoring it. "
+            "Valid settings are %s.",
+            key, bad, ", ".join(PAGE_SETTING_KEYS),
+        )
+
+
+def _page_order(appearance, page, subpage=None):
     """Ordered section ids for one page, or None meaning 'no page filter'.
 
     None is the compatibility path and covers five cases: no page was asked
     for; there is no [[[pages]]] block; [[[pages]]] is itself a scalar (a
     plain "pages = foo" written where a subsection block belongs); this page
-    has no entry in it; or the entry exists but has no 'sections =' line at
-    all.  All five mean "every section, in declaration order", which is what
-    every config written before [[[pages]]] existed expects, and it is also
-    what makes commenting out a page's 'sections' line safe rather than
-    silently blanking the page.
+    has no entry in it; or neither the sub-block nor the page block has a
+    'sections =' line at all.  All of them mean "every section, in declaration
+    order", which is what every config written before [[[pages]]] existed
+    expects, and it is also what makes commenting out a page's 'sections' line
+    safe rather than silently blanking the page.
 
     An entry whose 'sections' line IS present, even written empty, is NOT
-    None: absence of the key means "not configured" (no filter), while an
-    explicit empty value means "configured to show nothing" - the two must
-    not collapse into each other.
+    None: absence of the key means "not configured" (fall through to the level
+    above), while an explicit empty value means "configured to show nothing".
+    The two must not collapse into each other, at either level.
     """
-    if page is None:
-        return None
-    pages = appearance.get("pages")
-    if not pages or not hasattr(pages, "get"):
-        # Absent, or a scalar written where a [[[pages]]] block belongs -
-        # e.g. "pages = today" instead of a [[[[day]]]] subsection.  Without
-        # this guard, 'in' below becomes a substring test ('day' in 'today'
-        # is True) and pages[key] then raises TypeError, blanking the page
-        # instead of degrading.
-        return None
-    key = str(page).strip()
-    if key not in pages:
-        return None
-    entry = pages[key]
-    if not hasattr(entry, "get"):
-        # A scalar written where a [[[[page]]]] subsection belongs.
-        return None
-    if "sections" not in entry:
-        # Key missing entirely - never written, or its line commented out -
-        # means "not configured", the same as no entry at all.  An explicit
-        # 'sections =' (empty) falls through to _as_list below and returns
-        # [], which is deliberately different: "configured to show nothing".
-        return None
-    return _as_list(entry.get("sections"))
+    entry, sub = _page_entries(appearance, page, subpage)
+    for block in (sub, entry):
+        if block is not None and "sections" in block:
+            return _as_list(block.get("sections"))
+    return None
 
 
-def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None):
+def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
+                   subpage=None):
     """Return the layout segments for one content region.
 
     With enable_panels false the grouping is discarded but every item is kept,
@@ -416,7 +573,8 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None):
     wanted = str(content).strip().lower()
     enable_panels = bool(enable_panels)
     page_key = None if page is None else str(page).strip()
-    cache_key = (wanted, enable_panels, page_key)
+    sub_key = None if subpage is None else str(subpage).strip()
+    cache_key = (wanted, enable_panels, page_key, sub_key)
     cached = _cache_get(appearance, cache_key)
     if cached is not None:
         return cached
@@ -428,7 +586,8 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None):
     claimed = set()
 
     declared = getattr(sections, "sections", list(sections.keys()))
-    order = _page_order(appearance, page)
+    _warn_page_blocks(appearance, page)
+    order = _page_order(appearance, page, subpage)
     if order is None:
         section_ids = declared
     else:
@@ -522,7 +681,7 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None):
     return segments
 
 
-def order_items(skin_dict, content=CARD, page=None):
+def order_items(skin_dict, content=CARD, page=None, subpage=None):
     """Flat, de-duplicated item names for one content region.
 
     For loops that need the items themselves rather than the layout, such as
@@ -536,7 +695,7 @@ def order_items(skin_dict, content=CARD, page=None):
     """
     out = []
     seen = set()
-    for segment in parse_sections(skin_dict, content, True, page):
+    for segment in parse_sections(skin_dict, content, True, page, subpage):
         for item in segment["items"]:
             if item not in seen:
                 seen.add(item)
@@ -554,13 +713,18 @@ class PanelOrder(SearchList):
     def get_extension_list(self, timespan, db_lookup):
         skin_dict = self.generator.skin_dict
 
-        def panel_segments(content=CARD, enable_panels=None, page=None):
+        def panel_segments(content=CARD, enable_panels=None, page=None,
+                           subpage=None):
             if enable_panels is None:
                 enable_panels = enable_panels_setting(skin_dict)
-            return parse_sections(skin_dict, content, enable_panels, page)
+            return parse_sections(skin_dict, content, enable_panels, page,
+                                  subpage)
 
-        def panel_items(content=CARD, page=None):
-            return order_items(skin_dict, content, page)
+        def panel_items(content=CARD, page=None, subpage=None):
+            return order_items(skin_dict, content, page, subpage)
+
+        def panel_page_setting(key, page=None, subpage=None):
+            return page_setting(skin_dict, key, page, subpage)
 
         def panel_section_slug(section_id):
             return section_slug(skin_dict, section_id)
@@ -568,5 +732,6 @@ class PanelOrder(SearchList):
         return [{
             "panelSegments": panel_segments,
             "panelItems": panel_items,
+            "panelPageSetting": panel_page_setting,
             "panelSectionSlug": panel_section_slug,
         }]
