@@ -5,6 +5,7 @@
 
 #attr $active_nav = 'year'
 #attr $page = 'year'
+#attr $subpage = 'year'
 
 ## Access HistoryReport section from skin.conf
 #set $table_dict = $generator.skin_dict['HistoryReport']
@@ -324,8 +325,8 @@
 ## Parsing lives in bin/user/panelorder.py, which reads [[[sections]]] from
 ## skin.conf. Sections with a title become collapsible panels; those without
 ## render loose in the surrounding row.
-#set $val_segments   = $panelSegments('card', page=$page)
-#set $chart_segments = $panelSegments('chart', page=$page)
+#set $val_segments   = $panelSegments('card', page=$page, subpage=$subpage)
+#set $chart_segments = $panelSegments('chart', page=$page, subpage=$subpage)
 
 <!DOCTYPE html>
 <html lang="$lang">
@@ -413,7 +414,7 @@
 
         #def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
 
-            #if $name in $panelItems('chart', page=$page)
+            #if $name in $panelItems('chart', page=$page, subpage=$subpage)
                 #set global $cc_name  = $name
                 #set global $cc_scope = ''
                 #include "chart_colors_setup.inc"
@@ -683,7 +684,7 @@
             #set $default_chart_columns = {'windDir': 'vecdir', 'ET': 'sum', 'rain': 'sum', 'windrun': 'sum', 'UV': 'max', 'radiation': 'max', 'luminosity': 'max', 'snowDepth': 'sum', 'lightning_strike_count': 'sum'}
             #set $default_chart_series = {'windDir': 'wind'}
 
-            #for $x in $panelItems('chart', page=$page)
+            #for $x in $panelItems('chart', page=$page, subpage=$subpage)
                 #if not $x.startswith('customChart') and $x not in $processed_charts
                     #silent $processed_charts.add($x)
                     #if $getVar('year.' + $x + '.has_data')
@@ -698,7 +699,7 @@
 
             // Custom charts
             #set $seen_custom_charts = set()
-            #for $x in $panelItems('chart', page=$page)
+            #for $x in $panelItems('chart', page=$page, subpage=$subpage)
                 #if $x.startswith('customChart') and $x not in $seen_custom_charts
                     #silent $seen_custom_charts.add($x)
                     #set $cc = $Extras.Appearance.get($x, {})
@@ -807,7 +808,7 @@
                         ##
                         ## Render the chart JS
                         ## Render chart JS
-                        #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page)
+                        #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page, subpage=$subpage)
                             #try
                                 #set $_ = $axes_list
                             #except
