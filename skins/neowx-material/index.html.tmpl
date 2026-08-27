@@ -189,12 +189,12 @@
 ## | Helper: render a single value-card item by name                         |
 ## +-------------------------------------------------------------------------+
 
-#def renderValueItem($x, $in_panel, $is_first, $is_last, $section = "")
+#def renderValueItem($x, $in_panel, $is_first, $is_last, $section = "", $show_fc = True)
     ## 'forecast' renders via #include, which only sees the search list and
     ## #set global vars - so its placement flags are handed over as globals.
     ## is_first / is_last refer to the cards actually rendered in this segment,
     ## and drive the forecast_separator rules inside forecast.inc.
-    #if $x == "forecast"
+    #if $x == "forecast" and $show_fc
         #set global $forecast_in_panel = $in_panel
         #set global $forecast_is_first = $is_first
         #set global $forecast_is_last  = $is_last
@@ -218,6 +218,9 @@
     ## holding the forecast (which needs to know its neighbours) need this.
     ## Plain rows skip it, so they don't pay a second day.<obs>.has_data lookup
     ## - that is a database aggregate - for every card.
+    ## Computed once and used in both places below. Two separate lookups can
+    ## drift apart; one cannot.
+    #set $show_fc = $panelPageSetting('show_forecast', $page, $subpage)
     #set $items_l = [i.strip().lower() for i in $seg['items']]
     #set $vis_items = []
     #set $f_first = False
@@ -225,7 +228,7 @@
     #if $seg['type'] is not None or 'forecast' in $items_l
         #for $x in $seg['items']
             #if $x == "forecast"
-                #if $forecast is not None
+                #if $show_fc and $forecast is not None
                     #silent $vis_items.append($x)
                 #end if
             #else if $getVar('day.' + $x + '.has_data') and ($x != 'ET' or ($day.ET.sum.raw is not None and $day.ET.sum.raw >= 0.0))
@@ -239,7 +242,7 @@
     #if $seg['type'] is None
         ## No panel – render cards directly into the surrounding row
         #for $x in $seg['items']
-            $renderValueItem($x, False, $f_first, $f_last, $seg['slug'])
+            $renderValueItem($x, False, $f_first, $f_last, $seg['slug'], $show_fc)
         #end for
     #else
         ## Expansion panel
@@ -257,7 +260,7 @@
                         <div class="nwm-panel-body">
                             <div class="row">
                                 #for $x in $seg['items']
-                                    $renderValueItem($x, True, $f_first, $f_last, $seg['slug'])
+                                    $renderValueItem($x, True, $f_first, $f_last, $seg['slug'], $show_fc)
                                 #end for
                             </div>
                         </div>
