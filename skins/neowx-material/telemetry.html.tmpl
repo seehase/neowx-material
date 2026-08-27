@@ -4,6 +4,7 @@
 ## +-------------------------------------------------------------------------+
 
 #attr $page = 'telemetry'
+#attr $subpage = 'telemetry'
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of telemetry values                           |
@@ -630,7 +631,7 @@
                         #set global $_tele_val_pos = 'bottom'
                     #end if
 
-                    #set $tele_val_segments = $panelSegments('telemetry', page=$page)
+                    #set $tele_val_segments = $panelSegments('telemetry', page=$page, subpage=$subpage)
                     #set $tele_val_idx = 0
                     #for $seg_i, $seg in $enumerate($tele_val_segments)
                         #if $seg['type'] is not None
@@ -651,7 +652,7 @@
 
                 <div class="row mt-3 graphrow align-content-start">
 
-                    #set $tele_chart_segments = $panelSegments('telemetry_chart', page=$page)
+                    #set $tele_chart_segments = $panelSegments('telemetry_chart', page=$page, subpage=$subpage)
                     #set $tele_chart_idx = 0
                     #for $seg_i, $seg in $enumerate($tele_chart_segments)
                         #if $seg['type'] is not None
@@ -871,7 +872,7 @@
                 #include "graph_area_config.inc"
             }
 
-            #for $x in $panelItems('telemetry_chart', page=$page)
+            #for $x in $panelItems('telemetry_chart', page=$page, subpage=$subpage)
                 $getChartJsCode($x, $x)
             #end for
         </script>

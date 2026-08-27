@@ -4,6 +4,7 @@
 ## +-------------------------------------------------------------------------+
 
 #attr $page = 'day'
+#attr $subpage = 'current'
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of values (left column)                       |
@@ -491,8 +492,8 @@
 ## Parsing lives in bin/user/panelorder.py, which reads [[[sections]]] from
 ## skin.conf. Sections with a title become collapsible panels; those without
 ## render loose in the surrounding row.
-#set $val_segments   = $panelSegments('card', page=$page)
-#set $chart_segments = $panelSegments('chart', page=$page)
+#set $val_segments   = $panelSegments('card', page=$page, subpage=$subpage)
+#set $chart_segments = $panelSegments('chart', page=$page, subpage=$subpage)
 
 ## +-------------------------------------------------------------------------+
 ## | The main page layout                                                    |
@@ -552,9 +553,9 @@
                     #end for
                 </div>
 
-                #set $emb_segments = $panelSegments('embedded', page=$page)
+                #set $emb_segments = $panelSegments('embedded', page=$page, subpage=$subpage)
                 ## Show embedded section only if there are embedded items
-                #if len($panelItems('embedded', page=$page)) > 0
+                #if len($panelItems('embedded', page=$page, subpage=$subpage)) > 0
                     <div class="row align-content-start flex-grow-1">
                         <div class="col-12 "><hr class="mt-0 mb-4"></div>
                         #set $emb_panel_idx = 0
@@ -711,7 +712,7 @@
         #def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
 
             ## Only add JS chart code if in array
-            #if $name in $panelItems('chart', page=$page)
+            #if $name in $panelItems('chart', page=$page, subpage=$subpage)
                 #set global $cc_name  = $name
                 #set global $cc_scope = ''
                 #include "chart_colors_setup.inc"
@@ -1002,7 +1003,7 @@
             // Series1 field overrides for charts where the series field name differs from the chart name
             #set $default_chart_series = {'windDir': 'wind'}
 
-            #for $x in $panelItems('chart', page=$page)
+            #for $x in $panelItems('chart', page=$page, subpage=$subpage)
                 #if not $x.startswith('customChart') and $x not in $processed_charts
                     #silent $processed_charts.add($x)
                     #if $chartHasData($x)
@@ -1017,7 +1018,7 @@
 
             // Custom charts (dynamically generated from skin.conf [[Appearance]] [[[customChart*]]] sections)
             #set $seen_custom_charts = set()
-            #for $x in $panelItems('chart', page=$page)
+            #for $x in $panelItems('chart', page=$page, subpage=$subpage)
                 #if $x.startswith('customChart') and $x not in $seen_custom_charts
                     #silent $seen_custom_charts.add($x)
                     #set $cc = $Extras.Appearance.get($x, {})
@@ -1119,7 +1120,7 @@
                         #include "chart_colors_setup.inc"
 
                         ## Render chart JS
-                        #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page)
+                        #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page, subpage=$subpage)
                             #try
                                 #set $_ = $axes_list
                             #except
