@@ -144,7 +144,7 @@
 ## | (handles ET guard, temperatureThresholdDays, and all normal cards)      |
 ## +-------------------------------------------------------------------------+
 
-#def renderValueItem($x, $section = "")
+#def renderValueItem($x, $in_panel, $is_first, $is_last, $section = "")
     #if $x == "ET"
         #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
             $valuesCard('ET', $section)
@@ -208,28 +208,39 @@
 ## +-------------------------------------------------------------------------+
 
 #def renderValSegment($seg, $panel_idx)
-    #if $seg['type'] is None
-        ## No panel – render cards directly into the surrounding row
-        #for $x in $seg['items']
-            $renderValueItem($x, $seg['slug'])
-        #end for
-    #else
-        ## Expansion panel
-        #set $any_has_data = False
+    ## Which items will actually draw. A panel needs this to decide whether to
+    ## render at all, and the forecast needs to know whether it lands first or
+    ## last among them - that drives the separator rules inside forecast.inc.
+    #set $items_l = [i.strip().lower() for i in $seg['items']]
+    #set $vis_items = []
+    #set $f_first = False
+    #set $f_last  = False
+    #if $seg['type'] is not None or 'forecast' in $items_l
         #for $x in $seg['items']
             #if $x == "ET"
                 #if $month.ET.has_data and $month.ET.sum.raw is not None and $month.ET.sum.raw > 0.0
-                    #set $any_has_data = True
+                    #silent $vis_items.append($x)
                 #end if
             #else if $x == "temperatureThresholdDays"
-                #set $any_has_data = True
+                #silent $vis_items.append($x)
             #else
                 #if $getVar('month.' + $x + '.has_data')
-                    #set $any_has_data = True
+                    #silent $vis_items.append($x)
                 #end if
             #end if
         #end for
-        #if $any_has_data
+        #set $f_first = (len($vis_items) > 0 and $vis_items[0] == 'forecast')
+        #set $f_last  = (len($vis_items) > 0 and $vis_items[-1] == 'forecast')
+    #end if
+
+    #if $seg['type'] is None
+        ## No panel – render cards directly into the surrounding row
+        #for $x in $seg['items']
+            $renderValueItem($x, False, $f_first, $f_last, $seg['slug'])
+        #end for
+    #else
+        ## Expansion panel
+        #if len($vis_items) > 0
             #set $p_exp   = ($seg['type'] != 'collapsed')
             #set $p_show  = ' show' if $p_exp else ''
             #set $p_id    = 'nwm-val-panel-' + str($panel_idx)
@@ -243,7 +254,7 @@
                         <div class="nwm-panel-body">
                             <div class="row">
                                 #for $x in $seg['items']
-                                    $renderValueItem($x, $seg['slug'])
+                                    $renderValueItem($x, True, $f_first, $f_last, $seg['slug'])
                                 #end for
                             </div>
                         </div>
