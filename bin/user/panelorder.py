@@ -60,6 +60,40 @@ Which sections a page shows, and in what order, lives in
   deliberately shows nothing.  Order sorts WITHIN a content region - cards
   and charts are separate columns, so a mixed list does not interleave them.
 
+Three of the five $page values are shared by two templates apiece: 'day'
+covers both the current-conditions page and yesterday, 'month' covers this
+month and the archived month pages, and 'year' likewise.  Each such key may
+carry sub-blocks that override it for one template only:
+
+    [[[[day]]]]
+        sections = cards, charts, embedded
+        show_embedded = true
+        [[[[[current]]]]]
+            show_forecast = true
+        [[[[[yesterday]]]]]
+            sections = cards, charts
+
+  day    -> current, yesterday
+  month  -> month, month_archive
+  year   -> year, year_archive
+  week and telemetry take no sub-blocks - one template each - so
+  [[[[[week]]]]] is never consulted even if someone writes it.
+
+Every setting resolves sub-block, then page block, then a built-in default,
+per setting independently: 'yesterday' above overrides 'sections' but still
+inherits 'show_embedded' from the 'day' block, since it never sets its own.
+page_setting() (panelPageSetting in the search list below) does this
+resolution for the two boolean settings, 'show_embedded' and 'show_forecast'.
+Both default to true for 'current' and false for every other page and
+sub-page, and that default is NOT inherited from the page block - it is
+fixed per sub-page name, because 'day' covers both current and yesterday and
+only one of them has an embedded region or today's forecast.
+
+configobj folds a plain setting written below a sub-block into that
+sub-block, where it silently stops working; _warn_page_blocks() detects and
+logs this, but skin.conf's [[[pages]]] comments are where that is explained
+in full.
+
 Sections render in declaration order within each content value.  Items are
 de-duplicated within a section, first occurrence winning - the same item may
 appear in as many sections as you like and renders once in each.  'forecast' is
@@ -75,14 +109,19 @@ never added to the search list and the pages fail to generate:
     [CheetahGenerator]
         search_list_extensions = user.panelorder.PanelOrder
 
-Then, in a template that has declared #attr $page:
+Then, in a template that has declared #attr $page (and, where relevant,
+#attr $subpage):
 
     #set $segments = $panelSegments('card', page=$page)
     #set $flat     = $panelItems('chart', page=$page)
+    #set $embed    = $panelPageSetting('show_embedded', page=$page, subpage=$subpage)
 
 panelSegments carries the grouping and is what you loop over to draw a row or a
 panel.  panelItems flattens the same data to bare names, for the places that
 only need to know whether an item is present, such as the chart JavaScript.
+panelPageSetting resolves one of the boolean settings, 'show_embedded' or
+'show_forecast', the same sub-block/page/default way described above, for
+templates that only need the one value rather than a full section list.
 """
 
 import logging
