@@ -40,6 +40,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/chart_tick_axis.inc",
                         "skins/neowx-material/chart_colors_setup.inc",
                         "skins/neowx-material/chart_tick_setup.inc",
+                        "skins/neowx-material/embedded_region.inc",
                         "skins/neowx-material/footer.inc",
                         "skins/neowx-material/forecast.inc",
                         "skins/neowx-material/graph_align_axis.inc",
