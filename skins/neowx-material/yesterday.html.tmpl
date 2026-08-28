@@ -170,7 +170,7 @@
     #set $vis_items = []
     #set $f_first = False
     #set $f_last  = False
-    #if $seg['type'] is not None or 'forecast' in $items_l
+    #if $seg['type'] is not None or ('forecast' in $items_l and $show_fc)
         #for $x in $seg['items']
             #if $x == "forecast"
                 #if $show_fc and $forecast is not None

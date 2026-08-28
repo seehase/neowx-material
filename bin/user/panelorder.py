@@ -90,9 +90,11 @@ fixed per sub-page name, because 'day' covers both current and yesterday and
 only one of them has an embedded region or today's forecast.
 
 configobj folds a plain setting written below a sub-block into that
-sub-block, where it silently stops working; _warn_page_blocks() detects and
-logs this, but skin.conf's [[[pages]]] comments are where that is explained
-in full.
+sub-block, where it silently stops working. _warn_page_blocks() can only
+catch this when the absorbing block's name is not a valid sub-page name;
+absorption into a valid sub-block is indistinguishable, after parsing, from a
+setting deliberately written inside it, so nothing can warn about that case.
+skin.conf's [[[pages]]] comments are where this is explained in full.
 
 Sections render in declaration order within each content value.  Items are
 de-duplicated within a section, first occurrence winning - the same item may
@@ -114,7 +116,7 @@ Then, in a template that has declared #attr $page (and, where relevant,
 
     #set $segments = $panelSegments('card', page=$page)
     #set $flat     = $panelItems('chart', page=$page)
-    #set $embed    = $panelPageSetting('show_embedded', page=$page, subpage=$subpage)
+    #set $embed    = $panelPageSetting('show_embedded', $page, $subpage)
 
 panelSegments carries the grouping and is what you loop over to draw a row or a
 panel.  panelItems flattens the same data to bare names, for the places that
@@ -528,7 +530,7 @@ def _warn_page_blocks(appearance, page):
         _mark_problem(appearance, problem)
         absorbed = [k for k in getattr(entry[name], "scalars", [])
                     if k in PAGE_SETTING_KEYS]
-        if absorbed:
+        if absorbed and valid:
             log.error(
                 "panelorder: page '%s' has a subsection '[[[[[%s]]]]]' that "
                 "is not a valid sub-page, and it contains %s. This is almost "
@@ -536,8 +538,7 @@ def _warn_page_blocks(appearance, page):
                 "configobj folds it into that block, where it stops working. "
                 "Move it ABOVE the sub-page blocks. Valid sub-pages for '%s' "
                 "are: %s.",
-                key, name, ", ".join(absorbed), key,
-                ", ".join(valid) if valid else "none",
+                key, name, ", ".join(absorbed), key, ", ".join(valid),
             )
         else:
             log.warning(
