@@ -133,7 +133,7 @@ from weewx.cheetahgenerator import SearchList
 
 log = logging.getLogger(__name__)
 
-VERSION = "2.3.0"
+VERSION = "2.4.0"
 
 # Segment types.  'type' is None for a section with no title, whose items
 # render loose rather than inside a panel.
@@ -721,6 +721,49 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
     return segments
 
 
+# The set of names any page would treat as telemetry, memoised per config in
+# the same weakref-bounded bucket as the segments cache.  A 1-tuple key like
+# _SLUG_KEY, so it can never collide with the 4-tuple segment keys.
+_TELEMETRY_KEY = ("__telemetry__",)
+
+
+def _telemetry_names(skin_dict):
+    appearance = _appearance(skin_dict)
+    cached = _cache_get(appearance, _TELEMETRY_KEY)
+    if cached is not None:
+        return cached
+    names = set()
+    # Signal 1: a [[Telemetry]] [[[<name>]]] subsection.  Only subsections
+    # count - scalars like chart_days live at the same level and are settings,
+    # not sensors.
+    telemetry = skin_dict.get("Extras", {}).get("Telemetry", {})
+    for key in getattr(telemetry, "sections", []):
+        names.add(str(key).strip())
+    # Signal 2: listed in any telemetry section, on any page.  No page filter,
+    # so an item that only the telemetry page shows still counts when a card
+    # section on another page names it.
+    for content in ("telemetry", "telemetry_chart"):
+        for item in order_items(skin_dict, content):
+            names.add(item)
+    _cache_set(appearance, _TELEMETRY_KEY, names)
+    return names
+
+
+def is_telemetry_item(skin_dict, name):
+    """True when a listed item should render as telemetry, not weather.
+
+    Either signal is enough: a [[Telemetry]] subsection for the name, or
+    membership in a content = telemetry / telemetry_chart section.  The
+    shipped config has no live subsections, so membership is what makes the
+    shipped lists work unconfigured; the subsection keeps an item classified
+    after someone deletes the telemetry sections, which is the natural thing
+    to do once the items live elsewhere.
+    """
+    if name is None:
+        return False
+    return str(name).strip() in _telemetry_names(skin_dict)
+
+
 def order_items(skin_dict, content=CARD, page=None, subpage=None):
     """Flat, de-duplicated item names for one content region.
 
@@ -769,9 +812,13 @@ class PanelOrder(SearchList):
         def panel_section_slug(section_id):
             return section_slug(skin_dict, section_id)
 
+        def is_telemetry(name):
+            return is_telemetry_item(skin_dict, name)
+
         return [{
             "panelSegments": panel_segments,
             "panelItems": panel_items,
             "panelPageSetting": panel_page_setting,
             "panelSectionSlug": panel_section_slug,
+            "isTelemetryItem": is_telemetry,
         }]
