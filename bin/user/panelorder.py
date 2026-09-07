@@ -117,6 +117,7 @@ Then, in a template that has declared #attr $page (and, where relevant,
     #set $segments = $panelSegments('card', page=$page)
     #set $flat     = $panelItems('chart', page=$page)
     #set $embed    = $panelPageSetting('show_embedded', $page, $subpage)
+    #set $isBattery = $isTelemetryItem('outTempBatteryStatus')
 
 panelSegments carries the grouping and is what you loop over to draw a row or a
 panel.  panelItems flattens the same data to bare names, for the places that
@@ -124,6 +125,10 @@ only need to know whether an item is present, such as the chart JavaScript.
 panelPageSetting resolves one of the boolean settings, 'show_embedded' or
 'show_forecast', the same sub-block/page/default way described above, for
 templates that only need the one value rather than a full section list.
+isTelemetryItem classifies a single item name so a template can pick its
+rendering: true if the name has a [[[<name>]]] block under [[Telemetry]], or
+if it appears in any content = telemetry / telemetry_chart section's items on
+any page - either signal is enough, and neither is page-scoped.
 """
 
 import logging
