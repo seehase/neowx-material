@@ -1,3 +1,4 @@
+#encoding UTF-8
 ## Shared telemetry rendering: gauges, telemetry charts, and their JavaScript.
 ##
 ## Cheetah's #include compiles a separate template, so the defs that render a
@@ -201,6 +202,10 @@
     #end if
 #end def
 ##
+## +-------------------------------------------------------------------------+
+## | The explicit gauge type for a field: none (default) / voltage / signal  |
+## | / percent / status. Unset or unrecognized -> none.                      |
+## +-------------------------------------------------------------------------+
 #def sensorType($name)
     #set $_t = str($getVar('Extras.Telemetry.' + $name + '.sensor_type', 'none')).strip().lower()
     #if $_t in ('none', 'voltage', 'signal', 'percent', 'status')
@@ -546,6 +551,16 @@
     #end try
 #end def
 ##
+        ## +-------------------------------------------------------------------------+
+        ## | Chart generation methods (get data for charts + their JS code)          |
+        ## +-------------------------------------------------------------------------+
+        ##
+        ## +-------------------------------------------------------------------------+
+        ## | Get data array for a chart                                              |
+        ## |                                                                         |
+        ## | string  $name    the name of the database field  (e.g. outTemp)         |
+        ## | string  $column  the column of the display value (e.g. min, max, avg)   |
+        ## +-------------------------------------------------------------------------+
         #def getChartData($name, $column, $chart_interval=300)
             ## Get chart timespan (default to current_timespan if not specified)
             #set chart_days = 1
@@ -579,6 +594,13 @@
             #end for
         #end def
 ##
+        ## +-------------------------------------------------------------------------+
+        ## | Get JavaScript code for a chart                                         |
+        ## |                                                                         |
+        ## | string  $name     the name of the database field   (e.g. outTemp)       |
+        ## | string  $series   field name for series            (e.g. outTemp)       |
+        ## | string  $column   the column of the display value  (e.g. min, max, avg) |
+        ## +-------------------------------------------------------------------------+
         #def getChartJsCode($name, $series, $column = "avg")
 
             #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
