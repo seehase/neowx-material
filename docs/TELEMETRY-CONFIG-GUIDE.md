@@ -7,10 +7,14 @@ by your weather station. Each field is configured in a single block under
 `[[Telemetry]]` in `skin.conf`. A `sensor_type` key picks the gauge style; without
 one the field shows its raw value with no gauge.
 
-Which fields appear is controlled by the `items` of `telemetry` and
-`telemetry_chart` sections under `Extras.Appearance.[[[sections]]]`. Only
-fields listed there are displayed — the per-field config blocks are just
-configuration, not opt-in.
+A field is classified as telemetry — and displayed as a gauge or chart
+instead of a plain weather item — if it has a `[[Telemetry]] [[[<name>]]]`
+block **or** appears in the `items` of a `telemetry` / `telemetry_chart`
+section under `Extras.Appearance.[[[sections]]]`; either signal is enough on
+its own. Telemetry items aren't confined to the telemetry page either — the
+same name can be listed in a `card` or `chart` section on any dashboard page.
+See "Field discovery" and "Telemetry items on other dashboard pages" below
+for the full rule and its gotchas.
 
 | sensor_type | What renders | Typical sensor |
 |---|---|---|
@@ -103,10 +107,14 @@ Both are gone. Every field now has a single block directly under `[[Telemetry]]`
 
 ### Field discovery
 
-Fields are shown only when they appear in the `items` of a `telemetry` or
-`telemetry_chart` section under `[[Appearance]] [[[sections]]]`. The skin does
-not walk `[[Telemetry]]` sub-sections looking for fields, so the per-field
-blocks sit alongside scalar settings like `chart_days` without confusion.
+A field counts as telemetry — and renders as a gauge or telemetry chart
+instead of a plain weather item — if either of these is true:
+
+1. It has a `[[Telemetry]] [[[<name>]]]` block, or
+2. It is listed in the `items` of any `telemetry` / `telemetry_chart` section
+   under `[[Appearance]] [[[sections]]]`.
+
+Either signal is enough by itself; a field doesn't need both.
 
 ```ini
 [[Appearance]]
@@ -125,6 +133,47 @@ written after it (`mode`, `panelColor`, `defaultChartBehavior`, ...) as
 belonging to whichever `[[[[...]]]]` block was opened last, not to
 `[[Appearance]]` itself. Add or edit other Appearance settings above
 `[[[sections]]]`, never below it.
+
+**Warning — classification is global, not per-page.** Signal 2 above isn't
+scoped to the telemetry page: it applies everywhere a name is checked. Put a
+weather observation's name in a `telemetry` / `telemetry_chart` section's
+`items` — even by accident — and that name is telemetry on *every* page that
+would otherwise show it, rendering as a gauge (or a plain min/max/current
+card, without a `sensor_type`) instead of its usual weather card or chart.
+Keep weather observations out of `telemetry` / `telemetry_chart` sections.
+
+**Do not list `windSpeed` in a telemetry section.** Every card page draws its
+own combined windSpeed/windGust chart onto the `windSpeed` chart mount
+unconditionally, regardless of classification. Classifying `windSpeed` as
+telemetry adds a second chart targeting that same mount, so the page ends up
+with two charts fighting over one element.
+
+### Telemetry items on other dashboard pages
+
+A telemetry item isn't confined to the telemetry page or to `telemetry` /
+`telemetry_chart` sections. List its name in the `items` of an ordinary
+`card` or `chart` section on any dashboard page, alongside weather
+observations, and it renders in place:
+
+```ini
+[[[[cards]]]]
+    items = outTemp, outHumidity, outTempBatteryStatus
+```
+
+The section's `content` picks the form the item takes — a gauge in a `card`
+section, a time-series chart in a `chart` section — the same as described
+under "Per-field block structure" below. With no `sensor_type` configured it
+falls back to a plain min/max/current card, exactly as it would on the
+telemetry page.
+
+A telemetry chart placed this way follows its host page's own time window
+only when `tick_style` resolves to `align` for that page (the shipped
+default — see `tick_style` in `skin.conf`); with `auto` or a `fixed:N`
+setting there is no page-wide axis range, so the chart auto-ranges to its own
+data instead. Either way, the series itself always covers only
+`[[Telemetry]] chart_days` — so on a Month or Year page under `align`, the
+telemetry line can occupy a narrow sliver of an otherwise mostly-empty chart.
+That's deliberate, not a bug.
 
 ### Per-field block structure
 
