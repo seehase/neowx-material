@@ -16,7 +16,7 @@
 ## What this file resolves for itself, so no page has to: value_position.
 ## batteryCard reads $_tele_val_pos, and it used to be a page-level global -
 ## rendered anywhere else it would have silently fallen back to 'bottom'.
-
+##
 ## value_position is a single [[Telemetry]]-level setting; resolve it once.
 ## #set GLOBAL, not a plain #set: a top-level plain #set is local to this
 ## template's respond() and invisible to its own defs, so batteryCard would
@@ -26,7 +26,7 @@
 #if $_tele_val_pos not in ('bottom', 'left', 'right', 'none')
     #set global $_tele_val_pos = 'bottom'
 #end if
-
+##
 #def formatBatteryValue($value)
     #if $value is None
         –
@@ -40,11 +40,11 @@
         #end try
     #end if
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of battery symbol values (top section)        |
 ## +-------------------------------------------------------------------------+
-
+##
 #def batteryCard($name, $section = "")
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-md-6 col-xl-4 mb-4">
@@ -181,11 +181,11 @@
         </div>
     #end if
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of chart (bottom section)                     |
 ## +-------------------------------------------------------------------------+
-
+##
 #def chartCard($name, $section = "")
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-xl-6 mb-4">
@@ -200,7 +200,7 @@
         </div>
     #end if
 #end def
-
+##
 #def sensorType($name)
     #set $_t = str($getVar('Extras.Telemetry.' + $name + '.sensor_type', 'none')).strip().lower()
     #if $_t in ('none', 'voltage', 'signal', 'percent', 'status')
@@ -209,7 +209,7 @@
         #return 'none'
     #end if
 #end def
-
+##
 ## Clamp a (possibly unit-bearing) value to an integer percentage 0-100.
 #def percentValue($value)
     #try
@@ -224,33 +224,33 @@
         #return 0
     #end try
 #end def
-
+##
 ## Percent-battery color: same low_threshold logic as the shared gauge color.
 #def getPercentColor($name, $percentage)
     #return $getGaugeColor($name, $percentage)
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | True when the field has an explicit gauge (sensor_type != none).        |
 ## +-------------------------------------------------------------------------+
 #def isBatteryFieldEnabled($name)
     #return $sensorType($name) != 'none'
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | True when the field's sensor_type is 'voltage'.                         |
 ## +-------------------------------------------------------------------------+
 #def isVoltageBased($name)
     #return $sensorType($name) == 'voltage'
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | True when the field's sensor_type is 'signal'.                          |
 ## +-------------------------------------------------------------------------+
 #def isSignalBased($name)
     #return $sensorType($name) == 'signal'
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Helper function to map battery values                                   |
 ## +-------------------------------------------------------------------------+
@@ -279,7 +279,7 @@
         #return $value
     #end if
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Parse a numeric value out of a string like "4,5 V" -> 4.5               |
 ## +-------------------------------------------------------------------------+
@@ -291,7 +291,7 @@
     #set numeric_str = numeric_str.replace(',', '.')
     #return float($numeric_str)
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Generic range -> percentage (0-100) for a configured max/min key pair.  |
 ## | Returns None when the max key is absent/blank or the range is invalid.  |
@@ -322,7 +322,7 @@
         #return None
     #end try
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Battery percentage from voltage vs the max_voltage/min_voltage range.    |
 ## | Returns None when no usable range is configured, so the caller can show  |
@@ -331,7 +331,7 @@
 #def calculateBatteryPercentage($name, $value)
     #return $rangePercentage($name, $value, 'max_voltage', 'min_voltage')
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Helper function to calculate signal percentage                          |
 ## | Returns percentage (0-100) based on current value vs max_signal.        |
@@ -346,7 +346,7 @@
         #return $p
     #end if
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Battery percentage from the state's chart position:                     |
 ## | (position + 1) / (max_chart_position + 1) * 100, flip-aware.            |
@@ -374,7 +374,7 @@
         #return None
     #end try
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Is the raw value on the LOW side of the low_state threshold?            |
 ## | low_when picks the direction: at_or_above (default) or at_or_below.     |
@@ -398,7 +398,7 @@
         #return False
     #end try
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Fill width for the status battery bar. A low 2-state battery fills      |
 ## | the whole bar red; everything else fills proportionally.                |
@@ -420,7 +420,7 @@
         #return $percentage
     #end if
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Gauge color: red below low_threshold (default 20), otherwise green.      |
 ## | The percentage is already computed from the field's range (or the raw   |
@@ -438,21 +438,21 @@
         #return "#4caf50"  ## Default green
     #end try
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Helper function to determine battery gauge color (voltage threshold)    |
 ## +-------------------------------------------------------------------------+
 #def getBatteryColor($name, $percentage)
     #return $getGaugeColor($name, $percentage)
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Helper function to determine signal cone color (signal threshold)       |
 ## +-------------------------------------------------------------------------+
 #def getSignalColor($name, $percentage)
     #return $getGaugeColor($name, $percentage)
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Render the signal "cone" as a static SVG: two parenthesis-style wings   |
 ## | around a center dot, filled center-outward by percentage (0-100).       |
@@ -488,7 +488,7 @@
         <circle cx="60" cy="12" r="3.5" fill="#ddd"/>
     </svg>
 #end def
-
+##
 ## +-------------------------------------------------------------------------+
 ## | Helper function to get chart value for battery fields                   |
 ## | Returns the numeric chart position based on mapping order               |
@@ -545,7 +545,7 @@
         #return $raw_value
     #end try
 #end def
-
+##
         #def getChartData($name, $column, $chart_interval=300)
             ## Get chart timespan (default to current_timespan if not specified)
             #set chart_days = 1
@@ -578,7 +578,7 @@
                 #end try
             #end for
         #end def
-
+##
         #def getChartJsCode($name, $series, $column = "avg")
 
             #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
@@ -712,7 +712,7 @@
             #end if
 
         #end def
-
+##
 #if $tele_mode == 'js'
     #for $x in $tele_chart_items
         $getChartJsCode($x, $x)
