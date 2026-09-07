@@ -206,6 +206,15 @@
                 </div>
             </div>
         </div>
+    #else if $isTelemetryItem($x)
+        ## A telemetry item renders through the shared include: Cheetah's
+        ## #include cannot share defs, so the include drives itself from these
+        ## four globals. It always reads day.* - a gauge shows today's battery
+        ## on every page.
+        #set global $tele_mode    = 'card'
+        #set global $tele_item    = $x
+        #set global $tele_section = $section
+        #include "telemetry.inc"
     #else
         $valuesCard($x, $section)
     #end if
@@ -230,6 +239,12 @@
         #for $x in $seg['items']
             #if $x == "forecast"
                 #if $show_fc and $forecast is not None
+                    #silent $vis_items.append($x)
+                #end if
+            #else if $isTelemetryItem($x)
+                ## batteryCard's own guard, so the panel never opens for an
+                ## item that then renders nothing.
+                #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
                     #silent $vis_items.append($x)
                 #end if
             #else if $x == "ET"
@@ -287,12 +302,23 @@
 #def renderChartSegment($seg, $panel_idx)
     #if $seg['type'] is None
         #for $x in $seg['items']
-            $chartCard($x, $x + 'chart', section=$seg['slug'])
+            #if $isTelemetryItem($x)
+                #set global $tele_mode    = 'chart'
+                #set global $tele_item    = $x
+                #set global $tele_section = $seg['slug']
+                #include "telemetry.inc"
+            #else
+                $chartCard($x, $x + 'chart', section=$seg['slug'])
+            #end if
         #end for
     #else
         #set $any_has_data = False
         #for $x in $seg['items']
-            #if $x.startswith('customChart')
+            #if $isTelemetryItem($x)
+                #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
+                    #set $any_has_data = True
+                #end if
+            #else if $x.startswith('customChart')
                 #set $cc = $Extras.Appearance.get($x, {})
                 #if $cc
                     #set $cc_values_raw = $cc.get('values', '')
@@ -324,7 +350,14 @@
                         <div class="nwm-panel-body">
                             <div class="row">
                                 #for $x in $seg['items']
-                                    $chartCard($x, $x + 'chart', section=$seg['slug'])
+                                    #if $isTelemetryItem($x)
+                                        #set global $tele_mode    = 'chart'
+                                        #set global $tele_item    = $x
+                                        #set global $tele_section = $seg['slug']
+                                        #include "telemetry.inc"
+                                    #else
+                                        $chartCard($x, $x + 'chart', section=$seg['slug'])
+                                    #end if
                                 #end for
                             </div>
                         </div>
@@ -760,7 +793,7 @@
             #set $default_chart_series = {'windDir': 'wind'}
 
             #for $x in $panelItems('chart', page=$page, subpage=$subpage)
-                #if not $x.startswith('customChart') and $x not in $processed_charts
+                #if not $x.startswith('customChart') and $x not in $processed_charts and not $isTelemetryItem($x)
                     #silent $processed_charts.add($x)
                     #if $getVar('week.' + $x + '.has_data')
                         #set $c_type = $default_chart_types.get($x, 'area')
@@ -1115,6 +1148,14 @@
                     #end if
                 #end if
             #end for
+
+            ## Telemetry charts on this page. The include never touches the
+            ## alignment globals - a telemetry chart follows the page's window
+            ## like every chart beside it - so it only has to come after
+            ## graph_align_setup.inc and var graph_area_config, which it reads.
+            #set global $tele_mode        = 'js'
+            #set global $tele_chart_items = [x for x in $panelItems('chart', page=$page, subpage=$subpage) if $isTelemetryItem(x)]
+            #include "telemetry.inc"
 
         </script>
 
