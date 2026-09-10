@@ -3,12 +3,19 @@
 ##
 ## Cheetah's #include compiles a separate template, so the defs that render a
 ## telemetry item live here beside the code that calls them.  The host cannot
-## call them - it sets four globals and includes this file:
+## call them - it sets these globals and includes this file:
 ##
-##   $tele_mode         'card' | 'chart' | 'js'
-##   $tele_item         item name            (card, chart)
-##   $tele_section      section slug         (card, chart)
-##   $tele_chart_items  list of chart items  (js)
+##   $tele_mode            'card' | 'chart' | 'js'
+##   $tele_item            item name                    (card, chart)
+##   $tele_section         section slug                 (card, chart)
+##   $tele_chart_items     list of chart items          (js)
+##   $tele_chart_span      the page's TimespanBinder    (js, weather pages)
+##   $tele_chart_interval  seconds between data points  (js, weather pages)
+##
+## The last two are optional: a weather page hands over its own window so a
+## telemetry chart there fetches what the weather charts beside it fetch.
+## The telemetry page omits them and keeps its [[Telemetry]] chart_days /
+## default_interval / chart_interval window.
 ##
 ## The reverse is NOT true, and it is the trap in this file: when code inside
 ## this include calls $name and the HOST defines a def by that name, the
