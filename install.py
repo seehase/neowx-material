@@ -10,7 +10,7 @@ def loader():
 class BasicInstaller(ExtensionInstaller):
     def __init__(self):
         super(BasicInstaller, self).__init__(
-            version="1.73.2",
+            version="1.74.2",
             name="neowx-material",
             description="The most versatile and modern weewx skin",
             author="Neoweewx",
@@ -40,6 +40,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/chart_tick_axis.inc",
                         "skins/neowx-material/chart_colors_setup.inc",
                         "skins/neowx-material/chart_tick_setup.inc",
+                        "skins/neowx-material/embedded_region.inc",
                         "skins/neowx-material/footer.inc",
                         "skins/neowx-material/forecast.inc",
                         "skins/neowx-material/graph_align_axis.inc",
@@ -176,6 +177,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/panel_header.inc",
                         "skins/neowx-material/skin.conf",
                         "skins/neowx-material/telemetry.html.tmpl",
+                        "skins/neowx-material/telemetry.inc",
                         "skins/neowx-material/trend_indicator.inc",
                         "skins/neowx-material/weather-icons/README.md",
                         "skins/neowx-material/weather-icons/css/weather-icons.min.css",

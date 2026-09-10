@@ -5,6 +5,7 @@
 
 #attr $active_nav = 'yesterday'
 #attr $page = 'day'
+#attr $subpage = 'yesterday'
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of values (left column)                       |
@@ -86,8 +87,17 @@
 ## | (handles ET guard, temperatureThresholdDays, and all normal cards)      |
 ## +-------------------------------------------------------------------------+
 
-#def renderValueItem($x, $section = "")
-    #if $x == "ET"
+#def renderValueItem($x, $in_panel, $is_first, $is_last, $section = "", $show_fc = True)
+    ## 'forecast' renders via #include, which only sees the search list and
+    ## globals - hence the #set global handoff. The first/last flags drive the
+    ## forecast_separator rules inside forecast.inc.
+    #if $x == "forecast" and $show_fc
+        #set global $forecast_in_panel = $in_panel
+        #set global $forecast_is_first = $is_first
+        #set global $forecast_is_last  = $is_last
+        #set global $forecast_section  = $section
+        #include "forecast.inc"
+    #else if $x == "ET"
         #if $yesterday.ET.has_data and $yesterday.ET.sum.raw is not None and $yesterday.ET.sum.raw > 0.0
             $valuesCard('ET', $section)
         #end if
@@ -140,6 +150,15 @@
                 </div>
             </div>
         </div>
+    #else if $isTelemetryItem($x)
+        ## A telemetry item renders through the shared include: Cheetah's
+        ## #include cannot share defs, so the include drives itself from these
+        ## four globals. It always reads day.* - a gauge shows today's battery
+        ## on every page.
+        #set global $tele_mode    = 'card'
+        #set global $tele_item    = $x
+        #set global $tele_section = $section
+        #include "telemetry.inc"
     #else
         $valuesCard($x, $section)
     #end if
@@ -150,28 +169,52 @@
 ## +-------------------------------------------------------------------------+
 
 #def renderValSegment($seg, $panel_idx)
-    #if $seg['type'] is None
-        ## No panel – render cards directly into the surrounding row
+    ## Which items will actually draw. A panel needs this to decide whether to
+    ## render at all, and the forecast needs to know whether it lands first or
+    ## last among them - that drives the separator rules inside forecast.inc.
+    ## Computed once and used in both places below. Two separate lookups can
+    ## drift apart; one cannot.
+    #set $show_fc = $panelPageSetting('show_forecast', $page, $subpage)
+    #set $items_l = [i.strip().lower() for i in $seg['items']]
+    #set $vis_items = []
+    #set $f_first = False
+    #set $f_last  = False
+    #if $seg['type'] is not None or ('forecast' in $items_l and $show_fc)
         #for $x in $seg['items']
-            $renderValueItem($x, $seg['slug'])
-        #end for
-    #else
-        ## Expansion panel
-        #set $any_has_data = False
-        #for $x in $seg['items']
-            #if $x == "ET"
+            #if $x == "forecast"
+                #if $show_fc and $forecast is not None
+                    #silent $vis_items.append($x)
+                #end if
+            #else if $isTelemetryItem($x)
+                ## batteryCard's own guard, so the panel never opens for an
+                ## item that then renders nothing.
+                #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
+                    #silent $vis_items.append($x)
+                #end if
+            #else if $x == "ET"
                 #if $yesterday.ET.has_data and $yesterday.ET.sum.raw is not None and $yesterday.ET.sum.raw > 0.0
-                    #set $any_has_data = True
+                    #silent $vis_items.append($x)
                 #end if
             #else if $x == "temperatureThresholdDays"
-                #set $any_has_data = True
+                #silent $vis_items.append($x)
             #else
                 #if $getVar('yesterday.' + $x + '.has_data')
-                    #set $any_has_data = True
+                    #silent $vis_items.append($x)
                 #end if
             #end if
         #end for
-        #if $any_has_data
+        #set $f_first = (len($vis_items) > 0 and $vis_items[0] == 'forecast')
+        #set $f_last  = (len($vis_items) > 0 and $vis_items[-1] == 'forecast')
+    #end if
+
+    #if $seg['type'] is None
+        ## No panel – render cards directly into the surrounding row
+        #for $x in $seg['items']
+            $renderValueItem($x, False, $f_first, $f_last, $seg['slug'], $show_fc)
+        #end for
+    #else
+        ## Expansion panel
+        #if len($vis_items) > 0
             #set $p_exp   = ($seg['type'] != 'collapsed')
             #set $p_show  = ' show' if $p_exp else ''
             #set $p_id    = 'nwm-val-panel-' + str($panel_idx)
@@ -185,7 +228,7 @@
                         <div class="nwm-panel-body">
                             <div class="row">
                                 #for $x in $seg['items']
-                                    $renderValueItem($x, $seg['slug'])
+                                    $renderValueItem($x, True, $f_first, $f_last, $seg['slug'], $show_fc)
                                 #end for
                             </div>
                         </div>
@@ -203,12 +246,23 @@
 #def renderChartSegment($seg, $panel_idx)
     #if $seg['type'] is None
         #for $x in $seg['items']
-            $chartCard($x, $x + 'chart', section=$seg['slug'])
+            #if $isTelemetryItem($x)
+                #set global $tele_mode    = 'chart'
+                #set global $tele_item    = $x
+                #set global $tele_section = $seg['slug']
+                #include "telemetry.inc"
+            #else
+                $chartCard($x, $x + 'chart', section=$seg['slug'])
+            #end if
         #end for
     #else
         #set $any_has_data = False
         #for $x in $seg['items']
-            #if $x.startswith('customChart')
+            #if $isTelemetryItem($x)
+                #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
+                    #set $any_has_data = True
+                #end if
+            #else if $x.startswith('customChart')
                 #set $cc = $Extras.Appearance.get($x, {})
                 #if $cc
                     #set $cc_values_raw = $cc.get('values', '')
@@ -240,7 +294,14 @@
                         <div class="nwm-panel-body">
                             <div class="row">
                                 #for $x in $seg['items']
-                                    $chartCard($x, $x + 'chart', section=$seg['slug'])
+                                    #if $isTelemetryItem($x)
+                                        #set global $tele_mode    = 'chart'
+                                        #set global $tele_item    = $x
+                                        #set global $tele_section = $seg['slug']
+                                        #include "telemetry.inc"
+                                    #else
+                                        $chartCard($x, $x + 'chart', section=$seg['slug'])
+                                    #end if
                                 #end for
                             </div>
                         </div>
@@ -320,8 +381,8 @@
 ## Parsing lives in bin/user/panelorder.py, which reads [[[sections]]] from
 ## skin.conf. Sections with a title become collapsible panels; those without
 ## render loose in the surrounding row.
-#set $val_segments   = $panelSegments('card', page=$page)
-#set $chart_segments = $panelSegments('chart', page=$page)
+#set $val_segments   = $panelSegments('card', page=$page, subpage=$subpage)
+#set $chart_segments = $panelSegments('chart', page=$page, subpage=$subpage)
 
 ## +-------------------------------------------------------------------------+
 ## | The main page layout                                                    |
@@ -343,7 +404,7 @@
         #set global $card_default = $Extras.Formatting.datetime_today
         #include "card_datetime.inc"
         <main>
-            <div class="container-fluid d-flex-xxl">
+            <div class="container-fluid d-flex-xxl flex-wrap">
 
                 <div class="row mt-3 temprow align-content-start">
                     #set $val_panel_idx = 0
@@ -379,6 +440,7 @@
                     #end for
                 </div>
 
+                #include "embedded_region.inc"
             </div>
         </main>
 
@@ -436,7 +498,7 @@
         #def getChartJsCode($name, $id, $type, $series1, $series2 = "", $column = "avg", $series3 = "", $series4 = "", $series5 = "", $series6 = "", $series7 = "", $series8 = "")
 
             ## Only add JS chart code if in array
-            #if $name in $panelItems('chart', page=$page)
+            #if $name in $panelItems('chart', page=$page, subpage=$subpage)
                 #set global $cc_name  = $name
                 #set global $cc_scope = ''
                 #include "chart_colors_setup.inc"
@@ -794,8 +856,8 @@
             // Series1 field overrides for charts where the series field name differs from the chart name
             #set $default_chart_series = {'windDir': 'wind'}
 
-            #for $x in $panelItems('chart', page=$page)
-                #if not $x.startswith('customChart') and $x not in $processed_charts
+            #for $x in $panelItems('chart', page=$page, subpage=$subpage)
+                #if not $x.startswith('customChart') and $x not in $processed_charts and not $isTelemetryItem($x)
                     #silent $processed_charts.add($x)
                     #if $getVar('yesterday.' + $x + '.has_data')
                         #set $c_type = $default_chart_types.get($x, 'area')
@@ -809,7 +871,7 @@
 
             // Custom charts (dynamically generated from skin.conf [[Appearance]] [[[customChart*]]] sections)
             #set $seen_custom_charts = set()
-            #for $x in $panelItems('chart', page=$page)
+            #for $x in $panelItems('chart', page=$page, subpage=$subpage)
                 #if $x.startswith('customChart') and $x not in $seen_custom_charts
                     #silent $seen_custom_charts.add($x)
                     #set $cc = $Extras.Appearance.get($x, {})
@@ -911,7 +973,7 @@
                         #include "chart_colors_setup.inc"
 
                         ## Render chart JS
-                        #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page)
+                        #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page, subpage=$subpage)
                             ## hidevalues: series that start collapsed (page -> chart level).
                             #set $cc_hidden_raw = $cc_page.get('hidevalues', $cc.get('hidevalues', ''))
                             #if isinstance($cc_hidden_raw, list)
@@ -1126,6 +1188,18 @@
                     #end if
                 #end if
             #end for
+
+            ## Telemetry charts on this page. The include never touches the
+            ## alignment globals - a telemetry chart follows the page's window
+            ## like every chart beside it - so it only has to come after
+            ## graph_align_setup.inc and var graph_area_config, which it reads.
+            ## This page's own data window, so a telemetry chart here fetches what the
+            ## weather charts beside it fetch - not chart_days at default_interval.
+            #set global $tele_chart_span     = $span($day_delta=1, $boundary='midnight')
+            #set global $tele_chart_interval = int($Extras.Charts.current_timespan)
+            #set global $tele_mode        = 'js'
+            #set global $tele_chart_items = [x for x in $panelItems('chart', page=$page, subpage=$subpage) if $isTelemetryItem(x)]
+            #include "telemetry.inc"
 
         </script>
 
