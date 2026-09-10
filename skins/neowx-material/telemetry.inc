@@ -578,7 +578,18 @@
             ## Check if this is an enabled battery field
             #set is_battery = $isBatteryFieldEnabled($name)
 
-            #set records = list($span($day_delta=$chart_days, $boundary='midnight').spans(interval=$chart_interval))
+            ## A host page may hand over its own window as tele_chart_span (a
+            ## TimespanBinder) so a telemetry chart on Week fetches the week
+            ## at the week's interval - the same data the weather charts
+            ## beside it fetch - instead of chart_days at default_interval,
+            ## which is 8,640 queries per chart and was doubling report time.
+            ## The telemetry page hands over nothing and keeps its own window.
+            #set _page_span = $getVar('tele_chart_span', None)
+            #if $_page_span is not None
+                #set records = list($_page_span.spans(interval=$chart_interval))
+            #else
+                #set records = list($span($day_delta=$chart_days, $boundary='midnight').spans(interval=$chart_interval))
+            #end if
             #for idx, record in enumerate($records)
                 #try
                     #set val = $getattr($record, $name)
@@ -630,6 +641,15 @@
                 #except
                     #pass
                 #end try
+                ## On a weather page the host hands over its own interval as
+                ## tele_chart_interval, and it wins over the [[Telemetry]]
+                ## settings: the chart should match the weather charts beside
+                ## it, and chart_days / default_interval / chart_interval
+                ## describe the telemetry page's window, not this page's.
+                #set _page_interval = $getVar('tele_chart_interval', None)
+                #if $_page_interval is not None
+                    #set chart_interval = int($_page_interval)
+                #end if
 
                 ## Per-field chart line color: Extras.Telemetry.<field>.colors
                 #set $tc_color_ref = ''

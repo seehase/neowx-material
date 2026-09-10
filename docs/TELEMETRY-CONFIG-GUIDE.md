@@ -166,14 +166,17 @@ under "Per-field block structure" below. With no `sensor_type` configured it
 falls back to a plain min/max/current card, exactly as it would on the
 telemetry page.
 
-A telemetry chart placed this way follows its host page's own time window
-only when `tick_style` resolves to `align` for that page (the shipped
-default — see `tick_style` in `skin.conf`); with `auto` or a `fixed:N`
-setting there is no page-wide axis range, so the chart auto-ranges to its own
-data instead. Either way, the series itself always covers only
-`[[Telemetry]] chart_days` — so on a Month or Year page under `align`, the
-telemetry line can occupy a narrow sliver of an otherwise mostly-empty chart.
-That's deliberate, not a bug.
+A telemetry chart placed this way fetches its host page's own time window at
+that page's own interval — the same data the weather charts beside it use:
+`current_timespan` on Current and Yesterday, `week_timespan` on Week,
+`month_timespan` on Month, `year_timespan` on Year, and one point per day on
+the archived month and year pages. So a telemetry chart on Week costs about
+the same as a weather chart on Week, and its axis and its data agree under
+every `tick_style`.
+
+`[[Telemetry]] chart_days`, `default_interval` and the per-field
+`chart_interval` describe the **telemetry page's** window only. That page is
+unchanged.
 
 ### Per-field block structure
 
