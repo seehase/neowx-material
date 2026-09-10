@@ -41,6 +41,9 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
    - `title` — omit it for a plain row, add it for a collapsible panel
    - `collapsed` — `true`, `false`, or `none` for a panel that never collapses
    - `content` — `card`, `chart`, `embedded`, `telemetry` or `telemetry_chart`
+- Choose which sections each page shows, and in what order, with `[[[pages]]]` — and override a single page where two share a key (`day` → `current` / `yesterday`, `month` → `month` / `month_archive`, `year` → `year` / `year_archive`)
+- `show_embedded` and `show_forecast` put the embedded section and the forecast on any dashboard page, not just Current
+- Panels you collapse stay collapsed for the life of the browser tab, so the auto-refresh stops reopening them
 - Sections render in the order they are written, so a panel can be followed by an ungrouped row
 - Each section starts on a new line, so grouping is meaningful even without a title
 - Panels whose items all lack data are hidden rather than drawn empty
@@ -53,6 +56,7 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
 - Signal quality monitoring (`rxCheckPercent`)
 - Per-field chart interval override — set different resolutions for different sensors
 - Customizable card and chart ordering via `telemetry` and `telemetry_chart` sections
+- Telemetry items can also be listed in any `card` or `chart` section on any dashboard page — a gauge in a card section, a time-series chart in a chart section, fetching that page's own time window (see the [Telemetry Configuration Guide](docs/TELEMETRY-CONFIG-GUIDE.md))
 
 ### 🔴 Real-Time MQTT Updates
 - **Live data updates** without page refresh

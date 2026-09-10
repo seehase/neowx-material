@@ -205,6 +205,11 @@ When a field has no `chart_interval`, the global `default_interval` set directly
 under `[[Telemetry]]` is used. If that is also absent, the skin falls back to
 `300` seconds.
 
+Both settings govern the **telemetry page** only. A telemetry chart listed in a
+chart section on any other page uses that page's own interval instead (see
+"Telemetry items on other dashboard pages" above), so neither `chart_interval`
+nor `default_interval` has any effect there.
+
 ---
 
 ## Sensor types
@@ -597,8 +602,8 @@ Controls the order of historical charts. Only fields listed in the section's
 | Key | Purpose | Default |
 |---|---|---|
 | `allow_zero_values` | Show fields whose value is 0 | `no` |
-| `chart_days` | Days of history in charts | `30` |
-| `default_interval` | Default chart data-point interval (seconds) | `300` |
+| `chart_days` | Days of history in charts on the telemetry page (other pages use their own window) | `30` |
+| `default_interval` | Default chart data-point interval (seconds) on the telemetry page | `300` |
 | `value_position` | Value line placement for all cards (`none` hides all values) | `bottom` \| `left` \| `right` \| `none` |
 
 ### Per-field keys — all sensor types
@@ -607,7 +612,7 @@ Controls the order of historical charts. Only fields listed in the section's
 |---|---|---|
 | `sensor_type` | Gauge style | `none` \| `voltage` \| `signal` \| `percent` \| `status` |
 | `show_value` | Show or hide the value | `yes` \| `no` |
-| `chart_interval` | Chart data-point interval for this field | seconds |
+| `chart_interval` | Chart data-point interval for this field, on the telemetry page | seconds |
 | `colors` | Chart color override | e.g. `palette1:3` |
 
 ### `voltage` keys
