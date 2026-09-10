@@ -10,9 +10,14 @@
 ##   $tele_section      section slug         (card, chart)
 ##   $tele_chart_items  list of chart items  (js)
 ##
-## The same property is why chartCard() and getChartJsCode() here can share
-## names with the weather templates' quite different functions: they never
-## meet in one namespace.
+## The reverse is NOT true, and it is the trap in this file: when code inside
+## this include calls $name and the HOST defines a def by that name, the
+## host's def wins.  So every def here must have a name no including template
+## uses.  The chart defs are teleChartCard / teleChartData / teleChartJsCode
+## for exactly that reason - the weather templates define chartCard,
+## getChartData and getChartJsCode with different signatures, and the
+## unprefixed names were silently (chart mode) or loudly (js mode) resolving
+## to those.  tests/telemetry-collision-check.py guards the whole name set.
 ##
 ## What this file resolves for itself, so no page has to: value_position.
 ## batteryCard reads $_tele_val_pos, and it used to be a page-level global -
@@ -187,7 +192,7 @@
 ## | Template for display card of chart (bottom section)                     |
 ## +-------------------------------------------------------------------------+
 ##
-#def chartCard($name, $section = "")
+#def teleChartCard($name, $section = "")
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-xl-6 mb-4">
             <div class="card card-chart h-100" data-name="$name" data-section="$section">
@@ -561,7 +566,7 @@
         ## | string  $name    the name of the database field  (e.g. outTemp)         |
         ## | string  $column  the column of the display value (e.g. min, max, avg)   |
         ## +-------------------------------------------------------------------------+
-        #def getChartData($name, $column, $chart_interval=300)
+        #def teleChartData($name, $column, $chart_interval=300)
             ## Get chart timespan (default to current_timespan if not specified)
             #set chart_days = 1
             #try
@@ -601,7 +606,7 @@
         ## | string  $series   field name for series            (e.g. outTemp)       |
         ## | string  $column   the column of the display value  (e.g. min, max, avg) |
         ## +-------------------------------------------------------------------------+
-        #def getChartJsCode($name, $series, $column = "avg")
+        #def teleChartJsCode($name, $series, $column = "avg")
 
             #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
 
@@ -725,7 +730,7 @@
                     series: [
                         {
                             name: "$getVar('obs.label.' + series)",
-                            data: [ $getChartData(series, column, chart_interval) ]
+                            data: [ $teleChartData(series, column, chart_interval) ]
                         }
                     ]
                 }).render()
@@ -737,10 +742,10 @@
 ##
 #if $tele_mode == 'js'
     #for $x in $tele_chart_items
-        $getChartJsCode($x, $x)
+        $teleChartJsCode($x, $x)
     #end for
 #else if $tele_mode == 'chart'
-    $chartCard($tele_item, $tele_section)
+    $teleChartCard($tele_item, $tele_section)
 #else
     $batteryCard($tele_item, $tele_section)
 #end if
