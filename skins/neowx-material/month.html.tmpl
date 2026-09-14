@@ -216,7 +216,9 @@
         #set global $tele_item    = $x
         #set global $tele_section = $section
         #include "telemetry.inc"
-    #else
+    #else if $x != "forecast"
+        ## A forecast that show_forecast switched off stops here: it is a
+        ## pseudo-item with no column, not an observation for valuesCard.
         $valuesCard($x, $section)
     #end if
 #end def
