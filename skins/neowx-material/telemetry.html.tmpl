@@ -16,9 +16,13 @@
         #end if
     #end for
 
+    ## $kind is this page's segment kind ('value' | 'chart') and names the
+    ## panel ids; the include's contract is 'card' | 'chart' | 'js'.
+    #set $mode = 'card' if $kind == 'value' else $kind
+
     #if $seg['type'] is None
         #for $x in $seg['items']
-            #set global $tele_mode    = $kind
+            #set global $tele_mode    = $mode
             #set global $tele_item    = $x
             #set global $tele_section = $seg['slug']
             #include "telemetry.inc"
@@ -37,7 +41,7 @@
                     <div class="nwm-panel-body">
                         <div class="row">
                             #for $x in $seg['items']
-                                #set global $tele_mode    = $kind
+                                #set global $tele_mode    = $mode
                                 #set global $tele_item    = $x
                                 #set global $tele_section = $seg['slug']
                                 #include "telemetry.inc"
