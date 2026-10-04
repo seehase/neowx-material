@@ -178,6 +178,15 @@ every `tick_style`.
 `chart_interval` describe the **telemetry page's** window only. That page is
 unchanged.
 
+With MQTT enabled, a gauge placed this way updates live like the weather
+cards around it, provided the item has a `[[MQTT]] [[[SensorMapping]]]`
+entry. The browser does not guess from the raw number: each gauge card
+carries the states, ranges and thresholds from its `[[Telemetry]]` block, so
+a `status` sensor switches between its configured labels, and a `voltage` or
+`signal` sensor moves its bar or cone and turns red at `low_threshold`. The
+min and max side columns wait for the next report, as on every card. See the
+"Telemetry gauges" note in the MQTT guide.
+
 ### Per-field block structure
 
 ```ini

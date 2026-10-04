@@ -61,11 +61,12 @@
 #def batteryCard($name, $section = "")
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            ## data-nwm-telemetry is a contract with js/weewx-mqtt.js: the MQTT
-            ## updater rewrites every .card-value heading with a bare number and
-            ## unit, which would turn a mapped state like "OK" into "0.0 V" and
-            ## leave the drawn gauge stale. Cards carrying it are left alone.
-            <div class="card card-value h-100" data-name="$name" data-section="$section" data-nwm-telemetry="card">
+            ## data-nwm-gauge is a contract with js/weewx-mqtt.js (updateGaugeCard).
+            ## The MQTT updater would otherwise rewrite this heading with a bare
+            ## number and unit, turning a mapped state like "OK" into "0.0 V"
+            ## while the drawn gauge went stale. The spec carries everything a
+            ## live value needs - see gaugeSpec below.
+            <div class="card card-value h-100" data-name="$name" data-section="$section" data-nwm-gauge='$gaugeSpec($name)'>
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
@@ -169,15 +170,15 @@
                                         #end if
                                         #if $_show_value != 'no'
                                             #if $_val_pos == 'left'
-                                                <span class="text-muted font-small" style="position: absolute; right: 100%; margin-right: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap;">$_val_text</span>
+                                                <span class="text-muted font-small" data-nwm-gauge-text style="position: absolute; right: 100%; margin-right: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap;">$_val_text</span>
                                             #else if $_val_pos == 'right'
-                                                <span class="text-muted font-small" style="position: absolute; left: 100%; margin-left: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap;">$_val_text</span>
+                                                <span class="text-muted font-small" data-nwm-gauge-text style="position: absolute; left: 100%; margin-left: 16px; top: 50%; transform: translateY(-50%); white-space: nowrap;">$_val_text</span>
                                             #end if
                                         #end if
                                     </div>
                                     #if $_val_pos == 'bottom'
                                         #if $_show_value != 'no'
-                                            <div class="text-muted font-small mt-1">$_val_text</div>
+                                            <div class="text-muted font-small mt-1" data-nwm-gauge-text>$_val_text</div>
                                         #else
                                             <div class="text-muted font-small mt-1">&nbsp;</div>
                                         #end if
@@ -475,6 +476,90 @@
 #end def
 ##
 ## +-------------------------------------------------------------------------+
+## | The range a voltage/signal gauge is scaled over, as [min, max] floats,  |
+## | or [min, None] when max_<kind> is absent or the range is invalid - the  |
+## | same rule rangePercentage applies, so the live spec below and the drawn |
+## | card agree on when there is a gauge at all.                             |
+## +-------------------------------------------------------------------------+
+#def rangeBounds($name, $max_key, $min_key)
+    #try
+        #set $min_v = float(str($getVar('Extras.Telemetry.' + $name + '.' + $min_key, '0')).strip())
+    #except
+        #set $min_v = 0.0
+    #end try
+    #try
+        #set $max_str = $getVar('Extras.Telemetry.' + $name + '.' + $max_key, None)
+        #if $max_str is None or str($max_str).strip() == '' or str($max_str) == 'None'
+            #return [$min_v, None]
+        #end if
+        #set $max_v = float(str($max_str).strip())
+        #if $max_v > $min_v
+            #return [$min_v, $max_v]
+        #end if
+        #return [$min_v, None]
+    #except
+        #return [$min_v, None]
+    #end try
+#end def
+##
+## +-------------------------------------------------------------------------+
+## | The gauge spec the MQTT updater applies in the browser (weewx-mqtt.js   |
+## | updateGaugeCard). Everything a live value needs is decided HERE, by the |
+## | same helpers that drew the card: for a status field a complete table of |
+## | every configured state - label, bar percentage, fill width and colour,  |
+## | with flip_values and low_state already applied - so no [[Telemetry]]    |
+## | parsing exists in JavaScript; for range fields just min/max and the     |
+## | low_threshold. Emitted as JSON inside a single-quoted attribute, hence  |
+## | the escaping at the end.                                                |
+## +-------------------------------------------------------------------------+
+#def gaugeSpec($name)
+    #import json
+    #set $_type = $sensorType($name)
+    #set $_show = str($getVar('Extras.Telemetry.' + $name + '.show_value', 'yes')).strip().lower() != 'no'
+    #set $spec = {'type': $_type, 'show_value': $_show, 'val_pos': str($getVar('_tele_val_pos', 'bottom'))}
+    #if $_type == 'status'
+        ## Every state the config knows: a label key ("0 = OK") or a
+        ## chart_position_<n> key, either is enough to be worth a table row.
+        #set $field = $getVar('Extras.Telemetry.' + $name, {})
+        #set $keys = set()
+        #for $k in list($field.keys())
+            #set $ks = str($k).strip()
+            #if $ks.isdigit()
+                #silent $keys.add($ks)
+            #else if $ks.startswith('chart_position_') and $ks.split('chart_position_', 1)[1].isdigit()
+                #silent $keys.add($ks.split('chart_position_', 1)[1])
+            #end if
+        #end for
+        #set $states = {}
+        #for $k in sorted($keys, key=int)
+            #set $pct = $calculateStatePercentage($name, $k)
+            #set $entry = {'label': str($mapBatteryValue($name, $k)).strip(), 'pct': $pct, 'fill': None, 'color': None}
+            #if $pct is not None
+                #set $low = $isLowState($name, $k)
+                #silent $entry.update({'fill': $getStateFillWidth($name, $pct, $low), 'color': '#f44336' if $low else '#4caf50'})
+            #end if
+            #silent $states.update({$k: $entry})
+        #end for
+        #silent $spec.update({'states': $states})
+    #else if $_type in ('voltage', 'signal', 'percent')
+        #try
+            #set $thr = float($getVar('Extras.Telemetry.' + $name + '.low_threshold', '20'))
+        #except
+            #set $thr = 20.0
+        #end try
+        #silent $spec.update({'low_threshold': $thr})
+        #if $_type == 'voltage'
+            #set $bounds = $rangeBounds($name, 'max_voltage', 'min_voltage')
+            #silent $spec.update({'min': $bounds[0], 'max': $bounds[1]})
+        #else if $_type == 'signal'
+            #set $bounds = $rangeBounds($name, 'max_signal', 'min_signal')
+            #silent $spec.update({'min': $bounds[0], 'max': $bounds[1]})
+        #end if
+    #end if
+    #return json.dumps($spec).replace('&', '&amp;').replace("'", '&#39;').replace('<', '&lt;').replace('>', '&gt;')
+#end def
+##
+## +-------------------------------------------------------------------------+
 ## | Render the signal "cone" as a static SVG: two parenthesis-style wings   |
 ## | around a center dot, filled center-outward by percentage (0-100).       |
 ## | $name is unused for now.                                                |
@@ -501,11 +586,14 @@
     #set xfL = 52.0 + $f * (12.0 - 52.0)
     #set xfR = 68.0 + $f * (108.0 - 68.0)
     ## Constant y edges: top_i=7.25 bot_i=16.75 top_o=1 bot_o=23, center=12.
-    <svg viewBox="0 0 120 24" width="120" height="24" style="display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+    ## data-nwm-gauge-cone / data-nwm-cone are hooks for weewx-mqtt.js
+    ## drawSignalCone(), which recomputes the two filled wings for a live value
+    ## with the same geometry as below.
+    <svg data-nwm-gauge-cone viewBox="0 0 120 24" width="120" height="24" style="display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
         <path d="M 52 7.25 L 12 1 Q ${"%.3f" % (12.0 - 2 * $so)} 12 12 23 L 52 16.75 Q ${"%.3f" % (52.0 - 2 * $si)} 12 52 7.25 Z" fill="#4a4a4a"/>
         <path d="M 68 7.25 L 108 1 Q ${"%.3f" % (108.0 + 2 * $so)} 12 108 23 L 68 16.75 Q ${"%.3f" % (68.0 + 2 * $si)} 12 68 7.25 Z" fill="#4a4a4a"/>
-        <path d="M 52 7.25 L ${"%.3f" % $xfL} ${"%.3f" % (12.0 - $hhf)} Q ${"%.3f" % ($xfL - 2 * $sf)} 12 ${"%.3f" % $xfL} ${"%.3f" % (12.0 + $hhf)} L 52 16.75 Q ${"%.3f" % (52.0 - 2 * $si)} 12 52 7.25 Z" fill="$color"/>
-        <path d="M 68 7.25 L ${"%.3f" % $xfR} ${"%.3f" % (12.0 - $hhf)} Q ${"%.3f" % ($xfR + 2 * $sf)} 12 ${"%.3f" % $xfR} ${"%.3f" % (12.0 + $hhf)} L 68 16.75 Q ${"%.3f" % (68.0 + 2 * $si)} 12 68 7.25 Z" fill="$color"/>
+        <path data-nwm-cone="l" d="M 52 7.25 L ${"%.3f" % $xfL} ${"%.3f" % (12.0 - $hhf)} Q ${"%.3f" % ($xfL - 2 * $sf)} 12 ${"%.3f" % $xfL} ${"%.3f" % (12.0 + $hhf)} L 52 16.75 Q ${"%.3f" % (52.0 - 2 * $si)} 12 52 7.25 Z" fill="$color"/>
+        <path data-nwm-cone="r" d="M 68 7.25 L ${"%.3f" % $xfR} ${"%.3f" % (12.0 - $hhf)} Q ${"%.3f" % ($xfR + 2 * $sf)} 12 ${"%.3f" % $xfR} ${"%.3f" % (12.0 + $hhf)} L 68 16.75 Q ${"%.3f" % (68.0 + 2 * $si)} 12 68 7.25 Z" fill="$color"/>
         <circle cx="60" cy="12" r="3.5" fill="#ddd"/>
     </svg>
 #end def
