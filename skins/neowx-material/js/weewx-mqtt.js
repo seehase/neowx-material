@@ -383,6 +383,17 @@ function updatePayloadValues(payload) {
 
     valueCards.forEach(function (card) {
         let cardName = card.getAttribute('data-name');
+
+        // Telemetry gauge cards (telemetry.inc) show a mapped state such as
+        // "OK" and a drawn gauge, not a number with a unit. Since telemetry
+        // items may sit in any card section, they share this page with MQTT;
+        // writing the raw payload over them turned "OK" into "0.0 V". They
+        // opt out with data-nwm-telemetry - the attribute is the contract.
+        if (card.hasAttribute('data-nwm-telemetry')) {
+            debugLog('Telemetry card, left to the report cycle: ' + cardName);
+            return;
+        }
+
         let mapEntry = mapping[cardName];
 
         if (!mapEntry) {
