@@ -61,7 +61,11 @@
 #def batteryCard($name, $section = "")
     #if $getVar('day.' + name + '.has_data') and ($getVar('day.' + name + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card card-value h-100" data-name="$name" data-section="$section">
+            ## data-nwm-telemetry is a contract with js/weewx-mqtt.js: the MQTT
+            ## updater rewrites every .card-value heading with a bare number and
+            ## unit, which would turn a mapped state like "OK" into "0.0 V" and
+            ## leave the drawn gauge stale. Cards carrying it are left alone.
+            <div class="card card-value h-100" data-name="$name" data-section="$section" data-nwm-telemetry="card">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">
                         $getVar('obs.label.' + name)
