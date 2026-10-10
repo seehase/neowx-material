@@ -469,7 +469,6 @@ href="img/splash/splash_1536x2048.png"
     'chart': ('.card-chart', '.card-embedded'),
     'telemetry_chart': ('.card-chart', '.card-embedded'),
     'telemetry': ('.card-value', '.card-embedded'),
-    'embedded': ('.card', '.card-embedded'),
 }
 #set $_section_overrides = []
 #if $varExists('Extras.Appearance.sections')

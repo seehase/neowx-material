@@ -118,8 +118,8 @@ rendering: true if the name has a [[[<name>]]] block under [[Telemetry]], or
 if it appears in any content = telemetry / telemetry_chart section's items on
 any page - either signal is enough, and neither is page-scoped.
 isEmbeddedItem classifies a single item name: true if the name has a
-[[[<name>]]] block under [[Embedded]], or starts with 'iFrame' or 'image',
-or appears in any content = embedded section's items on any page.
+[[[<name>]]] block under [[Embedded]], or starts with 'iFrame' or 'image'
+(case-insensitive).
 """
 
 import logging
@@ -138,7 +138,7 @@ COLLAPSED = "collapsed"
 STATIC = "static"
 
 CARD = "card"
-CONTENTS = (CARD, "chart", "embedded", "telemetry", "telemetry_chart")
+CONTENTS = (CARD, "chart", "telemetry", "telemetry_chart")
 
 # Items that render at most once per page however many sections list them.
 # The forecast is one large card with fixed inner element ids
@@ -872,15 +872,12 @@ def _embedded_names(skin_dict):
     if cached is not None:
         return cached
     names = set()
-    # Signal 1: a [[Embedded]] [[[<name>]]] subsection. Only subsections count.
+    # A [[Embedded]] [[[<name>]]] subsection. Only subsections count.
     embedded = skin_dict.get("Extras", {}).get("Embedded", {})
     for key in getattr(embedded, "sections", list(embedded.keys())):
         val = embedded[key]
         if hasattr(val, "get"):
             names.add(str(key).strip())
-    # Signal 2: listed in any content = embedded section, on any page.
-    for item in order_items(skin_dict, "embedded"):
-        names.add(item)
     _cache_set(appearance, _EMBEDDED_KEY, names)
     return names
 
@@ -888,10 +885,9 @@ def _embedded_names(skin_dict):
 def is_embedded_item(skin_dict, name):
     """True when a listed item represents embedded content (iframe or image).
 
-    Any of:
+    Either of:
     - defined under [Extras][[Embedded]]
     - starts with 'iFrame' or 'image' (case-insensitive)
-    - appears in any content = embedded section
     """
     if name is None:
         return False
