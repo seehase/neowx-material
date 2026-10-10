@@ -72,6 +72,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/img/icon-96.png",
                         "skins/neowx-material/img/icon-alpha-1x.png",
                         "skins/neowx-material/img/icon-alpha-2x.png",
+                        "skins/neowx-material/img/weewx-comic.png",
                         "skins/neowx-material/img/splash/splash_1125x2436.png",
                         "skins/neowx-material/img/splash/splash_1136x640.png",
                         "skins/neowx-material/img/splash/splash_1242x2208.png",
