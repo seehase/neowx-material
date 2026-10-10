@@ -49,11 +49,9 @@ Which sections a page shows, and in what order, lives in
 
     [[[[today]]]]
         sections = cards_with_forecast, additional_cards, charts
-        show_embedded = true
 
     [[[[yesterday]]]]
         sections = cards_without_forecast, additional_cards, charts
-        show_embedded = false
 
   Keys are the $page values the templates carry: today (index), yesterday,
   week, month (this month and the archives), year (likewise), telemetry.
@@ -72,19 +70,15 @@ one template only:
     [[[[month]]]]
         sections = cards, charts
         [[[[[month_archive]]]]]
-            show_embedded = false
+            sections = cards, archive_charts
 
   month  -> month, month_archive
   year   -> year, year_archive
   today, yesterday, week and telemetry take no sub-blocks (one template each) -
   so [[[[[week]]]]] is never consulted even if someone writes it.
 
-Every setting resolves sub-block, then page block, then false for boolean
-settings (show_embedded), per setting independently.
-page_setting() (panelPageSetting in the search list below) resolves this
-boolean setting. Enabled states are explicitly configured in skin.conf
-(such as show_embedded = true on today); if not specified on either the
-sub-block or the page block, they default to false.
+Settings resolve sub-block, then page block, for settings per setting
+independently.
 
 configobj folds a plain setting written below a sub-block into that
 sub-block, where it silently stops working. _warn_page_blocks() can only
@@ -111,21 +105,21 @@ never added to the search list and the pages fail to generate:
 Then, in a template that has declared #attr $page (and, where relevant,
 #attr $subpage):
 
-    #set $segments = $panelSegments('card', page=$page)
-    #set $flat     = $panelItems('chart', page=$page)
-    #set $embed    = $panelPageSetting('show_embedded', $page, $subpage)
-    #set $isBattery = $isTelemetryItem('outTempBatteryStatus')
+    #set $segments   = $panelSegments('card', page=$page)
+    #set $flat       = $panelItems('chart', page=$page)
+    #set $isBattery  = $isTelemetryItem('outTempBatteryStatus')
+    #set $isEmbed    = $isEmbeddedItem('iFrame1')
 
 panelSegments carries the grouping and is what you loop over to draw a row or a
 panel.  panelItems flattens the same data to bare names, for the places that
 only need to know whether an item is present, such as the chart JavaScript.
-panelPageSetting resolves the boolean setting 'show_embedded' the same
-sub-block/page/default way described above, for templates that only need
-the one value rather than a full section list.
 isTelemetryItem classifies a single item name so a template can pick its
 rendering: true if the name has a [[[<name>]]] block under [[Telemetry]], or
 if it appears in any content = telemetry / telemetry_chart section's items on
 any page - either signal is enough, and neither is page-scoped.
+isEmbeddedItem classifies a single item name: true if the name has a
+[[[<name>]]] block under [[Embedded]], or starts with 'iFrame' or 'image',
+or appears in any content = embedded section's items on any page.
 """
 
 import logging
@@ -171,7 +165,7 @@ SUBPAGES = {
 }
 
 # Keys valid in a [[[[page]]]] or [[[[[subpage]]]]] block.
-PAGE_SETTING_KEYS = ("sections", "show_embedded")
+PAGE_SETTING_KEYS = ("sections",)
 
 # Order settings from 1.68.x.  Only used to recognise an unmigrated config.
 LEGACY_KEYS = (
@@ -457,11 +451,7 @@ def _report_missing_pages(appearance):
 
 
 def page_setting(skin_dict, key, page=None, subpage=None):
-    """Resolve one boolean page setting: sub-block, then page, then False.
-
-    Per key independently - a sub-block setting only show_embedded still
-    inherits the page block's setting.
-    """
+    """Resolve one boolean page setting: sub-block, then page, then False."""
     appearance = _appearance(skin_dict)
     _warn_page_blocks(appearance, page)
     entry, sub = _page_entries(appearance, page, subpage)
@@ -499,8 +489,8 @@ def _warn_page_blocks(appearance, page):
 
         [[[[month]]]]
             [[[[[month_archive]]]]]
-                show_embedded = false
-            show_embedded = false      # absorbed into month_archive, silently dead
+                sections = cards, archive_charts
+            sections = cards, charts      # absorbed into month_archive, silently dead
 
     A recognised page-setting key found inside a subsection that is not a
     valid sub-page name IS that signature, so it gets named rather than left
@@ -539,14 +529,14 @@ def _warn_page_blocks(appearance, page):
         if name in valid:
             block = entry[name]
             for bad in getattr(block, "scalars", []):
-                if bad == "show_forecast":
-                    problem = ("deprecated-show-forecast", key, name)
+                if bad in ("show_forecast", "show_embedded"):
+                    problem = ("deprecated-" + bad, key, name)
                     if not _problem_seen(appearance, problem):
                         _mark_problem(appearance, problem)
                         log.warning(
-                            "panelorder: 'show_forecast' setting in [[[[[%s]]]]] under page '%s' has been removed; "
-                            "configure forecast inclusion via section items instead.",
-                            name, key,
+                            "panelorder: '%s' setting in [[[[[%s]]]]] under page '%s' has been removed; "
+                            "configure content via section items instead.",
+                            bad, name, key,
                         )
                     continue
                 if bad not in PAGE_SETTING_KEYS:
@@ -586,14 +576,14 @@ def _warn_page_blocks(appearance, page):
             )
 
     for bad in getattr(entry, "scalars", []):
-        if bad == "show_forecast":
-            problem = ("deprecated-show-forecast", key)
+        if bad in ("show_forecast", "show_embedded"):
+            problem = ("deprecated-" + bad, key)
             if not _problem_seen(appearance, problem):
                 _mark_problem(appearance, problem)
                 log.warning(
-                    "panelorder: 'show_forecast' setting on page '%s' has been removed; "
-                    "configure forecast inclusion via section items instead.",
-                    key,
+                    "panelorder: '%s' setting on page '%s' has been removed; "
+                    "configure content via section items instead.",
+                    bad, key,
                 )
             continue
         if bad in PAGE_SETTING_KEYS:
@@ -873,6 +863,45 @@ def is_telemetry_item(skin_dict, name):
     return str(name).strip() in _telemetry_names(skin_dict)
 
 
+_EMBEDDED_KEY = ("__embedded__",)
+
+
+def _embedded_names(skin_dict):
+    appearance = _appearance(skin_dict)
+    cached = _cache_get(appearance, _EMBEDDED_KEY)
+    if cached is not None:
+        return cached
+    names = set()
+    # Signal 1: a [[Embedded]] [[[<name>]]] subsection. Only subsections count.
+    embedded = skin_dict.get("Extras", {}).get("Embedded", {})
+    for key in getattr(embedded, "sections", list(embedded.keys())):
+        val = embedded[key]
+        if hasattr(val, "get"):
+            names.add(str(key).strip())
+    # Signal 2: listed in any content = embedded section, on any page.
+    for item in order_items(skin_dict, "embedded"):
+        names.add(item)
+    _cache_set(appearance, _EMBEDDED_KEY, names)
+    return names
+
+
+def is_embedded_item(skin_dict, name):
+    """True when a listed item represents embedded content (iframe or image).
+
+    Any of:
+    - defined under [Extras][[Embedded]]
+    - starts with 'iFrame' or 'image' (case-insensitive)
+    - appears in any content = embedded section
+    """
+    if name is None:
+        return False
+    sname = str(name).strip()
+    if sname in _embedded_names(skin_dict):
+        return True
+    sname_lower = sname.lower()
+    return sname_lower.startswith("iframe") or sname_lower.startswith("image")
+
+
 def order_items(skin_dict, content=CARD, page=None, subpage=None):
     """Flat, de-duplicated item names for one content region.
 
@@ -906,7 +935,7 @@ class PanelOrder(SearchList):
         skin_dict = self.generator.skin_dict
 
         def panel_segments(content=CARD, enable_panels=None, page=None,
-                           subpage=None):
+                            subpage=None):
             if enable_panels is None:
                 enable_panels = enable_panels_setting(skin_dict)
             return parse_sections(skin_dict, content, enable_panels, page,
@@ -924,10 +953,14 @@ class PanelOrder(SearchList):
         def is_telemetry(name):
             return is_telemetry_item(skin_dict, name)
 
+        def is_embedded(name):
+            return is_embedded_item(skin_dict, name)
+
         return [{
             "panelSegments": panel_segments,
             "panelItems": panel_items,
             "panelPageSetting": panel_page_setting,
             "panelSectionSlug": panel_section_slug,
             "isTelemetryItem": is_telemetry,
+            "isEmbeddedItem": is_embedded,
         }]
