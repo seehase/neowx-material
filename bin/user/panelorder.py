@@ -47,10 +47,17 @@ items and, optionally, how to present them:
 Which sections a page shows, and in what order, lives in
 [Extras][[Appearance]][[[pages]]]:
 
-    [[[[day]]]]
+    [[[[today]]]]
         sections = overview, temp_charts, soil
+        show_forecast = true
+        show_embedded = true
 
-  Keys are the $page values the templates carry: day (index and yesterday),
+    [[[[yesterday]]]]
+        sections = overview, temp_charts, soil
+        show_forecast = false
+        show_embedded = false
+
+  Keys are the $page values the templates carry: today (index), yesterday,
   week, month (this month and the archives), year (likewise), telemetry.
   [[[pages]]] is mandatory: every page must be explicitly listed with the
   sections it displays.  Sections not listed do not appear on that page;
@@ -59,31 +66,26 @@ Which sections a page shows, and in what order, lives in
   nothing.  Order sorts WITHIN a content region - cards and charts are
   separate columns, so a mixed list does not interleave them.
 
-Three of the five $page values are shared by two templates apiece: 'day'
-covers both the current-conditions page and yesterday, 'month' covers this
-month and the archived month pages, and 'year' likewise.  Each such key may
-carry sub-blocks that override it for one template only:
+Two of the page values are shared by two templates apiece: 'month' covers this
+month and the archived month pages, and 'year' covers this year and the
+archived year pages. Each such key may carry sub-blocks that override it for
+one template only:
 
-    [[[[day]]]]
-        sections = cards, charts, embedded
-        [[[[[current]]]]]
-            show_forecast = true
-            show_embedded = true
-        [[[[[yesterday]]]]]
-            show_forecast = false
+    [[[[month]]]]
+        sections = cards, charts
+        [[[[[month_archive]]]]]
             show_embedded = false
 
-  day    -> current, yesterday
   month  -> month, month_archive
   year   -> year, year_archive
-  week and telemetry take no sub-blocks - one template each - so
-  [[[[[week]]]]] is never consulted even if someone writes it.
+  today, yesterday, week and telemetry take no sub-blocks (one template each) -
+  so [[[[[week]]]]] is never consulted even if someone writes it.
 
 Every setting resolves sub-block, then page block, then false for boolean
 settings (show_forecast, show_embedded), per setting independently.
 page_setting() (panelPageSetting in the search list below) resolves these
 two boolean settings. Enabled states are explicitly configured in skin.conf
-(such as show_forecast = true and show_embedded = true on current); if not
+(such as show_forecast = true and show_embedded = true on today); if not
 specified on either the sub-block or the page block, they default to false.
 
 configobj folds a plain setting written below a sub-block into that
@@ -159,14 +161,13 @@ SINGLETON_ITEMS = ("forecast",)
 SETTING_KEYS = ("items", "title", "collapsed", "content", "items_title_align")
 
 # Sub-page override levels inside [[[pages]]].  A page key absent from this
-# map takes no sub-blocks at all, which is how 'week' and 'telemetry' - one
-# template each - are expressed without a special case.
+# map takes no sub-blocks at all, which is how 'today', 'yesterday', 'week',
+# and 'telemetry' - one template each - are expressed without a special case.
 #
-# Note that a template ALWAYS declares a $subpage name, even those two; only
+# Note that a template ALWAYS declares a $subpage name, even those; only
 # the config sub-block is restricted.  The two ideas are separate and
 # conflating them is the easy mistake here.
 SUBPAGES = {
-    "day": ("current", "yesterday"),
     "month": ("month", "month_archive"),
     "year": ("year", "year_archive"),
 }
@@ -421,16 +422,20 @@ def _page_entries(appearance, page, subpage):
         return None, None
     key = str(page).strip()
     if key not in pages:
-        return None, None
+        if key == "today" and "current" in pages:
+            key = "current"
+        elif key == "current" and "today" in pages:
+            key = "today"
+        else:
+            return None, None
     entry = pages[key]
     if not hasattr(entry, "get"):
         return None, None
     if subpage is None:
         return entry, None
     sub_key = str(subpage).strip()
-    # Only look for a sub-block where one is actually valid.  'week' has no
-    # SUBPAGES entry, so [[[[[week]]]]] is never consulted even if written -
-    # and Step 5's validation is what tells the user they wrote one.
+    # Only look for a sub-block where one is actually valid.  'today', 'yesterday',
+    # 'week' and 'telemetry' have no SUBPAGES entry, so sub-blocks are never consulted.
     if sub_key not in SUBPAGES.get(key, ()):
         return entry, None
     if sub_key not in entry:
@@ -494,10 +499,10 @@ def _warn_page_blocks(appearance, page):
     subsection.  At five levels deep that stops being an edge case - people
     naturally write:
 
-        [[[[day]]]]
-            [[[[[current]]]]]
-                show_forecast = true
-            show_embedded = true      # absorbed into current, silently dead
+        [[[[month]]]]
+            [[[[[month_archive]]]]]
+                show_embedded = false
+            show_forecast = false      # absorbed into month_archive, silently dead
 
     A recognised page-setting key found inside a subsection that is not a
     valid sub-page name IS that signature, so it gets named rather than left
@@ -508,9 +513,25 @@ def _warn_page_blocks(appearance, page):
     pages = appearance.get("pages")
     if not pages or not hasattr(pages, "get"):
         return
+
+    if "day" in pages:
+        problem = ("legacy-day-page",)
+        if not _problem_seen(appearance, problem):
+            _mark_problem(appearance, problem)
+            log.error(
+                "panelorder: '[[[[day]]]]' in [[[pages]]] has been replaced by "
+                "separate '[[[[today]]]]' and '[[[[yesterday]]]]' page blocks. "
+                "Please update skin.conf."
+            )
+
     key = str(page).strip()
     if key not in pages:
-        return
+        if key == "today" and "current" in pages:
+            key = "current"
+        elif key == "current" and "today" in pages:
+            key = "today"
+        else:
+            return
     entry = pages[key]
     if not hasattr(entry, "get"):
         return
@@ -592,15 +613,28 @@ def _page_order(appearance, page, subpage=None):
 
     key = str(page).strip()
     if key not in pages:
-        problem = ("unconfigured-page", key)
-        if not _problem_seen(appearance, problem):
-            _mark_problem(appearance, problem)
-            log.error(
-                "panelorder: page '%s' has no entry in [[[pages]]]. "
-                "Configure sections for this page in [[[pages]]].",
-                key,
-            )
-        return []
+        if key == "today" and "current" in pages:
+            key = "current"
+        elif key == "current" and "today" in pages:
+            key = "today"
+        else:
+            problem = ("unconfigured-page", key)
+            if not _problem_seen(appearance, problem):
+                _mark_problem(appearance, problem)
+                if "day" in pages:
+                    log.error(
+                        "panelorder: page '%s' has no entry in [[[pages]]]. "
+                        "'[[[[day]]]]' is no longer supported; please configure "
+                        "'[[[[today]]]]' and '[[[[yesterday]]]]' separately in [[[pages]]].",
+                        key,
+                    )
+                else:
+                    log.error(
+                        "panelorder: page '%s' has no entry in [[[pages]]]. "
+                        "Configure sections for this page in [[[pages]]].",
+                        key,
+                    )
+            return []
 
     entry, sub = _page_entries(appearance, page, subpage)
     for block in (sub, entry):
