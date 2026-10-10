@@ -44,7 +44,7 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
 - Explicitly configure which sections each page shows, and in what order, with mandatory `[[[pages]]]` (`today`, `yesterday`, `week`, `month`, `year`, `telemetry`), and override archive pages (`month` → `month_archive`, `year` → `year_archive`)
 - Forecast and embedded items (iframes, images) are controlled directly by including or omitting them in section `items` (e.g. `cards_with_forecast` vs `cards_without_forecast`, or placing an iframe / image in any section)
 - Panels you collapse stay collapsed for the life of the browser tab, so the auto-refresh stops reopening them
-- Sections render in the order they are written, so a panel can be followed by an ungrouped row
+- Sections render sequentially down the page in the exact order they are listed in `[[[pages]]]`, so cards, charts, and embedded panels can be freely ordered or interleaved
 - Each section starts on a new line, so grouping is meaningful even without a title
 - Panels whose items all lack data are hidden rather than drawn empty
 - Fully configurable panel header color and title color for both light and dark mode
