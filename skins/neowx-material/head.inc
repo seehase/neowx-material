@@ -334,6 +334,7 @@ href="img/splash/splash_1536x2048.png"
     #set $enable_hover = $Extras.Appearance.get('enable_hover_effect', 'true')
     #if $enable_hover == 'true' or $enable_hover == True
         /* Hover effect for Value Cards and Graph Cards (Lift & Shadow) */
+        main .card:not(.card-forecast):hover,
         .temprow .card:not(.card-forecast):hover,
         .graphrow .card:not(.card-forecast):hover {
             box-shadow: 0 8px 15px rgba(0,0,0,0.3) !important;
@@ -342,6 +343,9 @@ href="img/splash/splash_1536x2048.png"
     #end if
 
     /* Prevents "Touch to Search" popups and blue text selection on mobile/desktop */
+    main .card,
+    main .card h3,
+    main .card .card-title,
     .temprow .card,
     .graphrow .card,
     .graphrow .card h3,
@@ -466,10 +470,9 @@ href="img/splash/splash_1536x2048.png"
 ## which wins is decided by the order they are emitted in below: section rules
 ## first, per-card rules after.
 #set $_CONTENT_CARD_KINDS = {
-    'chart': ('.card-chart',),
-    'telemetry_chart': ('.card-chart',),
-    'telemetry': ('.card-value',),
-    'embedded': ('.card',),
+    'chart': ('.card-chart', '.card-embedded'),
+    'telemetry_chart': ('.card-chart', '.card-embedded'),
+    'telemetry': ('.card-value', '.card-embedded'),
 }
 #set $_section_overrides = []
 #if $varExists('Extras.Appearance.sections')
@@ -485,7 +488,7 @@ href="img/splash/splash_1536x2048.png"
         ## A default (or unrecognised) content is the cards panel, which holds
         ## value cards and can hold the forecast card too.
         #set $_content = str($_section.get('content', '')).strip().lower()
-        #set $_kinds = $_CONTENT_CARD_KINDS.get($_content, ('.card-value', '.card-forecast'))
+        #set $_kinds = $_CONTENT_CARD_KINDS.get($_content, ('.card-value', '.card-forecast', '.card-embedded'))
         ## configobj gives a list for "a, b, c" and a string for a single name.
         #set $_items = $_section.get('items', [])
         #if isinstance($_items, str)
