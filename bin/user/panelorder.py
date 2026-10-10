@@ -52,13 +52,12 @@ Which sections a page shows, and in what order, lives in
 
   Keys are the $page values the templates carry: day (index and yesterday),
   week, month (this month and the archives), year (likewise), telemetry.
-  Sections not listed do not appear on that page.  A page with no entry, a
-  page whose entry has no 'sections =' line at all (so commenting the line
-  out is safe), and every page when [[[pages]]] is absent, all show every
-  section in declaration order.  Writing 'sections =' with nothing after it
-  is different from leaving the line out entirely: it means this page
-  deliberately shows nothing.  Order sorts WITHIN a content region - cards
-  and charts are separate columns, so a mixed list does not interleave them.
+  [[[pages]]] is mandatory: every page must be explicitly listed with the
+  sections it displays.  Sections not listed do not appear on that page;
+  there is no implicit fallback to all declared sections.  Writing
+  'sections =' with nothing after it means this page deliberately shows
+  nothing.  Order sorts WITHIN a content region - cards and charts are
+  separate columns, so a mixed list does not interleave them.
 
 Three of the five $page values are shared by two templates apiece: 'day'
 covers both the current-conditions page and yesterday, 'month' covers this
@@ -67,11 +66,12 @@ carry sub-blocks that override it for one template only:
 
     [[[[day]]]]
         sections = cards, charts, embedded
-        show_embedded = true
         [[[[[current]]]]]
             show_forecast = true
+            show_embedded = true
         [[[[[yesterday]]]]]
-            sections = cards, charts
+            show_forecast = false
+            show_embedded = false
 
   day    -> current, yesterday
   month  -> month, month_archive
@@ -79,15 +79,12 @@ carry sub-blocks that override it for one template only:
   week and telemetry take no sub-blocks - one template each - so
   [[[[[week]]]]] is never consulted even if someone writes it.
 
-Every setting resolves sub-block, then page block, then a built-in default,
-per setting independently: 'yesterday' above overrides 'sections' but still
-inherits 'show_embedded' from the 'day' block, since it never sets its own.
-page_setting() (panelPageSetting in the search list below) does this
-resolution for the two boolean settings, 'show_embedded' and 'show_forecast'.
-Both default to true for 'current' and false for every other page and
-sub-page, and that default is NOT inherited from the page block - it is
-fixed per sub-page name, because 'day' covers both current and yesterday and
-only one of them has an embedded region or today's forecast.
+Every setting resolves sub-block, then page block, then false for boolean
+settings (show_forecast, show_embedded), per setting independently.
+page_setting() (panelPageSetting in the search list below) resolves these
+two boolean settings. Enabled states are explicitly configured in skin.conf
+(such as show_forecast = true and show_embedded = true on current); if not
+specified on either the sub-block or the page block, they default to false.
 
 configobj folds a plain setting written below a sub-block into that
 sub-block, where it silently stops working. _warn_page_blocks() can only
@@ -176,12 +173,6 @@ SUBPAGES = {
 
 # Keys valid in a [[[[page]]]] or [[[[[subpage]]]]] block.
 PAGE_SETTING_KEYS = ("sections", "show_embedded", "show_forecast")
-
-# The whole of the defaults table in one line: on for Current, off everywhere
-# else.  Deliberately NOT inherited from the page block - yesterday shares
-# [[[[day]]]] with current but has no embedded region and no forecast today,
-# so a default that inherited would change what upgraders see.
-_DEFAULT_ON_SUBPAGE = "current"
 
 # Order settings from 1.68.x.  Only used to recognise an unmigrated config.
 LEGACY_KEYS = (
@@ -450,8 +441,20 @@ def _page_entries(appearance, page, subpage):
     return entry, sub
 
 
+def _report_missing_pages(appearance):
+    """Complain once per config if [[[pages]]] is missing from [[Appearance]]."""
+    problem = ("missing-pages",)
+    if not _problem_seen(appearance, problem):
+        _mark_problem(appearance, problem)
+        log.error(
+            "panelorder: no [[[pages]]] found in [[Appearance]]. "
+            "[[[pages]]] is mandatory; each page must explicitly define "
+            "which sections to render. See skin.conf for the syntax."
+        )
+
+
 def page_setting(skin_dict, key, page=None, subpage=None):
-    """Resolve one boolean page setting: sub-block, then page, then default.
+    """Resolve one boolean page setting: sub-block, then page, then False.
 
     Per key independently - a sub-block setting only show_forecast still
     inherits the page block's show_embedded.
@@ -475,13 +478,13 @@ def page_setting(skin_dict, key, page=None, subpage=None):
             _mark_problem(appearance, problem)
             log.warning(
                 "panelorder: %s = %s on page '%s' is not true or false; "
-                "using the default.",
+                "treating as false.",
                 key,
                 raw,
                 subpage or page,
             )
         break
-    return str(subpage).strip() == _DEFAULT_ON_SUBPAGE
+    return False
 
 
 def _warn_page_blocks(appearance, page):
@@ -568,27 +571,51 @@ def _warn_page_blocks(appearance, page):
 
 
 def _page_order(appearance, page, subpage=None):
-    """Ordered section ids for one page, or None meaning 'no page filter'.
+    """Ordered section ids for one page, or None if no page was specified.
 
-    None is the compatibility path and covers five cases: no page was asked
-    for; there is no [[[pages]]] block; [[[pages]]] is itself a scalar (a
-    plain "pages = foo" written where a subsection block belongs); this page
-    has no entry in it; or neither the sub-block nor the page block has a
-    'sections =' line at all.  All of them mean "every section, in declaration
-    order", which is what every config written before [[[pages]]] existed
-    expects, and it is also what makes commenting out a page's 'sections' line
-    safe rather than silently blanking the page.
+    None means 'no page specified' (unscoped/global call, e.g. from
+    order_items(skin_dict, content)), allowing parse_sections to aggregate
+    across all configured pages in [[[pages]]].
 
-    An entry whose 'sections' line IS present, even written empty, is NOT
-    None: absence of the key means "not configured" (fall through to the level
-    above), while an explicit empty value means "configured to show nothing".
-    The two must not collapse into each other, at either level.
+    For a specified page, returns the list of section ids configured in
+    [[[pages]]] (sub-block first, then page block). If [[[pages]]] is missing
+    or the page has no 'sections' configured, logs an error and returns []
+    (showing nothing, with no implicit fallback).
     """
+    if page is None:
+        return None
+
+    pages = appearance.get("pages")
+    if not pages or not hasattr(pages, "get"):
+        _report_missing_pages(appearance)
+        return []
+
+    key = str(page).strip()
+    if key not in pages:
+        problem = ("unconfigured-page", key)
+        if not _problem_seen(appearance, problem):
+            _mark_problem(appearance, problem)
+            log.error(
+                "panelorder: page '%s' has no entry in [[[pages]]]. "
+                "Configure sections for this page in [[[pages]]].",
+                key,
+            )
+        return []
+
     entry, sub = _page_entries(appearance, page, subpage)
     for block in (sub, entry):
         if block is not None and "sections" in block:
             return _as_list(block.get("sections"))
-    return None
+
+    problem = ("unconfigured-page-sections", key, str(subpage))
+    if not _problem_seen(appearance, problem):
+        _mark_problem(appearance, problem)
+        log.error(
+            "panelorder: page '%s'%s has no 'sections' configured in [[[pages]]].",
+            key,
+            (" (subpage '%s')" % subpage) if subpage else "",
+        )
+    return []
 
 
 def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
@@ -600,8 +627,9 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
 
     'page' is one of the $page values the templates carry - day, week, month,
     year, telemetry.  When [[[pages]]] names that page, only the sections it
-    lists are returned, in the order it lists them.  Anything else means every
-    section in declaration order.
+    lists are returned, in the order it lists them.  With [[[pages]]] mandatory,
+    an unconfigured page returns [] rather than falling back to all sections.
+    A global call (page=None) aggregates sections across all configured pages.
 
     Results are memoised per (appearance identity, content, enable_panels,
     page), since a single template can call this dozens of times for the same
@@ -630,11 +658,35 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
     # Spans every section, unlike the per-section 'seen' below.
     claimed = set()
 
-    declared = getattr(sections, "sections", list(sections.keys()))
     _warn_page_blocks(appearance, page)
     order = _page_order(appearance, page, subpage)
     if order is None:
-        section_ids = declared
+        # page is None: unscoped/global call across all configured pages
+        # (e.g. openmeteo checking forecast presence or telemetry discovering sensor names).
+        pages = appearance.get("pages")
+        if not pages or not hasattr(pages, "get"):
+            _report_missing_pages(appearance)
+            return []
+        aggregated = []
+        seen = set()
+        for pkey in getattr(pages, "sections", list(pages.keys())):
+            pentry = pages[pkey]
+            if not hasattr(pentry, "get"):
+                continue
+            if "sections" in pentry:
+                for sid in _as_list(pentry.get("sections")):
+                    if sid not in seen:
+                        seen.add(sid)
+                        aggregated.append(sid)
+            for sub_key_name in SUBPAGES.get(pkey, ()):
+                if sub_key_name in pentry and hasattr(pentry[sub_key_name], "get"):
+                    sub_entry = pentry[sub_key_name]
+                    if "sections" in sub_entry:
+                        for sid in _as_list(sub_entry.get("sections")):
+                            if sid not in seen:
+                                seen.add(sid)
+                                aggregated.append(sid)
+        section_ids = [sid for sid in aggregated if sid in sections]
     else:
         # Iterate the PAGE's order, not the declaration order - filtering the
         # declared list instead would give per-page selection but not per-page
