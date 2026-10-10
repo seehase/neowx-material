@@ -3,8 +3,8 @@
 ## |    index.html.tmpl                  Template file for "current" page    |
 ## +-------------------------------------------------------------------------+
 
-#attr $page = 'day'
-#attr $subpage = 'current'
+#attr $page = 'today'
+#attr $subpage = 'today'
 
 ## +-------------------------------------------------------------------------+
 ## | Template for display card of values (left column)                       |
@@ -884,8 +884,8 @@
                     #set $cc = $Extras.Appearance.get($x, {})
                     #if $cc
                         #set $cc_type = $cc.get('charttype', 'area')
-                        ## Page-specific override subsection (key = "current" for this page).
-                        #set $cc_page = $cc.get('current', {})
+                        ## Page-specific override subsection (key = "today" or "current" for this page).
+                        #set $cc_page = $cc.get('today', $cc.get('current', {}))
                         ## Resolve column list: page → top-level → 'avg'
                         #set $cc_column_raw = $cc_page.get('column', $cc.get('column', 'avg'))
                         #set $cc_cols = ['avg']
