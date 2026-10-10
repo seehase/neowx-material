@@ -164,6 +164,10 @@ SUBPAGES = {
     "year": ("year", "year_archive"),
 }
 
+# Pages that do not support sections or panels by design. When unconfigured in
+# [[[pages]]], they return an empty section list without error.
+NON_PANEL_PAGES = ("almanac", "archive", "history")
+
 # Keys valid in a [[[[page]]]] or [[[[[subpage]]]]] block.
 PAGE_SETTING_KEYS = ("sections",)
 
@@ -625,6 +629,8 @@ def _page_order(appearance, page, subpage=None):
             key = "current"
         elif key == "current" and "today" in pages:
             key = "today"
+        elif key in NON_PANEL_PAGES:
+            return []
         else:
             problem = ("unconfigured-page", key)
             if not _problem_seen(appearance, problem):
