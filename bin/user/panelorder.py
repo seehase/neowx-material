@@ -660,9 +660,14 @@ def _page_order(appearance, page, subpage=None):
     return []
 
 
-def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
+def parse_sections(skin_dict, content=None, enable_panels=True, page=None,
                    subpage=None):
-    """Return the layout segments for one content region.
+    """Return the layout segments for one content region or all sections.
+
+    When 'content' is None or 'all', sections of all recognized content types
+    are returned in the exact order listed in the page configuration.
+    When 'content' is a specific type (e.g. 'card', 'chart'), only sections
+    matching that content type are returned.
 
     With enable_panels false the grouping is discarded but every item is kept,
     so turning panels off degrades to a flat row rather than losing cards.
@@ -685,7 +690,11 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
         _report_unmigrated(appearance)
         return []
 
-    wanted = str(content).strip().lower()
+    wanted = (
+        None
+        if content is None or str(content).strip().lower() == "all"
+        else str(content).strip().lower()
+    )
     enable_panels = bool(enable_panels)
     page_key = None if page is None else str(page).strip()
     sub_key = None if subpage is None else str(subpage).strip()
@@ -757,23 +766,20 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
 
         raw_content = section.get("content", CARD)
         section_content = str(raw_content).strip().lower()
-        if section_content != wanted:
-            # A section whose content matches wanted is, by construction,
-            # already a recognised value (wanted is always one of CONTENTS),
-            # so the validity check only needs to run for the sections we're
-            # about to skip anyway - that's also the only place an unknown
-            # value can be caught, since it can never equal a valid wanted.
-            if section_content not in CONTENTS:
-                problem = ("content", section_id, str(raw_content))
-                if not _problem_seen(appearance, problem):
-                    _mark_problem(appearance, problem)
-                    log.warning(
-                        "panelorder: section '%s' has content = %s, which is "
-                        "not one of %s; skipping the section.",
-                        section_id,
-                        raw_content,
-                        ", ".join(CONTENTS),
-                    )
+        if section_content not in CONTENTS:
+            problem = ("content", section_id, str(raw_content))
+            if not _problem_seen(appearance, problem):
+                _mark_problem(appearance, problem)
+                log.warning(
+                    "panelorder: section '%s' has content = %s, which is "
+                    "not one of %s; skipping the section.",
+                    section_id,
+                    raw_content,
+                    ", ".join(CONTENTS),
+                )
+            continue
+
+        if wanted is not None and section_content != wanted:
             continue
 
         _warn_unknown_keys(appearance, section, section_id)
@@ -806,6 +812,7 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
                     "title": title,
                     "items": items,
                     "slug": slugs[section_id],
+                    "content": section_content,
                 }
             )
         else:
@@ -814,6 +821,7 @@ def parse_sections(skin_dict, content=CARD, enable_panels=True, page=None,
                 "title": "",
                 "items": items,
                 "slug": slugs[section_id],
+                "content": section_content,
             })
 
     _cache_set(appearance, cache_key, segments)
@@ -898,8 +906,8 @@ def is_embedded_item(skin_dict, name):
     return sname_lower.startswith("iframe") or sname_lower.startswith("image")
 
 
-def order_items(skin_dict, content=CARD, page=None, subpage=None):
-    """Flat, de-duplicated item names for one content region.
+def order_items(skin_dict, content=None, page=None, subpage=None):
+    """Flat, de-duplicated item names for one content region or all sections.
 
     For loops that need the items themselves rather than the layout, such as
     the chart JavaScript generation.  De-duplicates here rather than relying
@@ -930,14 +938,14 @@ class PanelOrder(SearchList):
     def get_extension_list(self, timespan, db_lookup):
         skin_dict = self.generator.skin_dict
 
-        def panel_segments(content=CARD, enable_panels=None, page=None,
+        def panel_segments(content=None, enable_panels=None, page=None,
                             subpage=None):
             if enable_panels is None:
                 enable_panels = enable_panels_setting(skin_dict)
             return parse_sections(skin_dict, content, enable_panels, page,
                                   subpage)
 
-        def panel_items(content=CARD, page=None, subpage=None):
+        def panel_items(content=None, page=None, subpage=None):
             return order_items(skin_dict, content, page, subpage)
 
         def panel_page_setting(key, page=None, subpage=None):

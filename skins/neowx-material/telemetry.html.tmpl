@@ -103,19 +103,19 @@
         #set global $align_stop = $current.dateTime.raw
         #include "graph_align_setup.inc"
         <main>
-            <div class="container-fluid d-flex-xxl flex-wrap">
+            <div class="container-fluid">
 
-                <div class="row my-4 temprow align-content-start">
+                <div class="row my-4 align-content-start">
 
                     <div class="col-12 mb-4 text-center">
                         <h2 class="h2-responsive text-dark">$gettext("telemetry")</h2>
                     </div>
 
-                    #set $tele_val_segments = $panelSegments('telemetry', page=$page, subpage=$subpage)
-                    #set $tele_val_idx = 0
-                    #for $seg_i, $seg in $enumerate($tele_val_segments)
+                    #set $tele_segments = $panelSegments(page=$page, subpage=$subpage)
+                    #set $tele_panel_idx = 0
+                    #for $seg_i, $seg in $enumerate($tele_segments)
                         #if $seg['type'] is not None
-                            #set $tele_val_idx = $tele_val_idx + 1
+                            #set $tele_panel_idx = $tele_panel_idx + 1
                         #end if
                         ## Section boundary. A col-12 fills a whole flex line, so this is
                         ## what makes each section start on a fresh row. Panels are col-12
@@ -123,28 +123,8 @@
                         #if $seg_i > 0
                             <div class="col-12"></div>
                         #end if
-                        $renderTeleSegment($seg, $tele_val_idx, 'value')
-                    #end for
-
-                </div>
-
-                <hr class="m-0 mb-4 rowdivider">
-
-                <div class="row mt-3 graphrow align-content-start">
-
-                    #set $tele_chart_segments = $panelSegments('telemetry_chart', page=$page, subpage=$subpage)
-                    #set $tele_chart_idx = 0
-                    #for $seg_i, $seg in $enumerate($tele_chart_segments)
-                        #if $seg['type'] is not None
-                            #set $tele_chart_idx = $tele_chart_idx + 1
-                        #end if
-                        ## Section boundary. A col-12 fills a whole flex line, so this is
-                        ## what makes each section start on a fresh row. Panels are col-12
-                        ## already; plain sections need it emitted explicitly.
-                        #if $seg_i > 0
-                            <div class="col-12"></div>
-                        #end if
-                        $renderTeleSegment($seg, $tele_chart_idx, 'chart')
+                        #set $kind = 'chart' if $seg['content'] in ('chart', 'telemetry_chart') else 'value'
+                        $renderTeleSegment($seg, $tele_panel_idx, $kind)
                     #end for
 
                 </div>
