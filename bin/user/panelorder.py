@@ -48,13 +48,11 @@ Which sections a page shows, and in what order, lives in
 [Extras][[Appearance]][[[pages]]]:
 
     [[[[today]]]]
-        sections = overview, temp_charts, soil
-        show_forecast = true
+        sections = cards_with_forecast, additional_cards, charts
         show_embedded = true
 
     [[[[yesterday]]]]
-        sections = overview, temp_charts, soil
-        show_forecast = false
+        sections = cards_without_forecast, additional_cards, charts
         show_embedded = false
 
   Keys are the $page values the templates carry: today (index), yesterday,
@@ -82,11 +80,11 @@ one template only:
   so [[[[[week]]]]] is never consulted even if someone writes it.
 
 Every setting resolves sub-block, then page block, then false for boolean
-settings (show_forecast, show_embedded), per setting independently.
-page_setting() (panelPageSetting in the search list below) resolves these
-two boolean settings. Enabled states are explicitly configured in skin.conf
-(such as show_forecast = true and show_embedded = true on today); if not
-specified on either the sub-block or the page block, they default to false.
+settings (show_embedded), per setting independently.
+page_setting() (panelPageSetting in the search list below) resolves this
+boolean setting. Enabled states are explicitly configured in skin.conf
+(such as show_embedded = true on today); if not specified on either the
+sub-block or the page block, they default to false.
 
 configobj folds a plain setting written below a sub-block into that
 sub-block, where it silently stops working. _warn_page_blocks() can only
@@ -121,9 +119,9 @@ Then, in a template that has declared #attr $page (and, where relevant,
 panelSegments carries the grouping and is what you loop over to draw a row or a
 panel.  panelItems flattens the same data to bare names, for the places that
 only need to know whether an item is present, such as the chart JavaScript.
-panelPageSetting resolves one of the boolean settings, 'show_embedded' or
-'show_forecast', the same sub-block/page/default way described above, for
-templates that only need the one value rather than a full section list.
+panelPageSetting resolves the boolean setting 'show_embedded' the same
+sub-block/page/default way described above, for templates that only need
+the one value rather than a full section list.
 isTelemetryItem classifies a single item name so a template can pick its
 rendering: true if the name has a [[[<name>]]] block under [[Telemetry]], or
 if it appears in any content = telemetry / telemetry_chart section's items on
@@ -173,7 +171,7 @@ SUBPAGES = {
 }
 
 # Keys valid in a [[[[page]]]] or [[[[[subpage]]]]] block.
-PAGE_SETTING_KEYS = ("sections", "show_embedded", "show_forecast")
+PAGE_SETTING_KEYS = ("sections", "show_embedded")
 
 # Order settings from 1.68.x.  Only used to recognise an unmigrated config.
 LEGACY_KEYS = (
@@ -461,8 +459,8 @@ def _report_missing_pages(appearance):
 def page_setting(skin_dict, key, page=None, subpage=None):
     """Resolve one boolean page setting: sub-block, then page, then False.
 
-    Per key independently - a sub-block setting only show_forecast still
-    inherits the page block's show_embedded.
+    Per key independently - a sub-block setting only show_embedded still
+    inherits the page block's setting.
     """
     appearance = _appearance(skin_dict)
     _warn_page_blocks(appearance, page)
@@ -502,7 +500,7 @@ def _warn_page_blocks(appearance, page):
         [[[[month]]]]
             [[[[[month_archive]]]]]
                 show_embedded = false
-            show_forecast = false      # absorbed into month_archive, silently dead
+            show_embedded = false      # absorbed into month_archive, silently dead
 
     A recognised page-setting key found inside a subsection that is not a
     valid sub-page name IS that signature, so it gets named rather than left
@@ -541,6 +539,16 @@ def _warn_page_blocks(appearance, page):
         if name in valid:
             block = entry[name]
             for bad in getattr(block, "scalars", []):
+                if bad == "show_forecast":
+                    problem = ("deprecated-show-forecast", key, name)
+                    if not _problem_seen(appearance, problem):
+                        _mark_problem(appearance, problem)
+                        log.warning(
+                            "panelorder: 'show_forecast' setting in [[[[[%s]]]]] under page '%s' has been removed; "
+                            "configure forecast inclusion via section items instead.",
+                            name, key,
+                        )
+                    continue
                 if bad not in PAGE_SETTING_KEYS:
                     problem = ("subpage-key", key, name, bad)
                     if _problem_seen(appearance, problem):
@@ -578,6 +586,16 @@ def _warn_page_blocks(appearance, page):
             )
 
     for bad in getattr(entry, "scalars", []):
+        if bad == "show_forecast":
+            problem = ("deprecated-show-forecast", key)
+            if not _problem_seen(appearance, problem):
+                _mark_problem(appearance, problem)
+                log.warning(
+                    "panelorder: 'show_forecast' setting on page '%s' has been removed; "
+                    "configure forecast inclusion via section items instead.",
+                    key,
+                )
+            continue
         if bad in PAGE_SETTING_KEYS:
             continue
         problem = ("page-key", key, bad)
