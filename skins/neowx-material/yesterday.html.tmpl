@@ -87,11 +87,11 @@
 ## | (handles ET guard, temperatureThresholdDays, and all normal cards)      |
 ## +-------------------------------------------------------------------------+
 
-#def renderValueItem($x, $in_panel, $is_first, $is_last, $section = "", $show_fc = True)
+#def renderValueItem($x, $in_panel, $is_first, $is_last, $section = "")
     ## 'forecast' renders via #include, which only sees the search list and
     ## globals - hence the #set global handoff. The first/last flags drive the
     ## forecast_separator rules inside forecast.inc.
-    #if $x == "forecast" and $show_fc
+    #if $x == "forecast"
         #set global $forecast_in_panel = $in_panel
         #set global $forecast_is_first = $is_first
         #set global $forecast_is_last  = $is_last
@@ -159,9 +159,7 @@
         #set global $tele_item    = $x
         #set global $tele_section = $section
         #include "telemetry.inc"
-    #else if $x != "forecast"
-        ## A forecast that show_forecast switched off stops here: it is a
-        ## pseudo-item with no column, not an observation for valuesCard.
+    #else
         $valuesCard($x, $section)
     #end if
 #end def
@@ -176,15 +174,14 @@
     ## last among them - that drives the separator rules inside forecast.inc.
     ## Computed once and used in both places below. Two separate lookups can
     ## drift apart; one cannot.
-    #set $show_fc = $panelPageSetting('show_forecast', $page, $subpage)
     #set $items_l = [i.strip().lower() for i in $seg['items']]
     #set $vis_items = []
     #set $f_first = False
     #set $f_last  = False
-    #if $seg['type'] is not None or ('forecast' in $items_l and $show_fc)
+    #if $seg['type'] is not None or 'forecast' in $items_l
         #for $x in $seg['items']
             #if $x == "forecast"
-                #if $show_fc and $forecast is not None
+                #if $forecast is not None
                     #silent $vis_items.append($x)
                 #end if
             #else if $isTelemetryItem($x)
@@ -212,7 +209,7 @@
     #if $seg['type'] is None
         ## No panel – render cards directly into the surrounding row
         #for $x in $seg['items']
-            $renderValueItem($x, False, $f_first, $f_last, $seg['slug'], $show_fc)
+            $renderValueItem($x, False, $f_first, $f_last, $seg['slug'])
         #end for
     #else
         ## Expansion panel
@@ -230,7 +227,7 @@
                         <div class="nwm-panel-body">
                             <div class="row">
                                 #for $x in $seg['items']
-                                    $renderValueItem($x, True, $f_first, $f_last, $seg['slug'], $show_fc)
+                                    $renderValueItem($x, True, $f_first, $f_last, $seg['slug'])
                                 #end for
                             </div>
                         </div>

@@ -139,10 +139,8 @@
             <span class="mx-2">&bull;</span>
             <a href="$Extras.Footer.privacy_url" target="_blank">$Extras.Footer.privacy_label</a>
         #end if
-        ## Gated on the page actually SHOWING the forecast, not merely listing
-        ## it: with show_forecast off the item is still in the section, so
-        ## without this the footer credits a data source the page never drew.
-        #if $panelPageSetting('show_forecast', $page, $subpage) and "forecast" in $panelItems('card', page=$page, subpage=$subpage)
+        ## Gated on the page actually showing the forecast (i.e. listed in that page's card sections)
+        #if "forecast" in $panelItems('card', page=$page, subpage=$subpage)
             <div class="text-center px-2">
                 Weather forecast data provided by&nbsp;<a href="https://open-meteo.com/">Open-Meteo.com</a> under (<a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>) license. Data may be modified (e.g., unit conversion, aggregation).
             </div>
