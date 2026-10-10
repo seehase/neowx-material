@@ -403,8 +403,7 @@
 ## Parsing lives in bin/user/panelorder.py, which reads [[[sections]]] from
 ## skin.conf. Sections with a title become collapsible panels; those without
 ## render loose in the surrounding row.
-#set $val_segments   = $panelSegments('card', page=$page, subpage=$subpage)
-#set $chart_segments = $panelSegments('chart', page=$page, subpage=$subpage)
+#set $page_segments = $panelSegments(page=$page, subpage=$subpage)
 
 <!DOCTYPE html>
 <html lang="$lang">
@@ -422,9 +421,9 @@
         #set global $card_default = $Extras.Formatting.datetime_archive
         #include "card_datetime.inc"
         <main>
-        <div class="container-fluid d-flex-xxl flex-wrap">
+        <div class="container-fluid">
 
-            <div class="row mt-3 temprow align-content-start">
+            <div class="row mt-3 align-content-start">
 
                 <div class="col-12 mb-4 text-center">
                     <h2 class="h2-responsive text-dark">$gettext("year") $year_name</h2>
@@ -473,32 +472,12 @@
                     #end if
                 #end for
 
-            </div>
-
-            <hr class="m-0 mb-4 rowdivider">
-
-            <div class="row mt-3 graphrow align-content-start">
-
-                #set $val_panel_idx = 0
-                #for $seg_i, $seg in $enumerate($val_segments)
-                    #if $seg['type'] is not None
-                        #set $val_panel_idx = $val_panel_idx + 1
-                    #end if
-                    ## Section boundary. A col-12 fills a whole flex line, so this is
-                    ## what makes each section start on a fresh row. Panels are col-12
-                    ## already; plain sections need it emitted explicitly.
-                    #if $seg_i > 0
-                        <div class="col-12"></div>
-                    #end if
-                    $renderValSegment($seg, $val_panel_idx)
-                #end for
-
                 <div class="col-12"><hr class="m-0 mb-4" /></div>
 
-                #set $chart_panel_idx = 0
-                #for $seg_i, $seg in $enumerate($chart_segments)
+                #set $panel_idx = 0
+                #for $seg_i, $seg in $enumerate($page_segments)
                     #if $seg['type'] is not None
-                        #set $chart_panel_idx = $chart_panel_idx + 1
+                        #set $panel_idx = $panel_idx + 1
                     #end if
                     ## Section boundary. A col-12 fills a whole flex line, so this is
                     ## what makes each section start on a fresh row. Panels are col-12
@@ -506,7 +485,11 @@
                     #if $seg_i > 0
                         <div class="col-12"></div>
                     #end if
-                    $renderChartSegment($seg, $chart_panel_idx)
+                    #if $seg['content'] in ('chart', 'telemetry_chart')
+                        $renderChartSegment($seg, $panel_idx)
+                    #else
+                        $renderValSegment($seg, $panel_idx)
+                    #end if
                 #end for
             </div>
         </div>
