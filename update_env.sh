@@ -75,9 +75,9 @@ echo "Copying CSS files to /Volumes/web/css..."
 rsync -a "$SRC_DIR/css/" "/Volumes/web/css/"
 
 # Run config_patcher.py
-###cd "$DEST_DIR"
-###python3 config_patcher.py skin.conf skin.conf.patch
-### FIXME
+cd "$DEST_DIR"
+python3 config_patcher.py skin.conf skin.conf.patch
+
 # Update version in destination skin.conf
 echo "Updating version to $NEW_VERSION in destination skin.conf..."
 
