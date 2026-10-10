@@ -145,56 +145,6 @@
     #end if
 #end def
 
-#def renderEmbSegment($seg, $panel_idx)
-    #if $seg['type'] is None
-        #for $x in $seg['items']
-            $renderEmbItem($x, $seg['slug'])
-        #end for
-    #else
-        ## Embedded items are always rendered, so a group is never empty.
-        #set $p_exp   = ($seg['type'] != 'collapsed')
-        #set $p_show  = ' show' if $p_exp else ''
-        #set $p_id    = 'nwm-emb-panel-' + str($panel_idx)
-        <div class="col-12 mb-3">
-            <div class="card nwm-expansion-panel" data-section="$seg['slug']">
-                #set global $panel_title = $seg['title']
-                #set global $panel_id    = $p_id
-                #set global $panel_type  = $seg['type']
-                #include "panel_header.inc"
-                <div id="${p_id}" class="collapse${p_show}">
-                    <div class="nwm-panel-body">
-                        <div class="row">
-                            #for $x in $seg['items']
-                                $renderEmbItem($x, $seg['slug'])
-                            #end for
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    #end if
-#end def
-
 #if $getVar('emb_item', None)
     $renderEmbItem($emb_item, $getVar('emb_section', ''))
-#else
-    #set $emb_segments = $panelSegments('embedded', page=$page, subpage=$subpage)
-    #if len($panelItems('embedded', page=$page, subpage=$subpage)) > 0
-        <div class="row align-content-start flex-grow-1">
-            <div class="col-12 "><hr class="mt-0 mb-4"></div>
-            #set $emb_panel_idx = 0
-            #for $seg_i, $seg in $enumerate($emb_segments)
-                #if $seg['type'] is not None
-                    #set $emb_panel_idx = $emb_panel_idx + 1
-                #end if
-                ## Section boundary. A col-12 fills a whole flex line, so this is
-                ## what makes each section start on a fresh row. Panels are col-12
-                ## already; plain sections need it emitted explicitly.
-                #if $seg_i > 0
-                    <div class="col-12"></div>
-                #end if
-                $renderEmbSegment($seg, $emb_panel_idx)
-            #end for
-        </div>
-    #end if
 #end if
