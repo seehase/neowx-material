@@ -11,7 +11,9 @@
     ## items all lack data is hidden instead of drawing an empty box.
     #set $vis_items = []
     #for $x in $seg['items']
-        #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
+        #if $isEmbeddedItem($x)
+            #silent $vis_items.append($x)
+        #else if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
             #silent $vis_items.append($x)
         #end if
     #end for
@@ -22,10 +24,17 @@
 
     #if $seg['type'] is None
         #for $x in $seg['items']
-            #set global $tele_mode    = $mode
-            #set global $tele_item    = $x
-            #set global $tele_section = $seg['slug']
-            #include "telemetry.inc"
+            #if $isEmbeddedItem($x)
+                #set global $emb_item     = $x
+                #set global $emb_section  = $seg['slug']
+                #include "embedded_region.inc"
+                #set global $emb_item     = None
+            #else
+                #set global $tele_mode    = $mode
+                #set global $tele_item    = $x
+                #set global $tele_section = $seg['slug']
+                #include "telemetry.inc"
+            #end if
         #end for
     #else if len($vis_items) > 0
         #set $p_exp   = ($seg['type'] != 'collapsed')
@@ -41,10 +50,17 @@
                     <div class="nwm-panel-body">
                         <div class="row">
                             #for $x in $seg['items']
-                                #set global $tele_mode    = $mode
-                                #set global $tele_item    = $x
-                                #set global $tele_section = $seg['slug']
-                                #include "telemetry.inc"
+                                #if $isEmbeddedItem($x)
+                                    #set global $emb_item     = $x
+                                    #set global $emb_section  = $seg['slug']
+                                    #include "embedded_region.inc"
+                                    #set global $emb_item     = None
+                                #else
+                                    #set global $tele_mode    = $mode
+                                    #set global $tele_item    = $x
+                                    #set global $tele_section = $seg['slug']
+                                    #include "telemetry.inc"
+                                #end if
                             #end for
                         </div>
                     </div>
@@ -152,7 +168,7 @@
             }
 
             #set global $tele_mode        = 'js'
-            #set global $tele_chart_items = $panelItems('telemetry_chart', page=$page, subpage=$subpage)
+            #set global $tele_chart_items = [x for x in $panelItems('telemetry_chart', page=$page, subpage=$subpage) if not $isEmbeddedItem(x)]
             #include "telemetry.inc"
         </script>
 

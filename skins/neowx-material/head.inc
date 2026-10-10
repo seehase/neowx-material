@@ -466,10 +466,10 @@ href="img/splash/splash_1536x2048.png"
 ## which wins is decided by the order they are emitted in below: section rules
 ## first, per-card rules after.
 #set $_CONTENT_CARD_KINDS = {
-    'chart': ('.card-chart',),
-    'telemetry_chart': ('.card-chart',),
-    'telemetry': ('.card-value',),
-    'embedded': ('.card',),
+    'chart': ('.card-chart', '.card-embedded'),
+    'telemetry_chart': ('.card-chart', '.card-embedded'),
+    'telemetry': ('.card-value', '.card-embedded'),
+    'embedded': ('.card', '.card-embedded'),
 }
 #set $_section_overrides = []
 #if $varExists('Extras.Appearance.sections')
@@ -485,7 +485,7 @@ href="img/splash/splash_1536x2048.png"
         ## A default (or unrecognised) content is the cards panel, which holds
         ## value cards and can hold the forecast card too.
         #set $_content = str($_section.get('content', '')).strip().lower()
-        #set $_kinds = $_CONTENT_CARD_KINDS.get($_content, ('.card-value', '.card-forecast'))
+        #set $_kinds = $_CONTENT_CARD_KINDS.get($_content, ('.card-value', '.card-forecast', '.card-embedded'))
         ## configobj gives a list for "a, b, c" and a string for a single name.
         #set $_items = $_section.get('items', [])
         #if isinstance($_items, str)

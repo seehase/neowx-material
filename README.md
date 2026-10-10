@@ -42,7 +42,7 @@ This is an **actively maintained** continuation of the NeoWX Material skin. The 
    - `collapsed` — `true`, `false`, or `none` for a panel that never collapses
    - `content` — `card`, `chart`, `embedded`, `telemetry` or `telemetry_chart`
 - Explicitly configure which sections each page shows, and in what order, with mandatory `[[[pages]]]` (`today`, `yesterday`, `week`, `month`, `year`, `telemetry`), and override archive pages (`month` → `month_archive`, `year` → `year_archive`)
-- `show_embedded` explicitly toggles the embedded section on any dashboard page (configured explicitly in `[[[pages]]]`, defaulting to `false` in code); forecast visibility is controlled directly by including or omitting `forecast` in section `items` (e.g. `cards_with_forecast` vs `cards_without_forecast`)
+- Forecast and embedded items (iframes, images) are controlled directly by including or omitting them in section `items` (e.g. `cards_with_forecast` vs `cards_without_forecast`, or placing an iframe / image in any section or dedicated embedded section)
 - Panels you collapse stay collapsed for the life of the browser tab, so the auto-refresh stops reopening them
 - Sections render in the order they are written, so a panel can be followed by an ungrouped row
 - Each section starts on a new line, so grouping is meaningful even without a title

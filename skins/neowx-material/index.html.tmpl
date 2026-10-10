@@ -209,6 +209,11 @@
         #set global $tele_item    = $x
         #set global $tele_section = $section
         #include "telemetry.inc"
+    #else if $isEmbeddedItem($x)
+        #set global $emb_item     = $x
+        #set global $emb_section  = $section
+        #include "embedded_region.inc"
+        #set global $emb_item     = None
     #else
         $valuesCard($x, $section)
     #end if
@@ -241,6 +246,8 @@
                 #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
                     #silent $vis_items.append($x)
                 #end if
+            #else if $isEmbeddedItem($x)
+                #silent $vis_items.append($x)
             #else if $x == "forecast"
                 #if $forecast is not None
                     #silent $vis_items.append($x)
@@ -297,6 +304,11 @@
                 #set global $tele_item    = $x
                 #set global $tele_section = $seg['slug']
                 #include "telemetry.inc"
+            #else if $isEmbeddedItem($x)
+                #set global $emb_item     = $x
+                #set global $emb_section  = $seg['slug']
+                #include "embedded_region.inc"
+                #set global $emb_item     = None
             #else
                 $chartCard($x, section=$seg['slug'])
             #end if
@@ -308,6 +320,8 @@
                 #if $getVar('day.' + $x + '.has_data') and ($getVar('day.' + $x + '.max.raw') > 0 or $Extras.Telemetry.allow_zero_values == "yes")
                     #set $any_has_data = True
                 #end if
+            #else if $isEmbeddedItem($x)
+                #set $any_has_data = True
             #else if $x.startswith('customChart')
                 #set $cc = $Extras.Appearance.get($x, {})
                 #if $cc
@@ -345,6 +359,11 @@
                                         #set global $tele_item    = $x
                                         #set global $tele_section = $seg['slug']
                                         #include "telemetry.inc"
+                                    #else if $isEmbeddedItem($x)
+                                        #set global $emb_item     = $x
+                                        #set global $emb_section  = $seg['slug']
+                                        #include "embedded_region.inc"
+                                        #set global $emb_item     = None
                                     #else
                                         $chartCard($x, section=$seg['slug'])
                                     #end if
@@ -861,7 +880,7 @@
             #set $default_chart_series = {'windDir': 'wind'}
 
             #for $x in $panelItems('chart', page=$page, subpage=$subpage)
-                #if not $x.startswith('customChart') and $x not in $processed_charts and not $isTelemetryItem($x)
+                #if not $x.startswith('customChart') and $x not in $processed_charts and not $isTelemetryItem($x) and not $isEmbeddedItem($x)
                     #silent $processed_charts.add($x)
                     #if $chartHasData($x)
                         #set $c_type = $default_chart_types.get($x, 'area')

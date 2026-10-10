@@ -50,7 +50,7 @@
     #set iframe_aspect = $getVar('Extras.Embedded.' + name + '.aspect_ratio', "4/3")
     #if iframe_url != ""
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card overflow-hidden" data-name="$name" data-section="$section">
+            <div class="card card-embedded overflow-hidden" data-name="$name" data-section="$section">
                 $embedToolbar()
                 <div class="card-body text-center d-flex flex-column px-0 ${'pb-0' if iframe_title != '' else 'py-0'} overflow-hidden">
                     #if iframe_title != ""
@@ -97,7 +97,7 @@
 
     #if image_url != ""
         <div class="col-12 col-md-6 col-xl-4 mb-4">
-            <div class="card overflow-hidden" data-name="$name" data-section="$section">
+            <div class="card card-embedded overflow-hidden" data-name="$name" data-section="$section">
                 $embedToolbar()
                 <div class="card-body text-center d-flex flex-column ${padding_x} ${padding_y} overflow-hidden">
                     #if image_title != ""
@@ -130,10 +130,16 @@
 ## +-------------------------------------------------------------------------+
 
 #def renderEmbItem($x, $section = "")
-    #if $x.startswith("iFrame")
+    #if $x.lower().startswith("iframe")
         $iframeCard($x, $section)
-    #else if $x.startswith("image")
+    #else if $x.lower().startswith("image")
         $imageCard($x, $section)
+    #else if $varExists('Extras.Embedded.' + $x)
+        #if $getVar('Extras.Embedded.' + $x + '.link', '') != '' or $getVar('Extras.Embedded.' + $x + '.alt', '') != '' or $getVar('Extras.Embedded.' + $x + '.padding', '') != '' or str($getVar('Extras.Embedded.' + $x + '.url', '')).lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'))
+            $imageCard($x, $section)
+        #else
+            $iframeCard($x, $section)
+        #end if
     #else
         $notFoundCard($x)
     #end if
@@ -169,11 +175,10 @@
     #end if
 #end def
 
-#if $panelPageSetting('show_embedded', $page, $subpage)
+#if $getVar('emb_item', None)
+    $renderEmbItem($emb_item, $getVar('emb_section', ''))
+#else
     #set $emb_segments = $panelSegments('embedded', page=$page, subpage=$subpage)
-    ## No embedded section ships by default, so without this a page that turns
-    ## the setting on with nothing configured draws a bare <hr> and an empty
-    ## row - the first thing most people would see on enabling it.
     #if len($panelItems('embedded', page=$page, subpage=$subpage)) > 0
         <div class="row align-content-start flex-grow-1">
             <div class="col-12 "><hr class="mt-0 mb-4"></div>
