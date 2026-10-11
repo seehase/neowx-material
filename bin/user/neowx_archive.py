@@ -22,13 +22,32 @@ try:
     import Cheetah.Filters
     import Cheetah.Parser
     import Cheetah.Template
+    import unicodedata
     import weeutil.logger
     import weewx.cheetahgenerator
     import weewx.reportengine
-    from weeutil.weeutil import TimeSpan, to_bool, to_int, timestamp_to_string
+    from weeutil.weeutil import TimeSpan, to_bool, to_int, timestamp_to_string, getFileName
 except ImportError:
     # Fallback for standalone/linting environments
-    pass
+    class _DummyBase:
+        generator_dict = {}
+        format_dict = {}
+        def __init__(self, *args, **kwargs):
+            self.outputted_dict = {}
+    class _DummyModule:
+        CheetahGenerator = _DummyBase
+        ReportGenerator = _DummyBase
+    weewx = type('weewx', (), {'cheetahgenerator': _DummyModule, 'reportengine': _DummyModule})()
+    TimeSpan = lambda s, e: (s, e)
+    to_bool = lambda v: str(v).lower() in ('true', 'yes', '1')
+    to_int = lambda v: int(v) if v is not None else None
+    timestamp_to_string = lambda ts: str(ts)
+
+    def getFileName(template, timestamp):
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        filename = os.path.basename(template).replace('.tmpl', '')
+        filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%W')
+        return dt.strftime(filename)
 
 log = logging.getLogger(__name__)
 
@@ -90,6 +109,18 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         for k in self.generator_dict:
             if k not in self.outputted_dict:
                 self.outputted_dict[k] = []
+
+    @staticmethod
+    def _getFileName(template, time_val):
+        """Helper to get destination filename from template and timestamp or time tuple."""
+        ts = time_val if isinstance(time_val, (int, float)) else time.mktime(time_val)
+        try:
+            return getFileName(template, ts)
+        except Exception:
+            dt = datetime.datetime.fromtimestamp(ts)
+            filename = os.path.basename(template).replace('.tmpl', '')
+            filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%W')
+            return dt.strftime(filename)
 
     def _prepGen(self, report_dict):
         """Locates template (with skin root fallback) and base destination directory."""
@@ -196,6 +227,10 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         html_root = os.path.join(self.config_dict['WEEWX_ROOT'], report_dict['HTML_ROOT'])
 
         for timespan in _spangen(start_ts, stop_ts):
+            if hasattr(self, 'stop_event') and self.stop_event and self.stop_event.is_set():
+                log.debug("Stop event set. Stopping template '%s'", template)
+                return ngen
+
             start_tt = time.localtime(timespan.start)
             stop_tt = time.localtime(timespan.stop)
             ref_dt = datetime.datetime.fromtimestamp(timespan.start)
@@ -204,9 +239,9 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                 date_str = time.strftime(self.format_dict[summarize_by], start_tt)
                 if date_str not in self.outputted_dict[summarize_by]:
                     self.outputted_dict[summarize_by].append(date_str)
-                _filename = self._getFileName(template, start_tt)
+                _filename = self._getFileName(template, timespan.start)
             else:
-                _filename = self._getFileName(template, stop_tt)
+                _filename = self._getFileName(template, timespan.stop)
 
             # Evaluate strftime codes in destination directory (e.g. archive/%Y/days -> archive/2026/days)
             eval_dest_dir = dest_dir_pattern
@@ -287,6 +322,9 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                 byte_string = unicode_string.encode('ascii', 'xmlcharrefreplace')
             elif encoding == 'strict_ascii':
                 byte_string = unicode_string.encode('ascii', 'ignore')
+            elif encoding == 'normalized_ascii':
+                normalized = unicodedata.normalize('NFD', unicode_string)
+                byte_string = normalized.encode('ascii', 'ignore')
             else:
                 byte_string = unicode_string.encode(encoding)
 
