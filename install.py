@@ -21,9 +21,10 @@ class BasicInstaller(ExtensionInstaller):
                     "skins/neowx-material",
                     [
                         "skins/neowx-material/almanac.html.tmpl",
-                        "skins/neowx-material/archive/NOAA-%Y-%m.txt.tmpl",
-                        "skins/neowx-material/archive/NOAA-%Y.txt.tmpl",
-                        "skins/neowx-material/archive.html.tmpl",
+                        "skins/neowx-material/archive/NOAA/NOAA-%Y-%m.txt.tmpl",
+                        "skins/neowx-material/archive/NOAA/NOAA-%Y.txt.tmpl",
+                        "skins/neowx-material/date_nav.inc",
+                        "skins/neowx-material/day-%Y-%m-%d.html.tmpl",
                         "skins/neowx-material/css/bootstrap.min.css",
                         "skins/neowx-material/css/style.min.css",
                         "skins/neowx-material/css/style.min.css.map",
@@ -174,7 +175,6 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/lang/sk.conf",
                         "skins/neowx-material/manifest.json.tmpl",
                         "skins/neowx-material/month-%Y-%m.html.tmpl",
-                        "skins/neowx-material/month.html.tmpl",
                         "skins/neowx-material/panel_header.inc",
                         "skins/neowx-material/skin.conf",
                         "skins/neowx-material/telemetry.html.tmpl",
@@ -407,10 +407,8 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/weather-icons/svg/wi-wind-beaufort-9.svg",
                         "skins/neowx-material/weather-icons/svg/wi-wind-deg.svg",
                         "skins/neowx-material/weather-icons/svg/wi-windy.svg",
-                        "skins/neowx-material/week.html.tmpl",
+                        "skins/neowx-material/week-%Y-%W.html.tmpl",
                         "skins/neowx-material/year-%Y.html.tmpl",
-                        "skins/neowx-material/year.html.tmpl",
-                        "skins/neowx-material/yesterday.html.tmpl",
                         "skins/neowx-material/skin.conf.patch.sample",
                         "skins/neowx-material/cheetah_template_beautifier.py",
                         "skins/neowx-material/config_beautifier.py",
@@ -424,7 +422,8 @@ class BasicInstaller(ExtensionInstaller):
                         "bin/user/openmeteo.py",
                         "bin/user/updatecheck.py",
                         "bin/user/onlinecheck.py",
-                        "bin/user/panelorder.py"
+                        "bin/user/panelorder.py",
+                        "bin/user/neowx_archive.py"
                     ]
                 ),
             ],

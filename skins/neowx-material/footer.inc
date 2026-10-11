@@ -3,6 +3,10 @@
 ## |    footer.inc                       Footer section for all templates    |
 ## +-------------------------------------------------------------------------+
 
+#if not $varExists('base_path')
+    #set $base_path = ''
+#end if
+
 <footer class="page-footer font-small $Extras.color pt-4">
 
     ## Footer Links
@@ -39,7 +43,7 @@
                     #if $Extras.Footer.show_telemetry == "yes"
                         <tr>
                             <td>
-                                <a href="telemetry.html">
+                                <a href="${base_path}telemetry.html">
                                     $gettext("telemetry")
                                 </a>
                             </td>

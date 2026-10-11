@@ -4,6 +4,22 @@
 ## |    header.inc                 Header section (nav) for all templates    |
 ## +-------------------------------------------------------------------------+
 
+#if not $varExists('base_path')
+    #set $base_path = ''
+#end if
+#if not $varExists('context_day_url')
+    #set $context_day_url = $base_path + 'archive/' + $time.strftime('%Y') + '/days/day-' + $time.strftime('%Y-%m-%d') + '.html'
+#end if
+#if not $varExists('context_week_url')
+    #set $context_week_url = $base_path + 'archive/' + $time.strftime('%Y') + '/weeks/week-' + $time.strftime('%Y-%W') + '.html'
+#end if
+#if not $varExists('context_month_url')
+    #set $context_month_url = $base_path + 'archive/' + $time.strftime('%Y') + '/month-' + $time.strftime('%Y-%m') + '.html'
+#end if
+#if not $varExists('context_year_url')
+    #set $context_year_url = $base_path + 'archive/' + $time.strftime('%Y') + '/year-' + $time.strftime('%Y') + '.html'
+#end if
+
 ## Add google tag manager if enabled
 #if $Extras.Header.google_tagmanager_enable == "yes"
     <!-- Google Tag Manager (noscript) -->
@@ -50,11 +66,11 @@
 
                 <!-- Sub-col A: Weather icon / logo (vertically centered within fixed height) -->
                 #if $Extras.Header.show_logo == "yes"
-                    <a class="mr-3" href="index.html" style="display:flex; align-items:center; height:100%; flex-shrink:0;">
+                    <a class="mr-3" href="${base_path}index.html" style="display:flex; align-items:center; height:100%; flex-shrink:0;">
                         #if $Extras.Header.custom_logo_url != ""
                             <img src="$Extras.Header.custom_logo_url" style="width: 4rem">
                         #else
-                            <img src="img/icon-alpha-1x.png" srcset="img/icon-alpha-1x.png 1x, img/icon-alpha-2x.png 2x" style="width: 4rem">
+                            <img src="${base_path}img/icon-alpha-1x.png" srcset="${base_path}img/icon-alpha-1x.png 1x, ${base_path}img/icon-alpha-2x.png 2x" style="width: 4rem">
                         #end if
                     </a>
                 #end if
@@ -154,49 +170,43 @@
             <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent" style="flex: 1 1 auto;">
                 <ul class="navbar-nav">
 
-                    #if $Extras.Header.current_nav_link == "yes"
-                        <li class="nav-item#if $active_nav == 'current'# active#end if# mr-3">
-                            <a class="nav-link" href="index.html">$gettext("current")</a>
+                    #if $Extras.Header.get('live_nav_link', 'yes') == "yes" or $Extras.Header.get('current_nav_link', 'yes') == "yes"
+                        <li class="nav-item#if $active_nav in ('current', 'live')# active#end if# mr-3">
+                            <a class="nav-link" href="${base_path}index.html">$gettext("current")</a>
                         </li>
                     #end if
 
-                    #if $Extras.Header.yesterday_nav_link == "yes"
-                        <li class="nav-item#if $active_nav == 'yesterday'# active#end if# mr-3">
-                            <a class="nav-link" href="yesterday.html">$gettext("yesterday")</a>
+                    #if $Extras.Header.get('day_nav_link', $Extras.Header.get('yesterday_nav_link', 'yes')) == "yes"
+                        <li class="nav-item#if $active_nav == 'day'# active#end if# mr-3">
+                            <a class="nav-link" href="$context_day_url">$gettext("day")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.week_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'week'# active#end if# mr-3">
-                            <a class="nav-link" href="week.html">$gettext("week")</a>
+                            <a class="nav-link" href="$context_week_url">$gettext("week")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.month_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'month'# active#end if# mr-3">
-                            <a class="nav-link" href="month.html">$gettext("month")</a>
+                            <a class="nav-link" href="$context_month_url">$gettext("month")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.year_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'year'# active#end if# mr-3">
-                            <a class="nav-link" href="year.html">$gettext("year")</a>
-                        </li>
-                    #end if
-
-                    #if $Extras.Header.archive_nav_link == "yes"
-                        <li class="nav-item#if $active_nav == 'archive'# active#end if# mr-3">
-                            <a class="nav-link" href="archive.html">$gettext("archive")</a>
+                            <a class="nav-link" href="$context_year_url">$gettext("year")</a>
                         </li>
                     #end if
 
                     <li class="nav-item#if $active_nav == 'history'# active#end if# mr-3">
-                        <a class="nav-link" href="history.html">$gettext("history")</a>
+                        <a class="nav-link" href="${base_path}history.html">$gettext("history")</a>
                     </li>
 
                     #if $Extras.Header.almanac_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'almanac'# active#end if# mr-3">
-                            <a class="nav-link" href="almanac.html">$gettext("almanac")</a>
+                            <a class="nav-link" href="${base_path}almanac.html">$gettext("almanac")</a>
                         </li>
                     #end if
 

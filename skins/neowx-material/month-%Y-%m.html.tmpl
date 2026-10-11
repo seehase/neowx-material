@@ -3,7 +3,7 @@
 ## |    month-%Y-%m.html.tmpl    Template file for "monthly archive" page    |
 ## +-------------------------------------------------------------------------+
 
-#attr $active_nav = 'archive'
+#attr $active_nav = 'month'
 #attr $page = 'month'
 #attr $subpage = 'month_archive'
 
@@ -424,6 +424,8 @@
             <div class="container-fluid">
 
                 <div class="row mt-3 align-content-start">
+
+                    #include "date_nav.inc"
 
                     <div class="col-12 mb-4 text-center">
                         <h2 class="h2-responsive text-dark">$month_name $year_name</h2>
@@ -1102,7 +1104,7 @@
         </script>
 
         <script src="$Extras.MQTT.paho_mqtt_url" type="text/javascript"></script>
-        <script type="text/javascript" src="js/weewx-mqtt.js?v=$Extras.version"></script>
+        <script type="text/javascript" src="${base_path}js/weewx-mqtt.js?v=$Extras.version"></script>
 
     </body>
 </html>

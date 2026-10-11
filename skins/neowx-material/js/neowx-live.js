@@ -150,7 +150,7 @@
         // request has been in flight (and usually resolved) while the heavy JS
         // libs downloaded. Fall back to fetching here if it isn't present.
         var pending = window.NX_LIVE_DATA ||
-            fetch('live.json?_=' + new Date().getTime(), { cache: 'no-store' })
+            fetch((window.NX_BASE_PATH || '') + 'live.json?_=' + new Date().getTime(), { cache: 'no-store' })
                 .then(function (resp) {
                     if (!resp.ok) { throw new Error('live.json HTTP ' + resp.status); }
                     return resp.json();

@@ -422,6 +422,10 @@ def _page_entries(appearance, page, subpage):
             key = "current"
         elif key == "current" and "today" in pages:
             key = "today"
+        elif key == "day" and "yesterday" in pages:
+            key = "yesterday"
+        elif key == "day" and "today" in pages:
+            key = "today"
         else:
             return None, None
     entry = pages[key]
@@ -521,6 +525,10 @@ def _warn_page_blocks(appearance, page):
         if key == "today" and "current" in pages:
             key = "current"
         elif key == "current" and "today" in pages:
+            key = "today"
+        elif key == "day" and "yesterday" in pages:
+            key = "yesterday"
+        elif key == "day" and "today" in pages:
             key = "today"
         else:
             return
@@ -629,25 +637,21 @@ def _page_order(appearance, page, subpage=None):
             key = "current"
         elif key == "current" and "today" in pages:
             key = "today"
+        elif key == "day" and "yesterday" in pages:
+            key = "yesterday"
+        elif key == "day" and "today" in pages:
+            key = "today"
         elif key in NON_PANEL_PAGES:
             return []
         else:
             problem = ("unconfigured-page", key)
             if not _problem_seen(appearance, problem):
                 _mark_problem(appearance, problem)
-                if "day" in pages:
-                    log.error(
-                        "panelorder: page '%s' has no entry in [[[pages]]]. "
-                        "'[[[[day]]]]' is no longer supported; please configure "
-                        "'[[[[today]]]]' and '[[[[yesterday]]]]' separately in [[[pages]]].",
-                        key,
-                    )
-                else:
-                    log.error(
-                        "panelorder: page '%s' has no entry in [[[pages]]]. "
-                        "Configure sections for this page in [[[pages]]].",
-                        key,
-                    )
+                log.error(
+                    "panelorder: page '%s' has no entry in [[[pages]]]. "
+                    "Configure sections for this page in [[[pages]]].",
+                    key,
+                )
             return []
 
     entry, sub = _page_entries(appearance, page, subpage)
