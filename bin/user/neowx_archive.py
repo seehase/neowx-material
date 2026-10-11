@@ -395,8 +395,14 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
         archive_years = [f"{y:04d}" for y in range(start_dt.year, stop_dt.year + 1)]
 
+        # Fallback card_datetime if accessed before card_datetime.inc
+        card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
+        if summarize_by == 'SummaryByDay':
+            card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime_today', '%H:%M')
+
         return {
             'base_path': base_path,
+            'card_datetime': card_dt_fallback,
             'archive_start_date': archive_start_date_str,
             'archive_years': archive_years,
             'context_year': context_year_str,

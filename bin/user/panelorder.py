@@ -510,16 +510,6 @@ def _warn_page_blocks(appearance, page):
     if not pages or not hasattr(pages, "get"):
         return
 
-    if "day" in pages:
-        problem = ("legacy-day-page",)
-        if not _problem_seen(appearance, problem):
-            _mark_problem(appearance, problem)
-            log.error(
-                "panelorder: '[[[[day]]]]' in [[[pages]]] has been replaced by "
-                "separate '[[[[today]]]]' and '[[[[yesterday]]]]' page blocks. "
-                "Please update skin.conf."
-            )
-
     key = str(page).strip()
     if key not in pages:
         if key == "today" and "current" in pages:
