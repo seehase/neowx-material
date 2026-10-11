@@ -11,7 +11,7 @@
     #set $context_day_url = $base_path + 'archive/' + $time.strftime('%Y') + '/days/day-' + $time.strftime('%Y-%m-%d') + '.html'
 #end if
 #if not $varExists('context_week_url')
-    #set $context_week_url = $base_path + 'archive/' + $time.strftime('%Y') + '/weeks/week-' + $time.strftime('%Y-%W') + '.html'
+    #set $context_week_url = $base_path + 'archive/' + $time.strftime('%Y') + '/weeks/week-' + $time.strftime('%Y-%V') + '.html'
 #end if
 #if not $varExists('context_month_url')
     #set $context_month_url = $base_path + 'archive/' + $time.strftime('%Y') + '/months/month-' + $time.strftime('%Y-%m') + '.html'

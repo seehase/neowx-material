@@ -18,19 +18,28 @@
 #else
 #set $has_extras = "false"
 #end if
+#set $cur_year = $time.strftime('%Y')
+#set $cur_month = $time.strftime('%Y-%m')
+#set $cur_week = $time.strftime('%Y-%V')
+#set $cur_day = $time.strftime('%Y-%m-%d')
+#set $url_live = 'index.html'
+#set $url_day = 'archive/' + $cur_year + '/days/day-' + $cur_day + '.html'
+#set $url_week = 'archive/' + $cur_year + '/weeks/week-' + $cur_week + '.html'
+#set $url_month = 'archive/' + $cur_year + '/months/month-' + $cur_month + '.html'
+#set $url_year = 'archive/' + $cur_year + '/year-' + $cur_year + '.html'
 {
-    "today": "$time.strftime('%Y-%m-%d')",
+    "today": "$cur_day",
     "date": "$time.strftime($date_fmt)",
-    "year": "$time.strftime('%Y')",
-    "week": "$time.strftime('%Y-%W')",
-    "month": "$time.strftime('%Y-%m')",
+    "year": "$cur_year",
+    "week": "$cur_week",
+    "month": "$cur_month",
     "generated": "$time.strftime('%Y-%m-%dT%H:%M:%S')",
     "archive_urls": {
-        "live": "index.html",
-        "day": "archive/$time.strftime('%Y')/days/day-$time.strftime('%Y-%m-%d').html",
-        "week": "archive/$time.strftime('%Y')/weeks/week-$time.strftime('%Y-%W').html",
-        "month": "archive/$time.strftime('%Y')/months/month-$time.strftime('%Y-%m').html",
-        "year": "archive/$time.strftime('%Y')/year-$time.strftime('%Y').html"
+        "live": "$url_live",
+        "day": "$url_day",
+        "week": "$url_week",
+        "month": "$url_month",
+        "year": "$url_year"
     },
     "versions": {
         "weewx": "$station.version",

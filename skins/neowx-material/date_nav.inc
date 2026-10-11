@@ -18,7 +18,7 @@
     #set $context_month_name = $time.strftime('%B')
 #end if
 #if not $varExists('context_week')
-    #set $context_week = $time.strftime('%W')
+    #set $context_week = $time.strftime('%V')
 #end if
 #if not $varExists('context_day')
     #set $context_day = $time.strftime('%Y-%m-%d')

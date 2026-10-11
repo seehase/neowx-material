@@ -46,10 +46,10 @@ except ImportError:
     def getFileName(template, timestamp):
         dt = datetime.datetime.fromtimestamp(timestamp)
         filename = os.path.basename(template).replace('.tmpl', '')
-        filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%W')
+        filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
         return dt.strftime(filename)
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 
 log = logging.getLogger(__name__)
 
@@ -103,7 +103,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
     generator_dict['SummaryByWeek'] = genWeekSpans
 
     format_dict = dict(weewx.cheetahgenerator.CheetahGenerator.format_dict)
-    format_dict['SummaryByWeek'] = "%Y-%W"
+    format_dict['SummaryByWeek'] = "%Y-%V"
 
     def __init__(self, config_dict, skin_dict, *args, **kwargs):
         super(NeowxArchiveGenerator, self).__init__(config_dict, skin_dict, *args, **kwargs)
@@ -122,7 +122,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         except Exception:
             dt = datetime.datetime.fromtimestamp(ts)
             filename = os.path.basename(template).replace('.tmpl', '')
-            filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%W')
+            filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
             return dt.strftime(filename)
 
     def _prepGen(self, report_dict):
@@ -146,6 +146,11 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                 archive_flat = os.path.join(skin_dir, 'archive', basename)
                 if os.path.exists(archive_flat):
                     template = archive_flat
+                elif 'week' in basename:
+                    alt_name = basename.replace('%V', '%W') if '%V' in basename else basename.replace('%W', '%V')
+                    alt_path = os.path.join(skin_dir, alt_name)
+                    if os.path.exists(alt_path):
+                        template = alt_path
 
         # Destination directory: either explicitly configured via destination_dir or derived from template
         custom_dest = report_dict.get('destination_dir')

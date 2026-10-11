@@ -407,7 +407,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/weather-icons/svg/wi-wind-beaufort-9.svg",
                         "skins/neowx-material/weather-icons/svg/wi-wind-deg.svg",
                         "skins/neowx-material/weather-icons/svg/wi-windy.svg",
-                        "skins/neowx-material/week-%Y-%W.html.tmpl",
+                        "skins/neowx-material/week-%Y-%V.html.tmpl",
                         "skins/neowx-material/year-%Y.html.tmpl",
                         "skins/neowx-material/skin.conf.patch.sample",
                         "skins/neowx-material/cheetah_template_beautifier.py",
