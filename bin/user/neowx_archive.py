@@ -49,6 +49,8 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%W')
         return dt.strftime(filename)
 
+VERSION = "1.0.0"
+
 log = logging.getLogger(__name__)
 
 
@@ -105,6 +107,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
     def __init__(self, config_dict, skin_dict, *args, **kwargs):
         super(NeowxArchiveGenerator, self).__init__(config_dict, skin_dict, *args, **kwargs)
+        log.info("NeowxArchiveGenerator version %s", VERSION)
         # Ensure outputted_dict tracks all generator keys
         for k in self.generator_dict:
             if k not in self.outputted_dict:
