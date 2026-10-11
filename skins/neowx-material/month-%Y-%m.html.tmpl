@@ -405,6 +405,10 @@
 ## render loose in the surrounding row.
 #set $page_segments = $panelSegments(page=$page, subpage=$subpage)
 
+#set global $card_scope = $page
+#set global $card_default = $Extras.Formatting.datetime
+#include "card_datetime.inc"
+
 <!DOCTYPE html>
 <html lang="$lang">
     <head>
@@ -417,9 +421,6 @@
 
         #include "header.inc"
 
-        #set global $card_scope = $page
-        #set global $card_default = $Extras.Formatting.datetime
-        #include "card_datetime.inc"
         <main>
             <div class="container-fluid">
 
@@ -427,9 +428,6 @@
 
                     #include "date_nav.inc"
 
-                    <div class="col-12 mb-4 text-center">
-                        <h2 class="h2-responsive text-dark">$month_name $year_name</h2>
-                    </div>
                     #set $panel_idx = 0
                     #for $seg_i, $seg in $enumerate($page_segments)
                         #if $seg['type'] is not None

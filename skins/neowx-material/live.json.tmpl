@@ -22,7 +22,16 @@
     "today": "$time.strftime('%Y-%m-%d')",
     "date": "$time.strftime($date_fmt)",
     "year": "$time.strftime('%Y')",
+    "week": "$time.strftime('%Y-%W')",
+    "month": "$time.strftime('%Y-%m')",
     "generated": "$time.strftime('%Y-%m-%dT%H:%M:%S')",
+    "archive_urls": {
+        "live": "index.html",
+        "day": "archive/$time.strftime('%Y')/days/day-$time.strftime('%Y-%m-%d').html",
+        "week": "archive/$time.strftime('%Y')/weeks/week-$time.strftime('%Y-%W').html",
+        "month": "archive/$time.strftime('%Y')/months/month-$time.strftime('%Y-%m').html",
+        "year": "archive/$time.strftime('%Y')/year-$time.strftime('%Y').html"
+    },
     "versions": {
         "weewx": "$station.version",
         "skin": "$Extras.version"

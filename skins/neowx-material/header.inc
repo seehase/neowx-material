@@ -14,10 +14,22 @@
     #set $context_week_url = $base_path + 'archive/' + $time.strftime('%Y') + '/weeks/week-' + $time.strftime('%Y-%W') + '.html'
 #end if
 #if not $varExists('context_month_url')
-    #set $context_month_url = $base_path + 'archive/' + $time.strftime('%Y') + '/month-' + $time.strftime('%Y-%m') + '.html'
+    #set $context_month_url = $base_path + 'archive/' + $time.strftime('%Y') + '/months/month-' + $time.strftime('%Y-%m') + '.html'
 #end if
 #if not $varExists('context_year_url')
     #set $context_year_url = $base_path + 'archive/' + $time.strftime('%Y') + '/year-' + $time.strftime('%Y') + '.html'
+#end if
+#if not $varExists('current_day_url')
+    #set $current_day_url = $context_day_url
+#end if
+#if not $varExists('current_week_url')
+    #set $current_week_url = $context_week_url
+#end if
+#if not $varExists('current_month_url')
+    #set $current_month_url = $context_month_url
+#end if
+#if not $varExists('current_year_url')
+    #set $current_year_url = $context_year_url
 #end if
 
 ## Add google tag manager if enabled
@@ -172,31 +184,31 @@
 
                     #if $Extras.Header.get('live_nav_link', 'yes') == "yes" or $Extras.Header.get('current_nav_link', 'yes') == "yes"
                         <li class="nav-item#if $active_nav in ('current', 'live')# active#end if# mr-3">
-                            <a class="nav-link" href="${base_path}index.html">$gettext("current")</a>
+                            <a class="nav-link" id="nav-current" href="${base_path}index.html">$gettext("current")</a>
                         </li>
                     #end if
 
-                    #if $Extras.Header.get('day_nav_link', $Extras.Header.get('yesterday_nav_link', 'yes')) == "yes"
+                    #if $Extras.Header.get('day_nav_link', 'no') == "yes"
                         <li class="nav-item#if $active_nav == 'day'# active#end if# mr-3">
-                            <a class="nav-link" href="$context_day_url">$gettext("day")</a>
+                            <a class="nav-link" id="nav-day" href="$current_day_url">$gettext("Day")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.week_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'week'# active#end if# mr-3">
-                            <a class="nav-link" href="$context_week_url">$gettext("week")</a>
+                            <a class="nav-link" id="nav-week" href="$current_week_url">$gettext("week")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.month_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'month'# active#end if# mr-3">
-                            <a class="nav-link" href="$context_month_url">$gettext("month")</a>
+                            <a class="nav-link" id="nav-month" href="$current_month_url">$gettext("month")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.year_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'year'# active#end if# mr-3">
-                            <a class="nav-link" href="$context_year_url">$gettext("year")</a>
+                            <a class="nav-link" id="nav-year" href="$current_year_url">$gettext("year")</a>
                         </li>
                     #end if
 

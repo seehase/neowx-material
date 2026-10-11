@@ -49,7 +49,7 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%W')
         return dt.strftime(filename)
 
-VERSION = "1.0.0"
+VERSION = "1.0.2"
 
 log = logging.getLogger(__name__)
 
@@ -349,7 +349,10 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
     def _build_nav_context(self, timespan, start_ts, stop_ts, cutoff_ts, base_path, archive_start_date_str, summarize_by):
         """Constructs rich navigation and URL helpers for templates."""
-        ref_dt = datetime.datetime.fromtimestamp(timespan.start)
+        if summarize_by in ('SummaryByDay', 'SummaryByWeek', 'SummaryByMonth', 'SummaryByYear'):
+            ref_dt = datetime.datetime.fromtimestamp(timespan.start)
+        else:
+            ref_dt = datetime.datetime.fromtimestamp(stop_ts)
         start_dt = datetime.datetime.fromtimestamp(start_ts)
         stop_dt = datetime.datetime.fromtimestamp(stop_ts)
 
@@ -395,6 +398,26 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
         archive_years = [f"{y:04d}" for y in range(start_dt.year, stop_dt.year + 1)]
 
+        # Latest/current timestamps for direct navigation
+        stop_yr = stop_dt.year
+        stop_mo = stop_dt.month
+        stop_day = stop_dt.day
+        stop_iso_yr, stop_iso_wk, _ = stop_dt.isocalendar()
+
+        current_live_url = f"{base_path}index.html"
+        current_day_url = f"{base_path}archive/{stop_yr:04d}/days/day-{stop_yr:04d}-{stop_mo:02d}-{stop_day:02d}.html"
+        current_week_url = f"{base_path}archive/{stop_yr:04d}/weeks/week-{stop_yr:04d}-{stop_iso_wk:02d}.html"
+        current_month_url = f"{base_path}archive/{stop_yr:04d}/months/month-{stop_yr:04d}-{stop_mo:02d}.html"
+        current_year_url = f"{base_path}archive/{stop_yr:04d}/year-{stop_yr:04d}.html"
+
+        # Context-dependent month URL when viewing a full year
+        if summarize_by == 'SummaryByYear':
+            target_mo = stop_mo if is_current_year else 12
+            ctx_month_str = f"{target_mo:02d}"
+            context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{ctx_month_str}.html"
+        else:
+            context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
+
         # Fallback card_datetime if accessed before card_datetime.inc
         card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
         if summarize_by == 'SummaryByDay':
@@ -412,11 +435,18 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             'context_day': context_day_str,
             'context_day_num': f"{day:02d}",
 
+            # Current URLs for navbar/switcher links
+            'current_live_url': current_live_url,
+            'current_day_url': current_day_url,
+            'current_week_url': current_week_url,
+            'current_month_url': current_month_url,
+            'current_year_url': current_year_url,
+
             # URLs for scale switching from current context
             'context_live_url': f"{base_path}index.html",
             'context_day_url': f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html",
             'context_week_url': f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{context_week_str}.html",
-            'context_month_url': f"{base_path}archive/{context_year_str}/month-{context_year_str}-{context_month_str}.html",
+            'context_month_url': context_month_link,
             'context_year_url': f"{base_path}archive/{context_year_str}/year-{context_year_str}.html",
             'context_noaa_year_url': f"{base_path}archive/NOAA/NOAA-{context_year_str}.txt",
             'context_noaa_month_url': f"{base_path}archive/NOAA/NOAA-{context_year_str}-{context_month_str}.txt",
@@ -439,8 +469,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
             'has_prev_month': has_prev_month,
             'has_next_month': has_next_month,
-            'prev_month_url': f"{base_path}archive/{prev_mo_yr}/month-{prev_mo_yr}-{prev_mo:02d}.html" if has_prev_month else '#',
-            'next_month_url': f"{base_path}archive/{next_mo_yr}/month-{next_mo_yr}-{next_mo:02d}.html" if has_next_month else '#',
+            'prev_month_url': f"{base_path}archive/{prev_mo_yr}/months/month-{prev_mo_yr}-{prev_mo:02d}.html" if has_prev_month else '#',
+            'next_month_url': f"{base_path}archive/{next_mo_yr}/months/month-{next_mo_yr}-{next_mo:02d}.html" if has_next_month else '#',
 
             'has_prev_year': has_prev_year,
             'has_next_year': has_next_year,
