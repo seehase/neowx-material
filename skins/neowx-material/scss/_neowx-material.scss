@@ -823,7 +823,23 @@ footer.page-footer {
 .nwm-stepper-group {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 220px;
+  min-width: 220px;
+  max-width: 220px;
+  flex-shrink: 0;
   gap: 0.25rem;
+}
+
+.nwm-header-center {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 145px;
+  min-width: 145px;
+  max-width: 145px;
+  flex-shrink: 0;
+  text-align: center;
 }
 
 .nwm-nav-btn {
@@ -842,6 +858,7 @@ footer.page-footer {
   transition: all 0.18s ease-in-out;
   padding: 0;
   cursor: pointer;
+  flex-shrink: 0;
 
   &:hover:not(.disabled):not(:disabled) {
     background: rgba(255, 255, 255, 0.28);
@@ -882,12 +899,13 @@ footer.page-footer {
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 600;
-  padding: 0.15rem 0.65rem;
+  padding: 0.15rem 0.5rem;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
-  max-width: 150px;
+  width: 100%;
+  max-width: 145px;
   height: 1.9rem;
   line-height: 1.5;
 
@@ -910,33 +928,17 @@ footer.page-footer {
   }
 }
 
-.nwm-header-input-picker {
-  width: 2.1rem;
-  max-width: 2.1rem;
-  height: 1.9rem;
-  padding: 0 0.15rem;
-  border-radius: 1rem;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: transparent;
-  text-align: center;
-
-  &::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    cursor: pointer;
-    margin: 0;
-    padding: 0;
-  }
-}
-
 .nwm-header-label {
   color: #ffffff;
   font-size: 0.9rem;
   font-weight: 600;
-  padding: 0 0.35rem;
+  padding: 0 0.25rem;
   white-space: nowrap;
   letter-spacing: 0.01em;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nwm-header-select {
@@ -951,6 +953,8 @@ footer.page-footer {
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
+  width: 100%;
+  max-width: 145px;
 
   &:hover,
   &:focus {
@@ -965,26 +969,12 @@ footer.page-footer {
   }
 }
 
-.nwm-nav-noaa-icon {
+.nwm-noaa-slot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.85) !important;
-  font-size: 1.05rem;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  margin-left: 0.2rem;
-  padding: 0;
-  transition: all 0.2s ease;
-  text-decoration: none !important;
-  vertical-align: middle;
-
-  &:hover {
-    color: #ffffff !important;
-    background: rgba(255, 255, 255, 0.22);
-    transform: scale(1.15);
-  }
+  width: 1.9rem;
+  flex-shrink: 0;
 }
 
 .nwm-hub-divider {
@@ -1007,6 +997,7 @@ footer.page-footer {
   .nwm-stepper-group {
     justify-content: center;
     width: 100%;
+    max-width: 100%;
   }
   .nwm-hub-divider {
     display: none !important;

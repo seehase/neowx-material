@@ -279,12 +279,14 @@
                             </button>
                         #end if
 
-                        <input type="date" id="nx-date-picker"
-                               class="nwm-header-input"
-                               value="$context_day"
-                               min="$archive_start_date"
-                               onchange="nxJumpDate('day', this.value)"
-                               title="$gettext('select_date')">
+                        <div class="nwm-header-center">
+                            <input type="date" id="nx-date-picker"
+                                   class="nwm-header-input"
+                                   value="$context_day"
+                                   min="$archive_start_date"
+                                   onchange="nxJumpDate('day', this.value)"
+                                   title="$gettext('select_date')">
+                        </div>
 
                         #if ($active_nav not in ('current', 'live') and $page != 'today') and $has_next_day
                             <a href="$next_day_url" class="nwm-nav-btn ml-1" title="$gettext('next')" aria-label="$gettext('next')">
@@ -307,13 +309,8 @@
                             </button>
                         #end if
 
-                        <div class="d-inline-flex align-items-center px-1">
+                        <div class="nwm-header-center">
                             <span class="nwm-header-label">${context_year} - $gettext("CW") ${context_week}</span>
-                            <input type="week" id="nx-week-picker"
-                                   class="nwm-header-input nwm-header-input-picker ml-1"
-                                   title="$gettext('week')"
-                                   value="${context_year}-W${context_week}"
-                                   onchange="nxJumpDate('week', this.value)">
                         </div>
 
                         #if $has_next_week
@@ -337,13 +334,8 @@
                             </button>
                         #end if
 
-                        <div class="d-inline-flex align-items-center px-1">
+                        <div class="nwm-header-center">
                             <span class="nwm-header-label">$context_month_name ${context_year}</span>
-                            <input type="month" id="nx-month-picker"
-                                   class="nwm-header-input nwm-header-input-picker ml-1"
-                                   title="$gettext('month')"
-                                   value="${context_year}-${context_month}"
-                                   onchange="nxJumpDate('month', this.value)">
                         </div>
 
                         #if $has_next_month
@@ -356,8 +348,6 @@
                             </button>
                         #end if
 
-
-
                     #else if $page == 'year' or $active_nav == 'year'
                         #if $has_prev_year
                             <a href="$prev_year_url" class="nwm-nav-btn mr-1" title="$gettext('previous')" aria-label="$gettext('previous')">
@@ -369,27 +359,8 @@
                             </button>
                         #end if
 
-                        <div class="d-inline-flex align-items-center px-1">
+                        <div class="nwm-header-center">
                             <span class="nwm-header-label">${context_year}</span>
-                            <select id="nx-year-picker"
-                                    class="nwm-header-select ml-1"
-                                    onchange="nxJumpDate('year', this.value)">
-                                #set $avail_years = $getVar('archive_years', None)
-                                #if not $avail_years
-                                    #set $avail_years = []
-                                    #if $varExists('SummaryByYear')
-                                        #for $y in $SummaryByYear
-                                            #silent $avail_years.append(str($y))
-                                        #end for
-                                    #end if
-                                    #if str($context_year) not in $avail_years
-                                        #silent $avail_years.append(str($context_year))
-                                    #end if
-                                #end if
-                                #for $yr in $avail_years
-                                    <option value="$yr"#if str($yr) == str($context_year)# selected#end if#>$yr</option>
-                                #end for
-                            </select>
                         </div>
 
                         #if $has_next_year
@@ -402,10 +373,28 @@
                             </button>
                         #end if
 
-
                     #end if
 
                 </div><!-- end nwm-stepper-group -->
+
+                <div class="nwm-hub-divider d-none d-lg-block"></div>
+
+                <!-- NOAA Report Icon (Fixed position: datepicker | NOAA | navigation) -->
+                <div class="nwm-noaa-slot">
+                    #if $active_nav == 'month' or $page == 'month'
+                        <a href="$context_noaa_month_url" target="_blank" rel="noopener" class="nwm-nav-btn" title="NOAA Report ($context_month_name $context_year)" aria-label="NOAA Report">
+                            <i class="mdi mdi-file-document-outline"></i>
+                        </a>
+                    #else if $active_nav == 'year' or $page == 'year'
+                        <a href="$context_noaa_year_url" target="_blank" rel="noopener" class="nwm-nav-btn" title="NOAA Report ($context_year)" aria-label="NOAA Report">
+                            <i class="mdi mdi-file-document-outline"></i>
+                        </a>
+                    #else
+                        <button class="nwm-nav-btn disabled" disabled title="NOAA Report" aria-label="NOAA Report">
+                            <i class="mdi mdi-file-document-outline"></i>
+                        </button>
+                    #end if
+                </div>
 
                 <div class="nwm-hub-divider d-none d-lg-block"></div>
                 #end if
@@ -432,24 +421,14 @@
                     #end if
 
                     #if $Extras.Header.month_nav_link == "yes"
-                        <li class="nav-item#if $active_nav == 'month'# active#end if# px-1 d-inline-flex align-items-center">
+                        <li class="nav-item#if $active_nav == 'month'# active#end if# px-1">
                             <a class="nav-link" id="nav-month" href="$current_month_url">$gettext("month")</a>
-                            #if $active_nav == 'month'
-                                <a href="$context_noaa_month_url" target="_blank" rel="noopener" class="nwm-nav-noaa-icon" title="NOAA Report ($context_month_name $context_year)" aria-label="NOAA Report">
-                                    <i class="mdi mdi-file-document-outline"></i>
-                                </a>
-                            #end if
                         </li>
                     #end if
 
                     #if $Extras.Header.year_nav_link == "yes"
-                        <li class="nav-item#if $active_nav == 'year'# active#end if# px-1 d-inline-flex align-items-center">
+                        <li class="nav-item#if $active_nav == 'year'# active#end if# px-1">
                             <a class="nav-link" id="nav-year" href="$current_year_url">$gettext("year")</a>
-                            #if $active_nav == 'year'
-                                <a href="$context_noaa_year_url" target="_blank" rel="noopener" class="nwm-nav-noaa-icon" title="NOAA Report ($context_year)" aria-label="NOAA Report">
-                                    <i class="mdi mdi-file-document-outline"></i>
-                                </a>
-                            #end if
                         </li>
                     #end if
 

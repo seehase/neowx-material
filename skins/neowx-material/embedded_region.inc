@@ -44,8 +44,15 @@
     #end if
 #end def
 
+#if not $varExists('base_path')
+    #set $base_path = ''
+#end if
+
 #def iframeCard($name, $section = "")
     #set iframe_url = $getVar('Extras.Embedded.' + name + '.url', "")
+    #if $iframe_url != "" and not ($iframe_url.startswith('http://') or $iframe_url.startswith('https://') or $iframe_url.startswith('/') or $iframe_url.startswith('//'))
+        #set iframe_url = $base_path + $iframe_url
+    #end if
     #set iframe_title = $getVar('Extras.Embedded.' + name + '.title', "")
     #set iframe_aspect = $getVar('Extras.Embedded.' + name + '.aspect_ratio', "4/3")
     #if iframe_url != ""
@@ -69,11 +76,17 @@
 
 #def imageCard($name, $section = "")
     #set image_url = $getVar('Extras.Embedded.' + name + '.url', "")
+    #if $image_url != "" and not ($image_url.startswith('http://') or $image_url.startswith('https://') or $image_url.startswith('/') or $image_url.startswith('data:'))
+        #set image_url = $base_path + $image_url
+    #end if
     ## by adding a timestamp parameter we prevent browser caching of the image
     #set $sep = '&' if '?' in $image_url else '?'
     #set $timestamp = int($time.time() / 60)
     #set image_title = $getVar('Extras.Embedded.' + name + '.title', "")
     #set image_link = $getVar('Extras.Embedded.' + name + '.link', "")
+    #if $image_link != "" and not ($image_link.startswith('http://') or $image_link.startswith('https://') or $image_link.startswith('/') or $image_link.startswith('#'))
+        #set image_link = $base_path + $image_link
+    #end if
     #set image_new_tab = $getVar('Extras.Embedded.' + name + '.new_tab', "no")
     #set image_padding = $getVar('Extras.Embedded.' + name + '.padding', "no")
     #set image_aspect = $getVar('Extras.Embedded.' + name + '.aspect_ratio', "4/3")

@@ -223,8 +223,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!toggleBtn || !drawer) return;
 
     if (localStorage.getItem('nwm_footer_open') === '1') {
-        if (window.jQuery && $(drawer).collapse) {
-            $(drawer).collapse('show');
+        if (window.jQuery && window.jQuery(drawer).collapse) {
+            window.jQuery(drawer).collapse('show');
         } else {
             drawer.classList.add('show');
         }
@@ -233,12 +233,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (window.jQuery) {
-        $(drawer).on('show.bs.collapse', function () {
+        window.jQuery(drawer).on('show.bs.collapse', function () {
             toggleBtn.setAttribute('aria-expanded', 'true');
             toggleBtn.classList.add('expanded');
             localStorage.setItem('nwm_footer_open', '1');
         });
-        $(drawer).on('hide.bs.collapse', function () {
+        window.jQuery(drawer).on('hide.bs.collapse', function () {
             toggleBtn.setAttribute('aria-expanded', 'false');
             toggleBtn.classList.remove('expanded');
             localStorage.setItem('nwm_footer_open', '0');
