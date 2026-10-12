@@ -23,7 +23,6 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/almanac.html.tmpl",
                         "skins/neowx-material/archive/NOAA/NOAA-%Y-%m.txt.tmpl",
                         "skins/neowx-material/archive/NOAA/NOAA-%Y.txt.tmpl",
-                        "skins/neowx-material/date_nav.inc",
                         "skins/neowx-material/day-%Y-%m-%d.html.tmpl",
                         "skins/neowx-material/css/bootstrap.min.css",
                         "skins/neowx-material/css/style.min.css",

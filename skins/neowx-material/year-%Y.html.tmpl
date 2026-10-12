@@ -19,7 +19,7 @@
 #def valuesCard($name, $section = "")
     ## ET requires a valid positive sum to be shown
     #if $getVar('year.' + name + '.has_data') and ($name != 'ET' or ($year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0))
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
             <div class="card card-value" data-name="$name" data-section="$section">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">
@@ -165,7 +165,7 @@
             $valuesCard('ET', $section)
         #end if
     #else if $x == "temperatureThresholdDays"
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
             <div class="card" data-name="temperatureThresholdDays" data-section="$section">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">$gettext("summer_days")</h3>
@@ -177,7 +177,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
             <div class="card">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_days")</h3>
@@ -189,7 +189,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
             <div class="card">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">$gettext("tropical_nights")</h3>
@@ -201,7 +201,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-lg-6 mb-4">
+        <div class="col-12 col-md-6 col-xl-4 mb-4">
             <div class="card">
                 <div class="card-body text-center">
                     <h3 class="h5-responsive $Extras.color-text">$gettext("arctic_days")</h3>
@@ -426,52 +426,7 @@
 
             <div class="row mt-3 align-content-start">
 
-                #include "date_nav.inc"
 
-                #for $month in $year.months
-                    #if $month.outTemp.has_data
-                        <div class="col-12 col-lg-6 mb-4 text-center">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h4 class="h4-responsive $Extras.color-text">$month.dateTime.format("%B")</h4>
-                                    <div class="row text-dark my-2">
-                                        <div class="col-4">
-                                            <i class="wi wi-thermometer h5-responsive"></i><br>
-                                            $month.outTemp.min<br>$month.outTemp.max
-                                        </div>
-                                        <div class="col-4">
-                                            <i class="wi wi-strong-wind h5-responsive"></i><br>
-                                            $month.wind.max<br>
-                                            $month.wind.vecdir.ordinal_compass
-                                            <i class="wi wi-wind from-$month.wind.vecdir.formatted-deg mr-2"
-                                            title="$month.wind.vecdir.formatted°" data-toggle="tooltip" data-html="true"></i>
-                                        </div>
-                                        <div class="col-4">
-                                            <i class="wi wi-showers h5-responsive"></i><br>
-                                            $month.rain.sum
-                                        </div>
-                                    </div>
-                                    <div class="row d-flex align-items-center">
-                                        <div class="col-6">
-                                            <a href="months/month-${year_name}-${month.dateTime.format('%m')}.html"
-                                            class="btn btn-$Extras.color btn-block">
-                                            $gettext("more")
-                                            </a>
-                                        </div>
-                                        <div class="col-6">
-                                            <a href="${base_path}archive/NOAA/NOAA-${year_name}-${month.dateTime.format('%m')}.txt"
-                                            class="btn btn-primary btn-block">
-                                            $gettext("noaa_export")
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    #end if
-                #end for
-
-                <div class="col-12"><hr class="m-0 mb-4" /></div>
 
                 #set $panel_idx = 0
                 #for $seg_i, $seg in $enumerate($page_segments)
