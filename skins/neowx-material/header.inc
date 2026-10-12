@@ -263,8 +263,6 @@
         <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent" style="flex: 1 1 auto;">
             <div class="nwm-nav-hub my-1">
 
-                #set $show_stepper = ($page in ('today', 'day', 'week', 'month', 'year') or $active_nav in ('current', 'live', 'day', 'week', 'month', 'year'))
-                #if $show_stepper
                 <!-- Stepper Controls (Adaptive per page scale) -->
                 <div class="nwm-stepper-group">
 
@@ -373,6 +371,45 @@
                             </button>
                         #end if
 
+                    #else if $page == 'history' or $active_nav == 'history'
+                        <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <i class="mdi mdi-chevron-left"></i>
+                        </button>
+
+                        <div class="nwm-header-center">
+                            <span class="nwm-header-label">$gettext("history")</span>
+                        </div>
+
+                        <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <i class="mdi mdi-chevron-right"></i>
+                        </button>
+
+                    #else if $page == 'almanac' or $active_nav == 'almanac'
+                        <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <i class="mdi mdi-chevron-left"></i>
+                        </button>
+
+                        <div class="nwm-header-center">
+                            <span class="nwm-header-label">$gettext("almanac")</span>
+                        </div>
+
+                        <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <i class="mdi mdi-chevron-right"></i>
+                        </button>
+
+                    #else
+                        <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <i class="mdi mdi-chevron-left"></i>
+                        </button>
+
+                        <div class="nwm-header-center">
+                            <span class="nwm-header-label">#if $varExists('page') and $page#$gettext($page)#else#$station.location#end if#</span>
+                        </div>
+
+                        <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <i class="mdi mdi-chevron-right"></i>
+                        </button>
+
                     #end if
 
                 </div><!-- end nwm-stepper-group -->
@@ -382,22 +419,27 @@
                 <!-- NOAA Report Icon (Fixed position: datepicker | NOAA | navigation) -->
                 <div class="nwm-noaa-slot">
                     #if $active_nav == 'month' or $page == 'month'
-                        <a href="$context_noaa_month_url" target="_blank" rel="noopener" class="nwm-nav-btn" title="NOAA Report ($context_month_name $context_year)" aria-label="NOAA Report">
+                        <a href="$context_noaa_month_url" target="_blank" rel="noopener" class="nwm-nav-btn"
+                           data-toggle="tooltip" data-placement="bottom"
+                           title="$gettext('show_noaa_data')" aria-label="$gettext('show_noaa_data')">
                             <i class="mdi mdi-file-document-outline"></i>
                         </a>
                     #else if $active_nav == 'year' or $page == 'year'
-                        <a href="$context_noaa_year_url" target="_blank" rel="noopener" class="nwm-nav-btn" title="NOAA Report ($context_year)" aria-label="NOAA Report">
+                        <a href="$context_noaa_year_url" target="_blank" rel="noopener" class="nwm-nav-btn"
+                           data-toggle="tooltip" data-placement="bottom"
+                           title="$gettext('show_noaa_data')" aria-label="$gettext('show_noaa_data')">
                             <i class="mdi mdi-file-document-outline"></i>
                         </a>
                     #else
-                        <button class="nwm-nav-btn disabled" disabled title="NOAA Report" aria-label="NOAA Report">
+                        <button class="nwm-nav-btn disabled" disabled
+                                data-toggle="tooltip" data-placement="bottom"
+                                title="$gettext('show_noaa_data')" aria-label="$gettext('show_noaa_data')">
                             <i class="mdi mdi-file-document-outline"></i>
                         </button>
                     #end if
                 </div>
 
                 <div class="nwm-hub-divider d-none d-lg-block"></div>
-                #end if
 
                 <!-- Navigation Links -->
                 <ul class="navbar-nav flex-row flex-wrap align-items-center justify-content-center mb-0">

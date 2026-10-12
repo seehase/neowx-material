@@ -65,6 +65,14 @@
                                 </span>
                             </div>
                         #end if
+                        <div class="nwm-footer-meta-row">
+                            <span class="nwm-footer-meta-label">$gettext("panels")</span>
+                            <span class="nwm-footer-meta-value">
+                                <button type="button" class="nwm-footer-btn-chip" id="nwm-reset-panels-btn" style="border:none; cursor:pointer;" title="$gettext('reset_panels_tooltip')">
+                                    <i class="mdi mdi-restore mr-1"></i>$gettext("reset_panels")
+                                </button>
+                            </span>
+                        </div>
                         #if $Extras.Footer.about != ""
                             <p class="nwm-footer-about-text mt-2 mb-0">$Extras.Footer.about</p>
                         #end if
@@ -242,6 +250,18 @@ document.addEventListener('DOMContentLoaded', function () {
             toggleBtn.setAttribute('aria-expanded', 'false');
             toggleBtn.classList.remove('expanded');
             localStorage.setItem('nwm_footer_open', '0');
+        });
+    }
+
+    var resetBtn = document.getElementById('nwm-reset-panels-btn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            try {
+                sessionStorage.removeItem('nwm-panels');
+                localStorage.removeItem('nwm-panels');
+            } catch (err) {}
+            window.location.reload();
         });
     }
 });
