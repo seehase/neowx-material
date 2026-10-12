@@ -149,11 +149,19 @@
                     <span class="nwm-footer-item">&copy; <span id="footer-year">$current.dateTime.format("%Y")</span> $Extras.Footer.name</span>
                     #if $Extras.Footer.support_weewx == "yes"
                         <span class="nwm-sep">&bull;</span>
-                        <span class="nwm-footer-item">Powered by <a href="https://weewx.com" target="_blank" rel="noopener">weewx</a>#if $Extras.Footer.show_version == "yes" <span class="nwm-version">v<span id="footer-weewx-version">$station.version</span></span>#end if#</span>
+                        <span class="nwm-footer-item">Powered by <a href="https://weewx.com" target="_blank" rel="noopener">weewx</a>
+                            #if $Extras.Footer.show_version == "yes"
+                                <span class="nwm-version">v<span id="footer-weewx-version">$station.version</span></span>
+                            #end if
+                        </span>
                     #end if
                     #if $Extras.Footer.support_skin == "yes"
                         <span class="nwm-sep">&bull;</span>
-                        <span class="nwm-footer-item"><a href="https://github.com/seehase/neowx-material" target="_blank" rel="noopener">Fork of NeoWX Material</a>#if $Extras.Footer.show_version == "yes" <span class="nwm-version">v<span id="footer-skin-version">$Extras.version</span></span>#end if#</span>
+                        <span class="nwm-footer-item"><a href="https://github.com/seehase/neowx-material" target="_blank" rel="noopener">Fork of NeoWX Material</a>
+                            #if $Extras.Footer.show_version == "yes"
+                                <span class="nwm-version">v<span id="footer-skin-version">$Extras.version</span></span>
+                            #end if
+                        </span>
                     #end if
                     #if $Extras.Footer.imprint_url != ""
                         <span class="nwm-sep">&bull;</span>
