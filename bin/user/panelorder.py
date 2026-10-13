@@ -148,7 +148,7 @@ CONTENTS = (CARD, "chart", "telemetry", "telemetry_chart")
 SINGLETON_ITEMS = ("forecast",)
 
 # Keys a section may carry that are settings rather than typos.
-# items_title_align is read by head.inc, not here - it is listed so a panel
+# items_title_align is read by inc/head.inc, not here - it is listed so a panel
 # that sets it is not reported as carrying an unknown setting.
 SETTING_KEYS = ("items", "title", "collapsed", "content", "items_title_align")
 
@@ -329,7 +329,7 @@ def _slugs(appearance, sections):
 def section_slug(skin_dict, section_id):
     """The data-section value for one section, by its skin.conf name.
 
-    head.inc builds its items_title_align rules straight from
+    inc/head.inc builds its items_title_align rules straight from
     Extras.Appearance.sections rather than from parsed segments, and needs the
     same slug the templates emit.  Exposed so that rule lives in exactly one
     place: re-deriving it there would drop the collision suffix and the

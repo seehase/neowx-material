@@ -484,7 +484,7 @@ footer.page-footer {
 // sizing and hover rules only name the built-in buttons, so both are repeated
 // here at the vendor's own values - this button sits in the vendor's toolbar,
 // so a near-miss on the hover shade shows up next to the buttons either side
-// of it. fill/stroke come from attributes on the inline SVG in js.inc.
+// of it. fill/stroke come from attributes on the inline SVG in inc/js.inc.
 .apexcharts-toolbar-custom-icon.neowx-chart-popup-icon,
 .apexcharts-toolbar-custom-icon.neowx-chart-close-icon {
   svg {
@@ -625,7 +625,7 @@ footer.page-footer {
   }
 
   // js/app.js gives the title the same classes a card heading has (size and
-  // accent colour, both from NEOWX_TITLE_CLASS in js.inc). What it cannot pick
+  // accent colour, both from NEOWX_TITLE_CLASS in inc/js.inc). What it cannot pick
   // up there is what the headings get from sitting in a .card .card-body, and
   // Bootstrap's own .modal-title line-height is looser than a heading's.
   .modal-title {

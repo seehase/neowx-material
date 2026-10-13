@@ -8,12 +8,12 @@
 <html lang="$lang">
     <head>
         <title>$gettext("almanac") | $station.location</title>
-        #include "head.inc"
+        #include "inc/head.inc"
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
 
         #attr $active_nav = 'almanac'
-        #include "header.inc"
+        #include "inc/header.inc"
 
         ## If extended almanac information is available, do extra calculations.
         #if $almanac.hasExtras
@@ -46,7 +46,7 @@
                                 #set global $panel_title = '<i class="wi wi-day-sunny mr-1"></i> ' + $gettext("sun")
                                 #set global $panel_id    = 'nwm-alm-sun'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-alm-sun" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-3 text-center">
@@ -89,7 +89,7 @@
                                 #set global $panel_title = '<i class="wi wi-stars mr-1"></i> ' + $gettext("celestial_bodies")
                                 #set global $panel_id    = 'nwm-alm-celestial-bodies'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-alm-celestial-bodies" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-3 text-center">
@@ -131,7 +131,7 @@
                                 #set global $panel_title = '<i class="wi wi-day-haze mr-1"></i> ' + $gettext("equinox") + ' &amp; ' + $gettext("solstice")
                                 #set global $panel_id    = 'nwm-alm-equinox-solstice'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-alm-equinox-solstice" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-3 text-center">
@@ -164,7 +164,7 @@
                                 #set global $panel_title = '<i class="wi wi-moon-alt-waxing-crescent-3 mr-1"></i> ' + $gettext("moonphases")
                                 #set global $panel_id    = 'nwm-alm-moonphases'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-alm-moonphases" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-3 text-center">
@@ -227,7 +227,7 @@
                                 #set global $panel_title = '<i class="wi wi-day-sunny mr-1"></i> ' + $gettext("sun")
                                 #set global $panel_id    = 'nwm-alm-sun'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-alm-sun" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-3 text-center">
@@ -257,8 +257,8 @@
 
         </main>
 
-        #include "footer.inc"
-        #include "js.inc"
+        #include "inc/footer.inc"
+        #include "inc/js.inc"
 
     </body>
 </html>

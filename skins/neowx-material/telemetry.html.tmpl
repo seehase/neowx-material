@@ -27,13 +27,13 @@
             #if $isEmbeddedItem($x)
                 #set global $emb_item     = $x
                 #set global $emb_section  = $seg['slug']
-                #include "embedded_region.inc"
+                #include "inc/embedded_region.inc"
                 #set global $emb_item     = None
             #else
                 #set global $tele_mode    = $mode
                 #set global $tele_item    = $x
                 #set global $tele_section = $seg['slug']
-                #include "telemetry.inc"
+                #include "inc/telemetry.inc"
             #end if
         #end for
     #else if len($vis_items) > 0
@@ -45,7 +45,7 @@
                 #set global $panel_title = $seg['title']
                 #set global $panel_id    = $p_id
                 #set global $panel_type  = $seg['type']
-                #include "panel_header.inc"
+                #include "inc/panel_header.inc"
                 <div id="${p_id}" class="collapse${p_show}">
                     <div class="nwm-panel-body">
                         <div class="row">
@@ -53,13 +53,13 @@
                                 #if $isEmbeddedItem($x)
                                     #set global $emb_item     = $x
                                     #set global $emb_section  = $seg['slug']
-                                    #include "embedded_region.inc"
+                                    #include "inc/embedded_region.inc"
                                     #set global $emb_item     = None
                                 #else
                                     #set global $tele_mode    = $mode
                                     #set global $tele_item    = $x
                                     #set global $tele_section = $seg['slug']
-                                    #include "telemetry.inc"
+                                    #include "inc/telemetry.inc"
                                 #end if
                             #end for
                         </div>
@@ -78,16 +78,16 @@
 <html lang="$lang">
     <head>
         <title>$gettext("telemetry") | $station.location</title>
-        #include "head.inc"
+        #include "inc/head.inc"
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
 
         #attr $active_nav = ''
-        #include "header.inc"
+        #include "inc/header.inc"
 
         #set global $card_scope = $page
         #set global $card_default = $Extras.Formatting.datetime_today
-        #include "card_datetime.inc"
+        #include "inc/card_datetime.inc"
 
         ## Resolve the page tick spec once (tick_style_telemetry -> tick_style ->
         ## auto). All telemetry charts share the same span (Telemetry.chart_days,
@@ -101,7 +101,7 @@
         #end try
         #set global $align_start = $span($day_delta=$_tel_chart_days, $boundary='midnight').start.raw
         #set global $align_stop = $current.dateTime.raw
-        #include "graph_align_setup.inc"
+        #include "inc/graph_align_setup.inc"
         <main>
             <div class="container-fluid">
 
@@ -131,8 +131,8 @@
             </div>
         </main>
 
-        #include "footer.inc"
-        #include "js.inc"
+        #include "inc/footer.inc"
+        #include "inc/js.inc"
 
         ## +-------------------------------------------------------------------------+
         ## | Chart definitions                                                       |
@@ -142,12 +142,12 @@
             // Config templates
 
             var graph_area_config = {
-                #include "graph_area_config.inc"
+                #include "inc/graph_area_config.inc"
             }
 
             #set global $tele_mode        = 'js'
             #set global $tele_chart_items = [x for x in $panelItems('telemetry_chart', page=$page, subpage=$subpage) if not $isEmbeddedItem(x)]
-            #include "telemetry.inc"
+            #include "inc/telemetry.inc"
         </script>
 
     </body>

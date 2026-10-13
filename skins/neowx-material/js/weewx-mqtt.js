@@ -425,7 +425,7 @@ function updatePayloadValues(payload) {
             }
             formattedValue += mapEntry.unit;
 
-            // Telemetry gauge cards (telemetry.inc) carry a server-built spec
+            // Telemetry gauge cards (inc/telemetry.inc) carry a server-built spec
             // in data-nwm-gauge: they show a mapped state such as "OK" and a
             // drawn gauge, not just a number. Since telemetry items may sit in
             // any card section they share this page with MQTT, and writing
@@ -478,7 +478,7 @@ function updatePayloadValues(payload) {
 }
 
 // --- HELPER FUNCTION 4b: Update a telemetry gauge card from its spec ---
-// The spec is built server-side by gaugeSpec() in telemetry.inc from the same
+// The spec is built server-side by gaugeSpec() in inc/telemetry.inc from the same
 // helpers that drew the card, so nothing here reads [[Telemetry]]. A status
 // field arrives as a complete per-state table (label, bar percentage, fill
 // width, colour); a range field as min/max and low_threshold. The arithmetic
@@ -507,7 +507,7 @@ function gaugePercent(spec, value) {
 }
 
 // Recompute the two filled wings of the signal cone. Geometry is a port of
-// signalCone() in telemetry.inc; the static grey wings and the centre dot are
+// signalCone() in inc/telemetry.inc; the static grey wings and the centre dot are
 // not touched.
 function drawSignalCone(svg, pct, color) {
     var R = 14.6, hhI = 4.75, hhO = 11.0;

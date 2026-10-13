@@ -159,7 +159,7 @@
         #set global $forecast_is_first = $is_first
         #set global $forecast_is_last  = $is_last
         #set global $forecast_section  = $section
-        #include "forecast.inc"
+        #include "inc/forecast.inc"
     #else if $x == "ET"
         #if $year.ET.has_data and $year.ET.sum.raw is not None and $year.ET.sum.raw > 0.0
             $valuesCard('ET', $section)
@@ -221,11 +221,11 @@
         #set global $tele_mode    = 'card'
         #set global $tele_item    = $x
         #set global $tele_section = $section
-        #include "telemetry.inc"
+        #include "inc/telemetry.inc"
     #else if $isEmbeddedItem($x)
         #set global $emb_item     = $x
         #set global $emb_section  = $section
-        #include "embedded_region.inc"
+        #include "inc/embedded_region.inc"
         #set global $emb_item     = None
     #else
         $valuesCard($x, $section)
@@ -292,7 +292,7 @@
                     #set global $panel_title = $seg['title']
                     #set global $panel_id    = $p_id
                     #set global $panel_type  = $seg['type']
-                    #include "panel_header.inc"
+                    #include "inc/panel_header.inc"
                     <div id="${p_id}" class="collapse${p_show}">
                         <div class="nwm-panel-body">
                             <div class="row">
@@ -319,11 +319,11 @@
                 #set global $tele_mode    = 'chart'
                 #set global $tele_item    = $x
                 #set global $tele_section = $seg['slug']
-                #include "telemetry.inc"
+                #include "inc/telemetry.inc"
             #else if $isEmbeddedItem($x)
                 #set global $emb_item     = $x
                 #set global $emb_section  = $seg['slug']
-                #include "embedded_region.inc"
+                #include "inc/embedded_region.inc"
                 #set global $emb_item     = None
             #else
                 $chartCard($x, $x + 'chart', section=$seg['slug'])
@@ -365,7 +365,7 @@
                     #set global $panel_title = $seg['title']
                     #set global $panel_id    = $p_id
                     #set global $panel_type  = $seg['type']
-                    #include "panel_header.inc"
+                    #include "inc/panel_header.inc"
                     <div id="${p_id}" class="collapse${p_show}">
                         <div class="nwm-panel-body">
                             <div class="row">
@@ -374,11 +374,11 @@
                                         #set global $tele_mode    = 'chart'
                                         #set global $tele_item    = $x
                                         #set global $tele_section = $seg['slug']
-                                        #include "telemetry.inc"
+                                        #include "inc/telemetry.inc"
                                     #else if $isEmbeddedItem($x)
                                         #set global $emb_item     = $x
                                         #set global $emb_section  = $seg['slug']
-                                        #include "embedded_region.inc"
+                                        #include "inc/embedded_region.inc"
                                         #set global $emb_item     = None
                                     #else
                                         $chartCard($x, $x + 'chart', section=$seg['slug'])
@@ -407,7 +407,7 @@
 
 #set global $card_scope = $page
 #set global $card_default = $Extras.Formatting.datetime_archive
-#include "card_datetime.inc"
+#include "inc/card_datetime.inc"
 
 <!DOCTYPE html>
 <html lang="$lang">
@@ -415,11 +415,11 @@
         <title>
             $gettext("year") $year_name | $station.location
         </title>
-        #include "head.inc"
+        #include "inc/head.inc"
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
 
-        #include "header.inc"
+        #include "inc/header.inc"
 
         <main>
         <div class="container-fluid">
@@ -449,8 +449,8 @@
         </div>
         </main>
 
-#include "footer.inc"
-#include "js.inc"
+#include "inc/footer.inc"
+#include "inc/js.inc"
 
 #def getChartData($name, $column)
     #set $days = list($year.days)
@@ -472,7 +472,7 @@
     #if $name in $panelItems('chart', page=$page, subpage=$subpage)
         #set global $cc_name  = $name
         #set global $cc_scope = ''
-        #include "chart_colors_setup.inc"
+        #include "inc/chart_colors_setup.inc"
 
         #if $name == "outTemp"
 
@@ -504,7 +504,7 @@
                     #if $pg_align_mid and $type != 'radar'
                         xaxis: {
                             ...graph_${type}_config.xaxis,
-                            #include "graph_align_axis.inc"
+                            #include "inc/graph_align_axis.inc"
                         },
                     #end if
                     yaxis: {
@@ -576,7 +576,7 @@
                     #if $pg_align_mid and $type != 'radar'
                         xaxis: {
                             ...graph_${type}_config.xaxis,
-                            #include "graph_align_axis.inc"
+                            #include "inc/graph_align_axis.inc"
                         },
                     #end if
                     #if $name == "windDir"
@@ -651,18 +651,18 @@
         #set global $align_start = int($current.dateTime.raw) - 86400
         #set global $align_stop  = int($current.dateTime.raw)
     #end if
-    #include "graph_align_setup.inc"
+    #include "inc/graph_align_setup.inc"
     var graph_area_config = {
-        #include "graph_area_config.inc"
+        #include "inc/graph_area_config.inc"
     }
     var graph_bar_config = {
-        #include "graph_bar_config.inc"
+        #include "inc/graph_bar_config.inc"
     }
     var graph_radar_config = {
-        #include "graph_radar_config.inc"
+        #include "inc/graph_radar_config.inc"
     }
     var graph_line_config = {
-        #include "graph_line_config.inc"
+        #include "inc/graph_line_config.inc"
     }
 
     // --- Special charts: multi-series or non-default columns ---
@@ -718,7 +718,7 @@
     });
     #set global $cc_name  = 'windvec'
     #set global $cc_scope = ''
-    #include "chart_colors_setup.inc"
+    #include "inc/chart_colors_setup.inc"
     #set $sc_color_list = []
     #silent $sc_color_list.append($cc_color_refs[0] if len($cc_color_refs) > 0 else 'default')
     #silent $sc_color_list.append($cc_color_refs[1] if len($cc_color_refs) > 1 else 'default')
@@ -857,9 +857,9 @@
                 ## Resolve per-chart date-format overrides (shared logic)
                 #set global $cc_name  = $x
                 #set global $cc_scope = 'year'
-                #include "chart_date_format.inc"
-                #include "chart_tick_setup.inc"
-                #include "chart_colors_setup.inc"
+                #include "inc/chart_date_format.inc"
+                #include "inc/chart_tick_setup.inc"
+                #include "inc/chart_colors_setup.inc"
 
                 ## Render chart JS
                 #if len($cc_series_pairs) > 0 and $x in $panelItems('chart', page=$page, subpage=$subpage)
@@ -896,11 +896,11 @@
                         #end if
                         new ApexCharts(chartElement, {
                             ...graph_${cc_type}_config,
-                            #include "chart_hidden_series.inc"
+                            #include "inc/chart_hidden_series.inc"
                             #if $cc_label_fmt or $pg_align_mid or $cc_tick_set
                             xaxis: {
                                 ...graph_${cc_type}_config.xaxis,
-                                #include "chart_tick_axis.inc"
+                                #include "inc/chart_tick_axis.inc"
                                 #if $cc_label_fmt
                                 labels: { ...graph_${cc_type}_config.xaxis.labels, formatter: neowxDateFormatter("$cc_label_fmt") }
                                 #end if
@@ -1093,7 +1093,7 @@
     #set global $tele_chart_interval = 86400
     #set global $tele_mode        = 'js'
     #set global $tele_chart_items = [x for x in $panelItems('chart', page=$page, subpage=$subpage) if $isTelemetryItem(x)]
-    #include "telemetry.inc"
+    #include "inc/telemetry.inc"
 
 </script>
 

@@ -423,7 +423,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         else:
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
 
-        # Fallback card_datetime if accessed before card_datetime.inc
+        # Fallback card_datetime if accessed before inc/card_datetime.inc
         card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
         if summarize_by == 'SummaryByDay':
             card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime_today', '%H:%M')

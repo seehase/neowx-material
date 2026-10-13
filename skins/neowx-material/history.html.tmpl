@@ -8,12 +8,12 @@
 <html lang="$lang">
     <head>
         <title>$gettext("history") | $station.location</title>
-        #include "head.inc"
+        #include "inc/head.inc"
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
 
         #attr $active_nav = 'history'
-        #include "header.inc"
+        #include "inc/header.inc"
 
         <main>
 
@@ -30,7 +30,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("min_temp")
                             #set global $panel_id    = 'nwm-hist-min-temp'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-min-temp" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -46,7 +46,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("avg_temp")
                             #set global $panel_id    = 'nwm-hist-avg-temp'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-avg-temp" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -62,7 +62,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("max_temp")
                             #set global $panel_id    = 'nwm-hist-max-temp'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-max-temp" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -78,7 +78,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("summer_days")
                             #set global $panel_id    = 'nwm-hist-summer-days'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-summer-days" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -94,7 +94,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("tropical_days")
                             #set global $panel_id    = 'nwm-hist-tropical-days'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-tropical-days" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -110,7 +110,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("tropical_nights")
                             #set global $panel_id    = 'nwm-hist-tropical-nights'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-tropical-nights" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -126,7 +126,7 @@
                             #set global $panel_title = '<i class="wi wi-thermometer mr-1"></i> ' + $gettext("arctic_days")
                             #set global $panel_id    = 'nwm-hist-arctic-days'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-arctic-days" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -143,7 +143,7 @@
                                 #set global $panel_title = '<i class="wi wi-showers mr-1"></i> ' + $gettext("rain")
                                 #set global $panel_id    = 'nwm-hist-rain'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-hist-rain" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -159,7 +159,7 @@
                                 #set global $panel_title = '<i class="wi wi-showers mr-1"></i> ' + $gettext("rain_days") + ' (> 0.2mm)'
                                 #set global $panel_id    = 'nwm-hist-rain-days'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-hist-rain-days" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -177,7 +177,7 @@
                                 #set global $panel_title = '<i class="wi wi-strong-wind mr-1"></i> ' + $gettext("max_wind")
                                 #set global $panel_id    = 'nwm-hist-max-wind'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-hist-max-wind" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -193,7 +193,7 @@
                                 #set global $panel_title = '<i class="wi wi-strong-wind mr-1"></i> ' + $gettext("avg_wind")
                                 #set global $panel_id    = 'nwm-hist-avg-wind'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-hist-avg-wind" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -211,7 +211,7 @@
                                 #set global $panel_title = '<i class="wi wi-day-sunny mr-1"></i> ' + $gettext("uv_max")
                                 #set global $panel_id    = 'nwm-hist-uv-max'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-hist-uv-max" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -229,7 +229,7 @@
                                 #set global $panel_title = '<i class="wi wi-lightning mr-1"></i> ' + $gettext("lightning_strikes")
                                 #set global $panel_id    = 'nwm-hist-lightning'
                                 #set global $panel_type  = 'expanded'
-                                #include "panel_header.inc"
+                                #include "inc/panel_header.inc"
                                 <div id="nwm-hist-lightning" class="collapse show">
                                     <div class="nwm-panel-body">
                                         <div class="card p-2 p-md-3" style="overflow-x: auto; white-space: nowrap;">
@@ -247,7 +247,7 @@
                             #set global $panel_title = '<i class="mdi mdi-calendar-blank-outline mr-1"></i> ' + $gettext("year_records")
                             #set global $panel_id    = 'nwm-hist-year-records'
                             #set global $panel_type  = 'expanded'
-                            #include "panel_header.inc"
+                            #include "inc/panel_header.inc"
                             <div id="nwm-hist-year-records" class="collapse show">
                                 <div class="nwm-panel-body">
                                     <div class="card p-3" style="text-align: left; width: 100%; overflow-x: auto;">
@@ -410,7 +410,7 @@
                     #set global $panel_title = '<i class="mdi mdi-trophy-outline mr-1"></i> ' + $gettext("all_time_records")
                     #set global $panel_id    = 'nwm-hist-alltime-records'
                     #set global $panel_type  = 'expanded'
-                    #include "panel_header.inc"
+                    #include "inc/panel_header.inc"
                     <div id="nwm-hist-alltime-records" class="collapse show">
                         <div class="nwm-panel-body">
                             <div class="card p-3" style="text-align: left; width: 100%; overflow-x: auto;">
@@ -572,8 +572,8 @@
 
         </main>
 
-        #include "footer.inc"
-        #include "js.inc"
+        #include "inc/footer.inc"
+        #include "inc/js.inc"
 
     </body>
 </html>

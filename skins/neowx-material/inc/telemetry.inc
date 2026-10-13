@@ -773,12 +773,12 @@
                     #if $pg_align_mid
                     xaxis: {
                         ...graph_area_config.xaxis,
-                        #include "graph_align_axis.inc"
+                        #include "inc/graph_align_axis.inc"
                     },
                     #else
                     xaxis: {
                         ...graph_area_config.xaxis,
-                        #include "graph_tick_amount.inc"
+                        #include "inc/graph_tick_amount.inc"
                     },
                     #end if
                     yaxis: {
