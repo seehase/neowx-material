@@ -566,6 +566,9 @@ function updateGaugeCard(card, specJson, numValue, formattedValue, h4Element) {
             fillWidth = pct;
             valText = pct + '%';
         }
+        if (spec.type === 'percent') {
+            heading = valText || (Math.round(numValue) + '%');
+        }
     }
     // sensor_type none: the heading is all there is
 
