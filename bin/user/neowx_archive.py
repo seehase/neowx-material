@@ -49,7 +49,7 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
         return dt.strftime(filename)
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 
 log = logging.getLogger(__name__)
 
@@ -226,7 +226,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         if stop_ts < start_ts:
             return ngen
 
-        summarize_by = report_dict['summarize_by']
+        summarize_by = report_dict.get('summarize_by')
         if summarize_by in self.generator_dict:
             _spangen = self.generator_dict[summarize_by]
         else:
@@ -415,13 +415,26 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         current_month_url = f"{base_path}archive/{stop_yr:04d}/months/month-{stop_yr:04d}-{stop_mo:02d}.html"
         current_year_url = f"{base_path}archive/{stop_yr:04d}/year-{stop_yr:04d}.html"
 
-        # Context-dependent month URL when viewing a full year
+        # Context-dependent URLs when viewing different scales
         if summarize_by == 'SummaryByYear':
             target_mo = stop_mo if is_current_year else 12
             ctx_month_str = f"{target_mo:02d}"
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{ctx_month_str}.html"
+            target_wk = stop_iso_wk if is_current_year else 1
+            context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{target_wk:02d}.html"
+            target_day_str = f"{stop_yr:04d}-{stop_mo:02d}-{stop_day:02d}" if is_current_year else f"{yr:04d}-01-01"
+            context_day_link = f"{base_path}archive/{context_year_str}/days/day-{target_day_str}.html"
+        elif summarize_by == 'SummaryByMonth':
+            context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
+            first_day_mo = datetime.date(yr, mo, 1)
+            mo_wk = first_day_mo.isocalendar()[1]
+            context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{mo_wk:02d}.html"
+            target_day = stop_day if is_current_month else 1
+            context_day_link = f"{base_path}archive/{context_year_str}/days/day-{context_year_str}-{context_month_str}-{target_day:02d}.html"
         else:
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
+            context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{context_week_str}.html"
+            context_day_link = f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
 
         # Fallback card_datetime if accessed before inc/card_datetime.inc
         card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
@@ -431,8 +444,12 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         return {
             'base_path': base_path,
             'card_datetime': card_dt_fallback,
-            'archive_start_date': archive_start_date_str,
+            'archive_start_date': start_dt.strftime('%Y-%m-%d'),
+            'archive_stop_date': stop_dt.strftime('%Y-%m-%d'),
+            'archive_start_year': start_dt.year,
+            'archive_stop_year': stop_dt.year,
             'archive_years': archive_years,
+            'archive_years_reversed': [f"{y:04d}" for y in range(stop_dt.year, start_dt.year - 1, -1)],
             'context_year': context_year_str,
             'context_month': context_month_str,
             'context_month_name': ref_dt.strftime("%B"),
@@ -449,8 +466,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
             # URLs for scale switching from current context
             'context_live_url': f"{base_path}index.html",
-            'context_day_url': f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html",
-            'context_week_url': f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{context_week_str}.html",
+            'context_day_url': context_day_link,
+            'context_week_url': context_week_link,
             'context_month_url': context_month_link,
             'context_year_url': f"{base_path}archive/{context_year_str}/year-{context_year_str}.html",
             'context_noaa_year_url': f"{base_path}archive/NOAA/NOAA-{context_year_str}.txt",

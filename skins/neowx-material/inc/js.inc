@@ -28,6 +28,8 @@
 <script type="text/javascript" src="${base_path}js/app.js?v=$Extras.version"></script>
 ## Keeps header/footer chrome current on non-current (incl. frozen archive) pages
 <script type="text/javascript" src="${base_path}js/neowx-live.js?v=$Extras.version"></script>
+## Interactive date, week, month, and year navigation pickers
+<script type="text/javascript" src="${base_path}js/neowx-date-nav.js?v=$Extras.version"></script>
 
 <script type="text/javascript">
     // Show/update status label only if configured threshold > 0 in skin.conf

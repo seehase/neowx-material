@@ -32,6 +32,21 @@
 #if not $varExists('archive_start_date')
     #set $archive_start_date = '1970-01-01'
 #end if
+#if not $varExists('archive_stop_date')
+    #set $archive_stop_date = $time.strftime('%Y-%m-%d')
+#end if
+#if not $varExists('archive_start_year')
+    #set $archive_start_year = int($archive_start_date.split('-')[0])
+#end if
+#if not $varExists('archive_stop_year')
+    #set $archive_stop_year = int($time.strftime('%Y'))
+#end if
+#if not $varExists('archive_years')
+    #set $archive_years = [str($y) for $y in range($archive_start_year, $archive_stop_year + 1)]
+#end if
+#if not $varExists('archive_years_reversed')
+    #set $archive_years_reversed = [str($y) for $y in range($archive_stop_year, $archive_start_year - 1, -1)]
+#end if
 #if not $varExists('context_day_url')
     #set $context_day_url = $base_path + 'archive/' + $context_year + '/days/day-' + $context_day + '.html'
 #end if
@@ -150,9 +165,9 @@
 
 
 
-<header>
+<header style="position: relative; z-index: 1030;">
 
-    <nav class="navbar navbar-expand-lg navbar-dark $Extras.color" style="padding: 0.4rem 1rem; min-height: 5.2rem;">
+    <nav class="navbar navbar-expand-lg navbar-dark $Extras.color" style="position: relative; z-index: 1030; padding: 0.4rem 1rem; min-height: 5.2rem;">
 
         <!-- ===== COLUMN 1: Brand / Station Info ===== -->
         <!-- Fixed height = guarantees logo + station name never move between pages -->
@@ -260,119 +275,164 @@
         </button>
 
         <!-- ===== COLUMN 2: Navigation Hub (Option 2: Stepper + Scale Menu) ===== -->
-        <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent" style="flex: 1 1 auto;">
-            <div class="nwm-nav-hub my-1">
+        <div class="collapse navbar-collapse justify-content-center" id="navbarSupportedContent" style="flex: 1 1 auto; position: relative; z-index: 1031;">
+            <div class="nwm-nav-hub my-1" id="nwm-nav-hub" style="position: relative; z-index: 1032;"
+                 data-base-path="${base_path}"
+                 data-page="${page}"
+                 data-active-nav="${active_nav}"
+                 data-context-year="${context_year}"
+                 data-context-month="${context_month}"
+                 data-context-week="${context_week}"
+                 data-context-day="${context_day}"
+                 data-start-date="${archive_start_date}"
+                 data-stop-date="${archive_stop_date}">
 
                 <!-- Stepper Controls (Adaptive per page scale) -->
                 <div class="nwm-stepper-group">
 
                     #if $page in ('day', 'today') or $active_nav in ('current', 'live', 'day')
                         #if $has_prev_day
-                            <a href="$prev_day_url" class="nwm-nav-btn mr-1" title="$gettext('previous')" aria-label="$gettext('previous')">
+                            <a href="$prev_day_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_earlier_data')" aria-label="$gettext('no_earlier_data')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </button>
                         #end if
 
-                        <div class="nwm-header-center">
-                            <input type="date" id="nx-date-picker"
-                                   class="nwm-header-input"
-                                   value="$context_day"
-                                   min="$archive_start_date"
-                                   onchange="nxJumpDate('day', this.value)"
-                                   title="$gettext('select_date')">
+                        <div class="nwm-header-center dropdown" id="nx-picker-container">
+                            <button class="nwm-header-picker-btn" id="nx-picker-btn" type="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    title="$gettext('select_date')">
+                                <i class="mdi mdi-calendar-today mr-1" style="font-size:0.9rem; opacity:0.85;"></i>
+                                <span class="nwm-picker-text" id="nx-picker-label">$context_day</span>
+                                <i class="mdi mdi-menu-down nwm-picker-arrow"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-center nwm-picker-dropdown nwm-picker-calendar" aria-labelledby="nx-picker-btn" id="nx-picker-dropdown">
+                                <!-- Populated dynamically by neowx-date-nav.js -->
+                            </div>
                         </div>
 
                         #if ($active_nav not in ('current', 'live') and $page != 'today') and $has_next_day
-                            <a href="$next_day_url" class="nwm-nav-btn ml-1" title="$gettext('next')" aria-label="$gettext('next')">
+                            <a href="$next_day_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_later_data')" aria-label="$gettext('no_later_data')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </button>
                         #end if
 
                     #else if $page == 'week' or $active_nav == 'week'
                         #if $has_prev_week
-                            <a href="$prev_week_url" class="nwm-nav-btn mr-1" title="$gettext('previous')" aria-label="$gettext('previous')">
+                            <a href="$prev_week_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_earlier_data')" aria-label="$gettext('no_earlier_data')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </button>
                         #end if
 
-                        <div class="nwm-header-center">
-                            <span class="nwm-header-label">${context_year} - $gettext("CW") ${context_week}</span>
+                        <div class="nwm-header-center dropdown" id="nx-picker-container">
+                            <button class="nwm-header-picker-btn" id="nx-picker-btn" type="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    title="$gettext('select_week')">
+                                <span class="nwm-picker-text" id="nx-picker-label">${context_year} - $gettext("CW") ${context_week}</span>
+                                <i class="mdi mdi-menu-down nwm-picker-arrow"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-center nwm-picker-dropdown nwm-picker-week" aria-labelledby="nx-picker-btn" id="nx-picker-dropdown">
+                                <!-- Populated dynamically by neowx-date-nav.js -->
+                            </div>
                         </div>
 
                         #if $has_next_week
-                            <a href="$next_week_url" class="nwm-nav-btn ml-1" title="$gettext('next')" aria-label="$gettext('next')">
+                            <a href="$next_week_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_later_data')" aria-label="$gettext('no_later_data')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </button>
                         #end if
 
                     #else if $page == 'month' or $active_nav == 'month'
                         #if $has_prev_month
-                            <a href="$prev_month_url" class="nwm-nav-btn mr-1" title="$gettext('previous')" aria-label="$gettext('previous')">
+                            <a href="$prev_month_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_earlier_data')" aria-label="$gettext('no_earlier_data')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </button>
                         #end if
 
-                        <div class="nwm-header-center">
-                            <span class="nwm-header-label">$context_month_name ${context_year}</span>
+                        <div class="nwm-header-center dropdown" id="nx-picker-container">
+                            <button class="nwm-header-picker-btn" id="nx-picker-btn" type="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    title="$gettext('select_month')">
+                                <span class="nwm-picker-text" id="nx-picker-label">$context_month_name ${context_year}</span>
+                                <i class="mdi mdi-menu-down nwm-picker-arrow"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-center nwm-picker-dropdown nwm-picker-month" aria-labelledby="nx-picker-btn" id="nx-picker-dropdown">
+                                <!-- Populated dynamically by neowx-date-nav.js -->
+                            </div>
                         </div>
 
                         #if $has_next_month
-                            <a href="$next_month_url" class="nwm-nav-btn ml-1" title="$gettext('next')" aria-label="$gettext('next')">
+                            <a href="$next_month_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_later_data')" aria-label="$gettext('no_later_data')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </button>
                         #end if
 
                     #else if $page == 'year' or $active_nav == 'year'
                         #if $has_prev_year
-                            <a href="$prev_year_url" class="nwm-nav-btn mr-1" title="$gettext('previous')" aria-label="$gettext('previous')">
+                            <a href="$prev_year_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_earlier_data')" aria-label="$gettext('no_earlier_data')">
                                 <i class="mdi mdi-chevron-left"></i>
                             </button>
                         #end if
 
-                        <div class="nwm-header-center">
-                            <span class="nwm-header-label">${context_year}</span>
+                        <div class="nwm-header-center dropdown" id="nx-picker-container">
+                            <button class="nwm-header-picker-btn" id="nx-picker-btn" type="button"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                    title="$gettext('select_year')">
+                                <span class="nwm-picker-text" id="nx-picker-label">${context_year}</span>
+                                <i class="mdi mdi-menu-down nwm-picker-arrow"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-center nwm-picker-dropdown nwm-picker-year" aria-labelledby="nx-picker-btn" id="nx-picker-dropdown">
+                                <div class="nwm-picker-header">
+                                    <span class="nwm-picker-title">$gettext('year')</span>
+                                </div>
+                                <div class="nwm-picker-grid-years">
+                                    #for $yr in $archive_years_reversed
+                                    <a class="nwm-picker-cell#if $yr == $context_year# active#end if#"
+                                       href="${base_path}archive/${yr}/year-${yr}.html">${yr}</a>
+                                    #end for
+                                </div>
+                            </div>
                         </div>
 
                         #if $has_next_year
-                            <a href="$next_year_url" class="nwm-nav-btn ml-1" title="$gettext('next')" aria-label="$gettext('next')">
+                            <a href="$next_year_url" class="nwm-nav-btn" data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </a>
                         #else
-                            <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                            <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('no_later_data')" aria-label="$gettext('no_later_data')">
                                 <i class="mdi mdi-chevron-right"></i>
                             </button>
                         #end if
 
                     #else if $page == 'history' or $active_nav == 'history'
-                        <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                        <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                             <i class="mdi mdi-chevron-left"></i>
                         </button>
 
@@ -380,12 +440,12 @@
                             <span class="nwm-header-label">$gettext("history")</span>
                         </div>
 
-                        <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                        <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                             <i class="mdi mdi-chevron-right"></i>
                         </button>
 
                     #else if $page == 'almanac' or $active_nav == 'almanac'
-                        <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                        <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                             <i class="mdi mdi-chevron-left"></i>
                         </button>
 
@@ -393,12 +453,12 @@
                             <span class="nwm-header-label">$gettext("almanac")</span>
                         </div>
 
-                        <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                        <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                             <i class="mdi mdi-chevron-right"></i>
                         </button>
 
                     #else
-                        <button class="nwm-nav-btn mr-1 disabled" disabled aria-label="$gettext('previous')">
+                        <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('previous')" aria-label="$gettext('previous')">
                             <i class="mdi mdi-chevron-left"></i>
                         </button>
 
@@ -406,7 +466,7 @@
                             <span class="nwm-header-label">#if $varExists('page') and $page#$gettext($page)#else#$station.location#end if#</span>
                         </div>
 
-                        <button class="nwm-nav-btn ml-1 disabled" disabled aria-label="$gettext('next')">
+                        <button class="nwm-nav-btn disabled" disabled data-toggle="tooltip" data-placement="bottom" title="$gettext('next')" aria-label="$gettext('next')">
                             <i class="mdi mdi-chevron-right"></i>
                         </button>
 
@@ -433,7 +493,7 @@
                     #else
                         <button class="nwm-nav-btn disabled" disabled
                                 data-toggle="tooltip" data-placement="bottom"
-                                title="$gettext('show_noaa_data')" aria-label="$gettext('show_noaa_data')">
+                                title="$gettext('noaa_not_available')" aria-label="$gettext('noaa_not_available')">
                             <i class="mdi mdi-file-document-outline"></i>
                         </button>
                     #end if
@@ -452,25 +512,25 @@
 
                     #if $Extras.Header.get('day_nav_link', 'no') == "yes"
                         <li class="nav-item#if $active_nav == 'day'# active#end if# px-1">
-                            <a class="nav-link" id="nav-day" href="$current_day_url">$gettext("Day")</a>
+                            <a class="nav-link" id="nav-day" href="$context_day_url">$gettext("Day")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.week_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'week'# active#end if# px-1">
-                            <a class="nav-link" id="nav-week" href="$current_week_url">$gettext("week")</a>
+                            <a class="nav-link" id="nav-week" href="$context_week_url">$gettext("week")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.month_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'month'# active#end if# px-1">
-                            <a class="nav-link" id="nav-month" href="$current_month_url">$gettext("month")</a>
+                            <a class="nav-link" id="nav-month" href="$context_month_url">$gettext("month")</a>
                         </li>
                     #end if
 
                     #if $Extras.Header.year_nav_link == "yes"
                         <li class="nav-item#if $active_nav == 'year'# active#end if# px-1">
-                            <a class="nav-link" id="nav-year" href="$current_year_url">$gettext("year")</a>
+                            <a class="nav-link" id="nav-year" href="$context_year_url">$gettext("year")</a>
                         </li>
                     #end if
 
@@ -522,7 +582,7 @@
                             </span>
                             <span id="alm-moon-fullness">$almanac.moon_fullness</span>%
                         </span><br>
-                        <a href="almanac.html" class="text-white" style="opacity: .6; font-size: 0.85rem;">
+                        <a href="${base_path}almanac.html" class="text-white" style="opacity: .6; font-size: 0.85rem;">
                             $gettext("more")
                         </a>
                     </li>

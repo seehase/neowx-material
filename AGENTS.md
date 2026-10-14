@@ -71,4 +71,5 @@ neowx-material/
 - Do **not** run `cheetah_template_beautifier.py` automatically across existing templates or partials without review; it alters Cheetah directive indentation.
 
 ### Version Management
+- when changeing exteinsion in /bin/user always update the versions of the extenstions in the corresponding *.py files
 - Versions are bumped using `./update_version.sh` (which synchronizes `skin.conf`, `install.py`, and `package.json`).

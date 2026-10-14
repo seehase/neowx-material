@@ -132,27 +132,10 @@
             setText('footer-weewx-version', data.versions.weewx);
             setText('footer-skin-version', data.versions.skin);
         }
-        if (data.archive_urls) {
-            var navLive = document.getElementById('nav-current');
-            var base = '';
-            if (navLive && navLive.getAttribute('href')) {
-                base = navLive.getAttribute('href').replace('index.html', '');
-            }
-            var navDay = document.getElementById('nav-day');
-            if (navDay && data.archive_urls.day) {
-                navDay.setAttribute('href', base + data.archive_urls.day);
-            }
-            var navWeek = document.getElementById('nav-week');
-            if (navWeek && data.archive_urls.week) {
-                navWeek.setAttribute('href', base + data.archive_urls.week);
-            }
-            var navMonth = document.getElementById('nav-month');
-            if (navMonth && data.archive_urls.month) {
-                navMonth.setAttribute('href', base + data.archive_urls.month);
-            }
-            var navYear = document.getElementById('nav-year');
-            if (navYear && data.archive_urls.year) {
-                navYear.setAttribute('href', base + data.archive_urls.year);
+        if (data.today) {
+            window.NX_STOP_DATE = data.today;
+            if (window.nxUpdateStopDate) {
+                window.nxUpdateStopDate(data.today);
             }
         }
         applyAlmanac(data.almanac);

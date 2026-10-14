@@ -98,6 +98,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/js/app.js",
                         "skins/neowx-material/js/neowx-date-format.js",
                         "skins/neowx-material/js/neowx-live.js",
+                        "skins/neowx-material/js/neowx-date-nav.js",
                         "skins/neowx-material/js/bootstrap.min.js",
                         "skins/neowx-material/inc/js.inc",
                         "skins/neowx-material/js/jquery.min.js",
