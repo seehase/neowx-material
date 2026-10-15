@@ -56,23 +56,45 @@
         return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
     }
 
+    function sanitizeRelativePath(path) {
+        if (typeof path !== 'string') return '';
+        var cleaned = path.trim();
+        // Disallow external schemes, absolute URLs, or protocol-relative paths
+        if (/^(?:[a-zA-Z][a-zA-Z0-9+.-]*:|\/\/)/.test(cleaned)) {
+            return '';
+        }
+        // Allow only characters valid in safe relative path segments
+        return cleaned.replace(/[^a-zA-Z0-9_\-\.\/]/g, '');
+    }
+
     function DateNavController() {
         this.$hub = $('#nwm-nav-hub');
         this.$container = $('#nx-picker-container');
         this.$dropdown = $('#nx-picker-dropdown');
         if (!this.$container.length || !this.$dropdown.length) return;
 
-        this.basePath = this.$hub.attr('data-base-path') || '';
-        this.page = this.$hub.attr('data-page') || '';
-        this.activeNav = this.$hub.attr('data-active-nav') || '';
+        var rawBasePath = (typeof window.NX_BASE_PATH === 'string')
+            ? window.NX_BASE_PATH
+            : (this.$hub.attr('data-base-path') || '');
+        this.basePath = sanitizeRelativePath(rawBasePath);
+
+        this.page = (this.$hub.attr('data-page') || '').replace(/[^a-zA-Z0-9_\-]/g, '');
+        this.activeNav = (this.$hub.attr('data-active-nav') || '').replace(/[^a-zA-Z0-9_\-]/g, '');
 
         this.contextYear = parseInt(this.$hub.attr('data-context-year') || new Date().getFullYear(), 10);
         this.contextMonth = parseInt(this.$hub.attr('data-context-month') || (new Date().getMonth() + 1), 10);
         this.contextWeek = parseInt(this.$hub.attr('data-context-week') || 1, 10);
-        this.contextDay = this.$hub.attr('data-context-day') || formatDateIso(new Date());
 
-        this.startDateStr = this.$hub.attr('data-start-date') || '1970-01-01';
-        this.stopDateStr = window.NX_STOP_DATE || this.$hub.attr('data-stop-date') || formatDateIso(new Date());
+        var rawDay = this.$hub.attr('data-context-day') || '';
+        this.contextDay = /^\d{4}-\d{2}-\d{2}$/.test(rawDay) ? rawDay : formatDateIso(new Date());
+
+        var rawStart = this.$hub.attr('data-start-date') || '';
+        this.startDateStr = /^\d{4}-\d{2}-\d{2}$/.test(rawStart) ? rawStart : '1970-01-01';
+
+        var rawStop = (typeof window.NX_STOP_DATE === 'string')
+            ? window.NX_STOP_DATE
+            : (this.$hub.attr('data-stop-date') || '');
+        this.stopDateStr = /^\d{4}-\d{2}-\d{2}$/.test(rawStop) ? rawStop : formatDateIso(new Date());
 
         this.startDate = parseDateIso(this.startDateStr);
         this.stopDate = parseDateIso(this.stopDateStr);
@@ -105,7 +127,7 @@
 
         // Expose global updater so live.json can refresh stopDate if needed
         window.nxUpdateStopDate = function (newStopDateStr) {
-            if (!newStopDateStr) return;
+            if (!newStopDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(newStopDateStr)) return;
             self.stopDateStr = newStopDateStr;
             self.stopDate = parseDateIso(newStopDateStr);
             if (self.stopDate) {
@@ -153,25 +175,47 @@
 
     DateNavController.prototype.renderMonthPicker = function (year) {
         var monthNames = getLocalizedMonthNames();
-        var html = '';
 
         // Header with year navigation
-        html += '<div class="nwm-picker-header">';
-        html += '<button type="button" class="nwm-picker-nav-btn" data-action="prev-year"' +
-                (year <= this.startYear ? ' disabled' : '') + ' aria-label="Previous year"><i class="mdi mdi-chevron-left"></i></button>';
+        var $header = $('<div>', { class: 'nwm-picker-header' });
 
-        html += '<select class="nwm-picker-select" id="nx-mp-year-select" aria-label="Year">';
-        for (var y = this.stopYear; y >= this.startYear; y--) {
-            html += '<option value="' + y + '"' + (y === year ? ' selected' : '') + '>' + y + '</option>';
+        var $prevBtn = $('<button>', {
+            type: 'button',
+            class: 'nwm-picker-nav-btn',
+            'data-action': 'prev-year',
+            'aria-label': 'Previous year'
+        }).append($('<i>', { class: 'mdi mdi-chevron-left' }));
+        if (year <= this.startYear) {
+            $prevBtn.prop('disabled', true);
         }
-        html += '</select>';
 
-        html += '<button type="button" class="nwm-picker-nav-btn" data-action="next-year"' +
-                (year >= this.stopYear ? ' disabled' : '') + ' aria-label="Next year"><i class="mdi mdi-chevron-right"></i></button>';
-        html += '</div>';
+        var $select = $('<select>', {
+            class: 'nwm-picker-select',
+            id: 'nx-mp-year-select',
+            'aria-label': 'Year'
+        });
+        for (var y = this.stopYear; y >= this.startYear; y--) {
+            var $opt = $('<option>', { value: y, text: y });
+            if (y === year) {
+                $opt.prop('selected', true);
+            }
+            $select.append($opt);
+        }
+
+        var $nextBtn = $('<button>', {
+            type: 'button',
+            class: 'nwm-picker-nav-btn',
+            'data-action': 'next-year',
+            'aria-label': 'Next year'
+        }).append($('<i>', { class: 'mdi mdi-chevron-right' }));
+        if (year >= this.stopYear) {
+            $nextBtn.prop('disabled', true);
+        }
+
+        $header.append($prevBtn, $select, $nextBtn);
 
         // 12 Months Grid
-        html += '<div class="nwm-picker-grid-months">';
+        var $grid = $('<div>', { class: 'nwm-picker-grid-months' });
         for (var m = 1; m <= 12; m++) {
             var mStr = pad2(m);
             var mName = monthNames[m - 1] || mStr;
@@ -184,15 +228,25 @@
             var isActive = (year === this.contextYear && m === this.contextMonth);
 
             if (isDisabled) {
-                html += '<span class="nwm-picker-cell disabled" data-toggle="tooltip" data-placement="top" title="No data">' + mName + '</span>';
+                $grid.append($('<span>', {
+                    class: 'nwm-picker-cell disabled',
+                    'data-toggle': 'tooltip',
+                    'data-placement': 'top',
+                    title: 'No data',
+                    text: mName
+                }));
             } else {
                 var url = this.basePath + 'archive/' + year + '/months/month-' + year + '-' + mStr + '.html';
-                html += '<a href="' + url + '" class="nwm-picker-cell' + (isActive ? ' active' : '') + '">' + mName + '</a>';
+                var $cell = $('<a>', {
+                    href: url,
+                    class: 'nwm-picker-cell' + (isActive ? ' active' : ''),
+                    text: mName
+                });
+                $grid.append($cell);
             }
         }
-        html += '</div>';
 
-        this.$dropdown.html(html);
+        this.$dropdown.empty().append($header, $grid);
         if ($.fn.tooltip) {
             this.$dropdown.find('[data-toggle="tooltip"]').tooltip();
         }
@@ -230,7 +284,8 @@
 
         this.$dropdown.on('click', '.nwm-picker-tab', function (e) {
             e.preventDefault();
-            self.weekMonthFilter = $(this).attr('data-month-filter');
+            var filter = $(this).attr('data-month-filter') || 'all';
+            self.weekMonthFilter = (filter === 'all' || /^(?:[1-9]|1[0-2])$/.test(filter)) ? filter : 'all';
             self.renderWeekPicker(self.viewWeekYear);
         });
     };
@@ -238,33 +293,64 @@
     DateNavController.prototype.renderWeekPicker = function (year) {
         var monthNames = getLocalizedMonthNames();
         var totalWeeks = getIsoWeeksInYear(year);
-        var html = '';
 
         // Header with year navigation
-        html += '<div class="nwm-picker-header">';
-        html += '<button type="button" class="nwm-picker-nav-btn" data-action="prev-year"' +
-                (year <= this.startYear ? ' disabled' : '') + ' aria-label="Previous year"><i class="mdi mdi-chevron-left"></i></button>';
+        var $header = $('<div>', { class: 'nwm-picker-header' });
 
-        html += '<select class="nwm-picker-select" id="nx-wp-year-select" aria-label="Year">';
-        for (var y = this.stopYear; y >= this.startYear; y--) {
-            html += '<option value="' + y + '"' + (y === year ? ' selected' : '') + '>' + y + '</option>';
+        var $prevBtn = $('<button>', {
+            type: 'button',
+            class: 'nwm-picker-nav-btn',
+            'data-action': 'prev-year',
+            'aria-label': 'Previous year'
+        }).append($('<i>', { class: 'mdi mdi-chevron-left' }));
+        if (year <= this.startYear) {
+            $prevBtn.prop('disabled', true);
         }
-        html += '</select>';
 
-        html += '<button type="button" class="nwm-picker-nav-btn" data-action="next-year"' +
-                (year >= this.stopYear ? ' disabled' : '') + ' aria-label="Next year"><i class="mdi mdi-chevron-right"></i></button>';
-        html += '</div>';
+        var $select = $('<select>', {
+            class: 'nwm-picker-select',
+            id: 'nx-wp-year-select',
+            'aria-label': 'Year'
+        });
+        for (var y = this.stopYear; y >= this.startYear; y--) {
+            var $opt = $('<option>', { value: y, text: y });
+            if (y === year) {
+                $opt.prop('selected', true);
+            }
+            $select.append($opt);
+        }
+
+        var $nextBtn = $('<button>', {
+            type: 'button',
+            class: 'nwm-picker-nav-btn',
+            'data-action': 'next-year',
+            'aria-label': 'Next year'
+        }).append($('<i>', { class: 'mdi mdi-chevron-right' }));
+        if (year >= this.stopYear) {
+            $nextBtn.prop('disabled', true);
+        }
+
+        $header.append($prevBtn, $select, $nextBtn);
 
         // Month quick filter tabs
-        html += '<div class="nwm-picker-filter-tabs">';
-        html += '<button type="button" class="nwm-picker-tab' + (this.weekMonthFilter === 'all' ? ' active' : '') + '" data-month-filter="all">All</button>';
+        var $tabs = $('<div>', { class: 'nwm-picker-filter-tabs' });
+        $tabs.append($('<button>', {
+            type: 'button',
+            class: 'nwm-picker-tab' + (this.weekMonthFilter === 'all' ? ' active' : ''),
+            'data-month-filter': 'all',
+            text: 'All'
+        }));
         for (var m = 1; m <= 12; m++) {
-            html += '<button type="button" class="nwm-picker-tab' + (this.weekMonthFilter === String(m) ? ' active' : '') + '" data-month-filter="' + m + '">' + (monthNames[m - 1] || m) + '</button>';
+            $tabs.append($('<button>', {
+                type: 'button',
+                class: 'nwm-picker-tab' + (this.weekMonthFilter === String(m) ? ' active' : ''),
+                'data-month-filter': String(m),
+                text: monthNames[m - 1] || String(m)
+            }));
         }
-        html += '</div>';
 
         // Weeks Grid
-        html += '<div class="nwm-picker-grid-weeks">';
+        var $grid = $('<div>', { class: 'nwm-picker-grid-weeks' });
         for (var w = 1; w <= totalWeeks; w++) {
             var wStr = pad2(w);
             var range = getIsoWeekRange(year, w);
@@ -285,15 +371,27 @@
                              pad2(range.end.getDate()) + '.' + pad2(range.end.getMonth() + 1);
 
             if (isDisabled) {
-                html += '<span class="nwm-picker-cell disabled" data-toggle="tooltip" data-placement="top" title="No data (CW ' + wStr + ')">CW ' + wStr + '</span>';
+                $grid.append($('<span>', {
+                    class: 'nwm-picker-cell disabled',
+                    'data-toggle': 'tooltip',
+                    'data-placement': 'top',
+                    title: 'No data (CW ' + wStr + ')',
+                    text: 'CW ' + wStr
+                }));
             } else {
                 var url = this.basePath + 'archive/' + year + '/weeks/week-' + year + '-' + wStr + '.html';
-                html += '<a href="' + url + '" class="nwm-picker-cell' + (isActive ? ' active' : '') + '" data-toggle="tooltip" data-placement="top" title="' + rangeLabel + '">CW ' + wStr + '</a>';
+                $grid.append($('<a>', {
+                    href: url,
+                    class: 'nwm-picker-cell' + (isActive ? ' active' : ''),
+                    'data-toggle': 'tooltip',
+                    'data-placement': 'top',
+                    title: rangeLabel,
+                    text: 'CW ' + wStr
+                }));
             }
         }
-        html += '</div>';
 
-        this.$dropdown.html(html);
+        this.$dropdown.empty().append($header, $tabs, $grid);
         if ($.fn.tooltip) {
             this.$dropdown.find('[data-toggle="tooltip"]').tooltip();
         }
@@ -346,49 +444,85 @@
     DateNavController.prototype.renderCalendarPicker = function (year, month) {
         var monthNames = getLocalizedMonthNames();
         var weekdayNames = getLocalizedWeekdayNames();
-        var html = '';
 
         var canGoPrev = (year > this.startYear) || (year === this.startYear && month > (this.startDate ? this.startDate.getMonth() + 1 : 1));
         var canGoNext = (year < this.stopYear) || (year === this.stopYear && month < (this.stopDate ? this.stopDate.getMonth() + 1 : 12));
 
         // Header
-        html += '<div class="nwm-picker-header">';
-        html += '<button type="button" class="nwm-picker-nav-btn" data-action="prev-month"' +
-                (!canGoPrev ? ' disabled' : '') + ' aria-label="Previous month"><i class="mdi mdi-chevron-left"></i></button>';
+        var $header = $('<div>', { class: 'nwm-picker-header' });
 
-        html += '<div class="d-flex align-items-center" style="gap: 0.25rem;">';
-        // Month dropdown
-        html += '<select class="nwm-picker-select" id="nx-dp-month-select" aria-label="Month">';
-        for (var m = 1; m <= 12; m++) {
-            html += '<option value="' + m + '"' + (m === month ? ' selected' : '') + '>' + (monthNames[m - 1] || m) + '</option>';
+        var $prevBtn = $('<button>', {
+            type: 'button',
+            class: 'nwm-picker-nav-btn',
+            'data-action': 'prev-month',
+            'aria-label': 'Previous month'
+        }).append($('<i>', { class: 'mdi mdi-chevron-left' }));
+        if (!canGoPrev) {
+            $prevBtn.prop('disabled', true);
         }
-        html += '</select>';
+
+        var $selectGroup = $('<div>', {
+            class: 'd-flex align-items-center',
+            style: 'gap: 0.25rem;'
+        });
+
+        // Month dropdown
+        var $monthSelect = $('<select>', {
+            class: 'nwm-picker-select',
+            id: 'nx-dp-month-select',
+            'aria-label': 'Month'
+        });
+        for (var m = 1; m <= 12; m++) {
+            var $mOpt = $('<option>', {
+                value: m,
+                text: monthNames[m - 1] || String(m)
+            });
+            if (m === month) {
+                $mOpt.prop('selected', true);
+            }
+            $monthSelect.append($mOpt);
+        }
 
         // Year dropdown
-        html += '<select class="nwm-picker-select" id="nx-dp-year-select" aria-label="Year">';
+        var $yearSelect = $('<select>', {
+            class: 'nwm-picker-select',
+            id: 'nx-dp-year-select',
+            'aria-label': 'Year'
+        });
         for (var y = this.stopYear; y >= this.startYear; y--) {
-            html += '<option value="' + y + '"' + (y === year ? ' selected' : '') + '>' + y + '</option>';
+            var $yOpt = $('<option>', { value: y, text: y });
+            if (y === year) {
+                $yOpt.prop('selected', true);
+            }
+            $yearSelect.append($yOpt);
         }
-        html += '</select>';
-        html += '</div>';
 
-        html += '<button type="button" class="nwm-picker-nav-btn" data-action="next-month"' +
-                (!canGoNext ? ' disabled' : '') + ' aria-label="Next month"><i class="mdi mdi-chevron-right"></i></button>';
-        html += '</div>';
+        $selectGroup.append($monthSelect, $yearSelect);
+
+        var $nextBtn = $('<button>', {
+            type: 'button',
+            class: 'nwm-picker-nav-btn',
+            'data-action': 'next-month',
+            'aria-label': 'Next month'
+        }).append($('<i>', { class: 'mdi mdi-chevron-right' }));
+        if (!canGoNext) {
+            $nextBtn.prop('disabled', true);
+        }
+
+        $header.append($prevBtn, $selectGroup, $nextBtn);
 
         // Weekday header row (Mo..Su)
-        html += '<div class="nwm-picker-grid-weekdays">';
+        var $weekdays = $('<div>', { class: 'nwm-picker-grid-weekdays' });
         for (var wd = 0; wd < 7; wd++) {
-            html += '<span>' + weekdayNames[wd] + '</span>';
+            $weekdays.append($('<span>', { text: weekdayNames[wd] }));
         }
-        html += '</div>';
 
         // Days Grid
-        html += '<div class="nwm-picker-grid-days">';
+        var $daysGrid = $('<div>', { class: 'nwm-picker-grid-days' });
         var firstDayIndex = new Date(year, month - 1, 1).getDay(); // 0 is Sun, 1 is Mon
         var leadingBlanks = (firstDayIndex === 0) ? 6 : firstDayIndex - 1; // convert to Mon = 0
         for (var b = 0; b < leadingBlanks; b++) {
-            html += '<span class="nwm-picker-empty-cell"></span>';
+            $daysGrid.append($('<span>', { class: 'nwm-picker-empty-cell' }));
         }
 
         var daysInMonth = new Date(year, month, 0).getDate();
@@ -405,15 +539,24 @@
                 (isToday ? ' today' : '');
 
             if (isDisabled) {
-                html += '<span class="' + cellClasses + ' disabled" data-toggle="tooltip" data-placement="top" title="No data">' + d + '</span>';
+                $daysGrid.append($('<span>', {
+                    class: cellClasses + ' disabled',
+                    'data-toggle': 'tooltip',
+                    'data-placement': 'top',
+                    title: 'No data',
+                    text: String(d)
+                }));
             } else {
                 var url = this.basePath + 'archive/' + year + '/days/day-' + dateStr + '.html';
-                html += '<a href="' + url + '" class="' + cellClasses + '">' + d + '</a>';
+                $daysGrid.append($('<a>', {
+                    href: url,
+                    class: cellClasses,
+                    text: String(d)
+                }));
             }
         }
-        html += '</div>';
 
-        this.$dropdown.html(html);
+        this.$dropdown.empty().append($header, $weekdays, $daysGrid);
         if ($.fn.tooltip) {
             this.$dropdown.find('[data-toggle="tooltip"]').tooltip();
         }
