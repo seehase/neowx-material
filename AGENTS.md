@@ -73,3 +73,6 @@ neowx-material/
 ### Version Management
 - when changeing exteinsion in /bin/user always update the versions of the extenstions in the corresponding *.py files
 - Versions are bumped using `./update_version.sh` (which synchronizes `skin.conf`, `install.py`, and `package.json`).
+
+### Create plan first
+- before implementing any changes create a plan.md file in the docs/plans/ folder and describe what you are going to do.  get my approval before implementing it.
