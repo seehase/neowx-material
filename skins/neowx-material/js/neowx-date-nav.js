@@ -2,8 +2,8 @@
 // -----------------------------------------------------------------------------
 // Interactive Material Date, Week, Month, and Year navigation pickers for
 // NeoWX Material skin.
-// Handles dropdown menus, range limits [archive_start_date, archive_stop_date],
-// and safe jumping without premature form/input events.
+// Handles dropdown menus, strict date bounds [archive_start_date, archive_stop_date],
+// and proactive 404 verification before navigation.
 (function ($) {
     'use strict';
 
@@ -88,7 +88,9 @@
         var rawDay = this.$hub.attr('data-context-day') || '';
         this.contextDay = /^\d{4}-\d{2}-\d{2}$/.test(rawDay) ? rawDay : formatDateIso(new Date());
 
-        var rawStart = this.$hub.attr('data-start-date') || '';
+        var rawStart = (typeof window.NX_START_DATE === 'string')
+            ? window.NX_START_DATE
+            : (this.$hub.attr('data-start-date') || '');
         this.startDateStr = /^\d{4}-\d{2}-\d{2}$/.test(rawStart) ? rawStart : '1970-01-01';
 
         var rawStop = (typeof window.NX_STOP_DATE === 'string')
@@ -99,9 +101,17 @@
         this.startDate = parseDateIso(this.startDateStr);
         this.stopDate = parseDateIso(this.stopDateStr);
 
-        this.startYear = this.startDate ? this.startDate.getFullYear() : 1970;
-        this.stopYear = this.stopDate ? this.stopDate.getFullYear() : new Date().getFullYear();
+        var rawStartYear = parseInt(this.$hub.attr('data-start-year'), 10);
+        this.startYear = (!isNaN(rawStartYear) && rawStartYear > 1900)
+            ? rawStartYear
+            : (this.startDate ? this.startDate.getFullYear() : 1970);
 
+        var rawStopYear = parseInt(this.$hub.attr('data-stop-year'), 10);
+        this.stopYear = (!isNaN(rawStopYear) && rawStopYear > 1900)
+            ? rawStopYear
+            : (this.stopDate ? this.stopDate.getFullYear() : new Date().getFullYear());
+
+        this.redirectTimer = null;
         this.init();
     }
 
@@ -111,9 +121,22 @@
         // Prevent clicking inside picker controls from accidentally closing the Bootstrap dropdown
         this.$dropdown.on('click', function (e) {
             if ($(e.target).closest('a[href]').length) {
-                return; // Let navigation links proceed
+                return; // Let navigation links proceed to interceptor
             }
             e.stopPropagation();
+        });
+
+        // Intercept navigation clicks for proactive 404 checking
+        $(document).on('click', '.nwm-stepper-group a[href], .nwm-picker-dropdown a[href]', function (e) {
+            var $link = $(this);
+            var href = $link.attr('href');
+            if (!href || href === '#' || href.indexOf('javascript:') === 0) return;
+            if ($link.hasClass('disabled') || $link.is(':disabled')) {
+                e.preventDefault();
+                return;
+            }
+            e.preventDefault();
+            self.navigateWithCheck(href);
         });
 
         // Initialize picker type
@@ -125,7 +148,22 @@
             this.initMonthPicker();
         }
 
-        // Expose global updater so live.json can refresh stopDate if needed
+        // Global export for nxJumpDate and external triggers
+        window.nxNavigateWithCheck = function (url) {
+            self.navigateWithCheck(url);
+        };
+
+        // Expose global updaters so live.json can refresh bounds dynamically
+        window.nxUpdateStartDate = function (newStartDateStr) {
+            if (!newStartDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(newStartDateStr)) return;
+            self.startDateStr = newStartDateStr;
+            self.startDate = parseDateIso(newStartDateStr);
+            if (self.startDate) {
+                self.startYear = self.startDate.getFullYear();
+            }
+            self.reRenderActivePicker();
+        };
+
         window.nxUpdateStopDate = function (newStopDateStr) {
             if (!newStopDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(newStopDateStr)) return;
             self.stopDateStr = newStopDateStr;
@@ -133,14 +171,118 @@
             if (self.stopDate) {
                 self.stopYear = self.stopDate.getFullYear();
             }
-            if (self.$dropdown.hasClass('nwm-picker-calendar') && self.viewCalendarYear) {
-                self.renderCalendarPicker(self.viewCalendarYear, self.viewCalendarMonth);
-            } else if (self.$dropdown.hasClass('nwm-picker-month') && self.viewMonthYear) {
-                self.renderMonthPicker(self.viewMonthYear);
-            } else if (self.$dropdown.hasClass('nwm-picker-week') && self.viewWeekYear) {
-                self.renderWeekPicker(self.viewWeekYear);
-            }
+            self.reRenderActivePicker();
         };
+    };
+
+    DateNavController.prototype.reRenderActivePicker = function () {
+        if (this.$dropdown.hasClass('nwm-picker-calendar') && this.viewCalendarYear) {
+            this.renderCalendarPicker(this.viewCalendarYear, this.viewCalendarMonth);
+        } else if (this.$dropdown.hasClass('nwm-picker-month') && this.viewMonthYear) {
+            this.renderMonthPicker(this.viewMonthYear);
+        } else if (this.$dropdown.hasClass('nwm-picker-week') && this.viewWeekYear) {
+            this.renderWeekPicker(this.viewWeekYear);
+        }
+    };
+
+    // -------------------------------------------------------------------------
+    // PROACTIVE 404 AVAILABILITY CHECK & NAVIGATION
+    // -------------------------------------------------------------------------
+    DateNavController.prototype.navigateWithCheck = function (url) {
+        if (!url || url === '#' || url.indexOf('javascript:') === 0) return;
+        var self = this;
+
+        // If navigating to the current date's day page, always route to index.html
+        var todayIso = formatDateIso(new Date());
+        if ((this.stopDateStr && url.indexOf('day-' + this.stopDateStr + '.html') !== -1) ||
+            (todayIso && url.indexOf('day-' + todayIso + '.html') !== -1)) {
+            url = this.basePath + 'index.html';
+        }
+
+        // Direct navigation if file: protocol (local testing) or already targeting index.html
+        if (window.location.protocol === 'file:' || url === (this.basePath + 'index.html') || url === 'index.html') {
+            window.location.href = url;
+            return;
+        }
+
+        // Only probe local paths
+        try {
+            var resolved = new URL(url, window.location.href);
+            if (resolved.origin !== window.location.origin) {
+                window.location.href = url;
+                return;
+            }
+        } catch (e) {
+            window.location.href = url;
+            return;
+        }
+
+        // 1200ms timeout probe with AbortController
+        var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+        var signal = controller ? controller.signal : undefined;
+        var timer = setTimeout(function () {
+            if (controller) controller.abort();
+        }, 1200);
+
+        fetch(url, { method: 'HEAD', signal: signal, cache: 'no-cache' })
+            .then(function (res) {
+                clearTimeout(timer);
+                if (res.status === 404) {
+                    self.showMissingPageModal(url);
+                } else {
+                    window.location.href = url;
+                }
+            })
+            .catch(function () {
+                clearTimeout(timer);
+                // On abort, timeout, or network issue, proceed with standard navigation
+                window.location.href = url;
+            });
+    };
+
+    DateNavController.prototype.showMissingPageModal = function () {
+        var $modal = $('#nwm-date-missing-modal');
+        var basePath = this.basePath;
+
+        if (!$modal.length || !$.fn.modal) {
+            // Fallback if modal is not in DOM
+            window.location.href = basePath + 'index.html';
+            return;
+        }
+
+        var countdown = 3;
+        var $countdownEl = $('#nwm-redirect-countdown');
+        if ($countdownEl.length) {
+            $countdownEl.text(countdown + 's');
+        }
+
+        if (this.redirectTimer) {
+            clearInterval(this.redirectTimer);
+            this.redirectTimer = null;
+        }
+
+        var self = this;
+        this.redirectTimer = setInterval(function () {
+            countdown--;
+            if ($countdownEl.length) {
+                $countdownEl.text(countdown + 's');
+            }
+            if (countdown <= 0) {
+                clearInterval(self.redirectTimer);
+                self.redirectTimer = null;
+                window.location.href = basePath + 'index.html';
+            }
+        }, 1000);
+
+        $modal.off('hidden.bs.modal.nx404').on('hidden.bs.modal.nx404', function () {
+            if (self.redirectTimer) {
+                clearInterval(self.redirectTimer);
+                self.redirectTimer = null;
+            }
+        });
+
+        $('#nwm-redirect-now-btn').attr('href', basePath + 'index.html');
+        $modal.modal('show');
     };
 
     // -------------------------------------------------------------------------
@@ -214,7 +356,10 @@
 
         $header.append($prevBtn, $select, $nextBtn);
 
-        // 12 Months Grid
+        // 12 Months Grid with strict clamping
+        var minMo = (year === this.startYear && this.startDate) ? (this.startDate.getMonth() + 1) : 1;
+        var maxMo = (year === this.stopYear && this.stopDate) ? (this.stopDate.getMonth() + 1) : 12;
+
         var $grid = $('<div>', { class: 'nwm-picker-grid-months' });
         for (var m = 1; m <= 12; m++) {
             var mStr = pad2(m);
@@ -224,7 +369,7 @@
             var daysInMonth = new Date(year, m, 0).getDate();
             var lastDayStr = year + '-' + mStr + '-' + pad2(daysInMonth);
 
-            var isDisabled = (lastDayStr < this.startDateStr) || (firstDayStr > this.stopDateStr);
+            var isDisabled = (m < minMo || m > maxMo) || (lastDayStr < this.startDateStr) || (firstDayStr > this.stopDateStr);
             var isActive = (year === this.contextYear && m === this.contextMonth);
 
             if (isDisabled) {
@@ -284,6 +429,7 @@
 
         this.$dropdown.on('click', '.nwm-picker-tab', function (e) {
             e.preventDefault();
+            if ($(this).hasClass('disabled') || $(this).is(':disabled')) return;
             var filter = $(this).attr('data-month-filter') || 'all';
             self.weekMonthFilter = (filter === 'all' || /^(?:[1-9]|1[0-2])$/.test(filter)) ? filter : 'all';
             self.renderWeekPicker(self.viewWeekYear);
@@ -333,6 +479,9 @@
         $header.append($prevBtn, $select, $nextBtn);
 
         // Month quick filter tabs
+        var minMo = (year === this.startYear && this.startDate) ? (this.startDate.getMonth() + 1) : 1;
+        var maxMo = (year === this.stopYear && this.stopDate) ? (this.stopDate.getMonth() + 1) : 12;
+
         var $tabs = $('<div>', { class: 'nwm-picker-filter-tabs' });
         $tabs.append($('<button>', {
             type: 'button',
@@ -341,12 +490,19 @@
             text: 'All'
         }));
         for (var m = 1; m <= 12; m++) {
-            $tabs.append($('<button>', {
+            var isTabDisabled = (m < minMo || m > maxMo);
+            var $tab = $('<button>', {
                 type: 'button',
-                class: 'nwm-picker-tab' + (this.weekMonthFilter === String(m) ? ' active' : ''),
+                class: 'nwm-picker-tab' +
+                    (this.weekMonthFilter === String(m) ? ' active' : '') +
+                    (isTabDisabled ? ' disabled' : ''),
                 'data-month-filter': String(m),
                 text: monthNames[m - 1] || String(m)
-            }));
+            });
+            if (isTabDisabled) {
+                $tab.prop('disabled', true);
+            }
+            $tabs.append($tab);
         }
 
         // Weeks Grid
@@ -410,7 +566,8 @@
 
         this.$dropdown.on('click', '[data-action="prev-month"]', function (e) {
             e.preventDefault();
-            if (self.viewCalendarMonth > 1) {
+            var minMo = (self.viewCalendarYear === self.startYear && self.startDate) ? (self.startDate.getMonth() + 1) : 1;
+            if (self.viewCalendarMonth > minMo) {
                 self.viewCalendarMonth--;
             } else if (self.viewCalendarYear > self.startYear) {
                 self.viewCalendarYear--;
@@ -421,7 +578,8 @@
 
         this.$dropdown.on('click', '[data-action="next-month"]', function (e) {
             e.preventDefault();
-            if (self.viewCalendarMonth < 12) {
+            var maxMo = (self.viewCalendarYear === self.stopYear && self.stopDate) ? (self.stopDate.getMonth() + 1) : 12;
+            if (self.viewCalendarMonth < maxMo) {
                 self.viewCalendarMonth++;
             } else if (self.viewCalendarYear < self.stopYear) {
                 self.viewCalendarYear++;
@@ -445,8 +603,16 @@
         var monthNames = getLocalizedMonthNames();
         var weekdayNames = getLocalizedWeekdayNames();
 
-        var canGoPrev = (year > this.startYear) || (year === this.startYear && month > (this.startDate ? this.startDate.getMonth() + 1 : 1));
-        var canGoNext = (year < this.stopYear) || (year === this.stopYear && month < (this.stopDate ? this.stopDate.getMonth() + 1 : 12));
+        var minMo = (year === this.startYear && this.startDate) ? (this.startDate.getMonth() + 1) : 1;
+        var maxMo = (year === this.stopYear && this.stopDate) ? (this.stopDate.getMonth() + 1) : 12;
+
+        // Auto-clamp month if out of bounds for the selected year
+        if (month < minMo) month = minMo;
+        if (month > maxMo) month = maxMo;
+        this.viewCalendarMonth = month;
+
+        var canGoPrev = (year > this.startYear) || (year === this.startYear && month > minMo);
+        var canGoNext = (year < this.stopYear) || (year === this.stopYear && month < maxMo);
 
         // Header
         var $header = $('<div>', { class: 'nwm-picker-header' });
@@ -466,24 +632,28 @@
             style: 'gap: 0.25rem;'
         });
 
-        // Month dropdown
+        // Month dropdown with active boundary disabling
         var $monthSelect = $('<select>', {
             class: 'nwm-picker-select',
             id: 'nx-dp-month-select',
             'aria-label': 'Month'
         });
         for (var m = 1; m <= 12; m++) {
+            var isMoDisabled = (m < minMo || m > maxMo);
             var $mOpt = $('<option>', {
                 value: m,
                 text: monthNames[m - 1] || String(m)
             });
+            if (isMoDisabled) {
+                $mOpt.prop('disabled', true);
+            }
             if (m === month) {
                 $mOpt.prop('selected', true);
             }
             $monthSelect.append($mOpt);
         }
 
-        // Year dropdown
+        // Year dropdown strictly within [startYear, stopYear]
         var $yearSelect = $('<select>', {
             class: 'nwm-picker-select',
             id: 'nx-dp-year-select',
@@ -547,7 +717,10 @@
                     text: String(d)
                 }));
             } else {
-                var url = this.basePath + 'archive/' + year + '/days/day-' + dateStr + '.html';
+                var isCurrentDay = (dateStr === this.stopDateStr || dateStr === todayStr);
+                var url = isCurrentDay
+                    ? (this.basePath + 'index.html')
+                    : (this.basePath + 'archive/' + year + '/days/day-' + dateStr + '.html');
                 $daysGrid.append($('<a>', {
                     href: url,
                     class: cellClasses,

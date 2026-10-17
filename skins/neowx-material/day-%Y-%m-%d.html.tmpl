@@ -413,6 +413,10 @@
             $day.dateTime.format($Extras.Formatting.date) | $station.location
         </title>
         #include "inc/head.inc"
+        #if ($varExists('is_current_day') and $is_current_day) or $day.dateTime.format('%Y-%m-%d') == $archive_stop_date or $day.dateTime.format('%Y-%m-%d') == $time.strftime('%Y-%m-%d')
+            <script>window.location.replace('${base_path}index.html');</script>
+            <meta http-equiv="refresh" content="0; url=${base_path}index.html">
+        #end if
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
 

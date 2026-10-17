@@ -138,6 +138,12 @@
                 window.nxUpdateStopDate(data.today);
             }
         }
+        if (data.archive_start_date) {
+            window.NX_START_DATE = data.archive_start_date;
+            if (window.nxUpdateStartDate) {
+                window.nxUpdateStartDate(data.archive_start_date);
+            }
+        }
         applyAlmanac(data.almanac);
     }
 

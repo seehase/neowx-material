@@ -29,26 +29,36 @@
 #if not $varExists('context_day')
     #set $context_day = $time.strftime('%Y-%m-%d')
 #end if
-#if not $varExists('archive_start_date')
-    #set $archive_start_date = '1970-01-01'
+#if $varExists('alltime') and $alltime.start.raw is not None
+    #set $weewx_first_date = $alltime.start.format('%Y-%m-%d')
+#else
+    #set $weewx_first_date = '1970-01-01'
 #end if
-#if not $varExists('archive_stop_date')
+
+#if not $varExists('archive_start_date') or $archive_start_date in ('1970-01-01', '')
+    #set $archive_start_date = $weewx_first_date
+#else
+    #if $weewx_first_date != '1970-01-01' and $weewx_first_date > $archive_start_date
+        #set $archive_start_date = $weewx_first_date
+    #end if
+#end if
+#if not $varExists('archive_stop_date') or $archive_stop_date == ''
     #set $archive_stop_date = $time.strftime('%Y-%m-%d')
 #end if
-#if not $varExists('archive_start_year')
-    #set $archive_start_year = int($archive_start_date.split('-')[0])
-#end if
-#if not $varExists('archive_stop_year')
-    #set $archive_stop_year = int($time.strftime('%Y'))
-#end if
-#if not $varExists('archive_years')
-    #set $archive_years = [str($y) for $y in range($archive_start_year, $archive_stop_year + 1)]
-#end if
-#if not $varExists('archive_years_reversed')
-    #set $archive_years_reversed = [str($y) for $y in range($archive_stop_year, $archive_start_year - 1, -1)]
-#end if
+#set $archive_start_year = int($archive_start_date.split('-')[0])
+#set $archive_stop_year = int($archive_stop_date.split('-')[0])
+#set $archive_years = [str($y) for $y in range($archive_start_year, $archive_stop_year + 1)]
+#set $archive_years_reversed = [str($y) for $y in range($archive_stop_year, $archive_start_year - 1, -1)]
 #if not $varExists('context_day_url')
-    #set $context_day_url = $base_path + 'archive/' + $context_year + '/days/day-' + $context_day + '.html'
+    #if $context_day == $archive_stop_date or $context_day == $time.strftime('%Y-%m-%d')
+        #set $context_day_url = $base_path + 'index.html'
+    #else
+        #set $context_day_url = $base_path + 'archive/' + $context_year + '/days/day-' + $context_day + '.html'
+    #end if
+#else
+    #if $context_day_url.endswith('day-' + $archive_stop_date + '.html') or $context_day_url.endswith('day-' + $time.strftime('%Y-%m-%d') + '.html')
+        #set $context_day_url = $base_path + 'index.html'
+    #end if
 #end if
 #if not $varExists('context_week_url')
     #set $context_week_url = $base_path + 'archive/' + $context_year + '/weeks/week-' + $context_year + '-' + $context_week + '.html'
@@ -60,7 +70,7 @@
     #set $context_year_url = $base_path + 'archive/' + $context_year + '/year-' + $context_year + '.html'
 #end if
 #if not $varExists('current_day_url')
-    #set $current_day_url = $context_day_url
+    #set $current_day_url = $base_path + 'index.html'
 #end if
 #if not $varExists('current_week_url')
     #set $current_week_url = $context_week_url
@@ -83,6 +93,10 @@
 #end if
 #if not $varExists('next_day_url')
     #set $next_day_url = '#'
+#else
+    #if $next_day_url.endswith('day-' + $archive_stop_date + '.html') or $next_day_url.endswith('day-' + $time.strftime('%Y-%m-%d') + '.html')
+        #set $next_day_url = $base_path + 'index.html'
+    #end if
 #end if
 #if not $varExists('has_prev_week')
     #set $has_prev_week = True
@@ -119,6 +133,15 @@
 #end if
 #if not $varExists('next_year_url')
     #set $next_year_url = '#'
+#end if
+#if $context_day <= $archive_start_date
+    #set $has_prev_day = False
+#end if
+#if ($context_year + '-' + $context_month) <= $archive_start_date[0:7]
+    #set $has_prev_month = False
+#end if
+#if int($context_year) <= $archive_start_year
+    #set $has_prev_year = False
 #end if
 #if not $varExists('context_noaa_month_url')
     #set $context_noaa_month_url = $base_path + 'archive/NOAA/NOAA-' + $context_year + '-' + $context_month + '.txt'
@@ -285,7 +308,9 @@
                  data-context-week="${context_week}"
                  data-context-day="${context_day}"
                  data-start-date="${archive_start_date}"
-                 data-stop-date="${archive_stop_date}">
+                 data-stop-date="${archive_stop_date}"
+                 data-start-year="${archive_start_year}"
+                 data-stop-year="${archive_stop_year}">
 
                 <!-- Stepper Controls (Adaptive per page scale) -->
                 <div class="nwm-stepper-group">
@@ -600,27 +625,73 @@
 
     </nav>
 
+    <!-- 404 Protection Modal -->
+    <div class="modal fade" id="nwm-date-missing-modal" tabindex="-1" role="dialog" aria-labelledby="nwm-date-missing-title" aria-hidden="true" style="z-index: 1075;">
+        <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px;">
+            <div class="modal-content text-left shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title font-weight-bold d-flex align-items-center" id="nwm-date-missing-title" style="font-size: 1.1rem; color: #f44336;">
+                        <i class="mdi mdi-alert-circle-outline mr-2" style="font-size: 1.4rem;"></i>
+                        <span>$gettext('no_data_modal_title')</span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="$gettext('close')">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body py-3">
+                    <p class="mb-2" style="font-size: 0.95rem; opacity: 0.9;">
+                        $gettext('no_data_modal_text')
+                    </p>
+                    <p class="text-muted small mb-0">
+                        $gettext('redirecting_to_live') <span id="nwm-redirect-countdown" class="badge badge-secondary ml-1">3s</span>
+                    </p>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">
+                        $gettext('stay_here')
+                    </button>
+                    <a href="${base_path}index.html" class="btn btn-primary btn-sm ml-2" id="nwm-redirect-now-btn">
+                        $gettext('go_to_live')
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
     function nxJumpDate(type, val) {
         if (!val) return;
         var base = '${base_path}';
+        var targetUrl = '';
         if (type === 'day') {
             var parts = val.split('-');
             if (parts.length === 3) {
-                window.location.href = base + 'archive/' + parts[0] + '/days/day-' + val + '.html';
+                if (val === '${archive_stop_date}' || val === new Date().toISOString().slice(0, 10)) {
+                    targetUrl = base + 'index.html';
+                } else {
+                    targetUrl = base + 'archive/' + parts[0] + '/days/day-' + val + '.html';
+                }
             }
         } else if (type === 'week') {
             var parts = val.split('-W');
             if (parts.length === 2) {
-                window.location.href = base + 'archive/' + parts[0] + '/weeks/week-' + parts[0] + '-' + parts[1] + '.html';
+                targetUrl = base + 'archive/' + parts[0] + '/weeks/week-' + parts[0] + '-' + parts[1] + '.html';
             }
         } else if (type === 'month') {
             var parts = val.split('-');
             if (parts.length === 2) {
-                window.location.href = base + 'archive/' + parts[0] + '/months/month-' + val + '.html';
+                targetUrl = base + 'archive/' + parts[0] + '/months/month-' + val + '.html';
             }
         } else if (type === 'year') {
-            window.location.href = base + 'archive/' + val + '/year-' + val + '.html';
+            targetUrl = base + 'archive/' + val + '/year-' + val + '.html';
+        }
+
+        if (targetUrl) {
+            if (window.nxNavigateWithCheck) {
+                window.nxNavigateWithCheck(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
         }
     }
     </script>

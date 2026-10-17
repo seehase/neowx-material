@@ -7524,6 +7524,30 @@ body.light-theme .nwm-picker-cell:hover:not(.disabled):not(:disabled) {
   align-self: center;
 }
 
+#nwm-date-missing-modal .modal-content {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(33, 37, 41, 0.98);
+  color: #ffffff;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+body.light-theme #nwm-date-missing-modal .modal-content, body:not(.dark-theme) #nwm-date-missing-modal .modal-content {
+  background: #ffffff;
+  color: #212529;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+#nwm-date-missing-modal .close {
+  color: inherit;
+  opacity: 0.7;
+  text-shadow: none;
+}
+#nwm-date-missing-modal .close:hover {
+  opacity: 1;
+}
+
 @media (max-width: 991.98px) {
   .nwm-nav-hub {
     width: 100%;

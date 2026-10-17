@@ -49,7 +49,7 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
         return dt.strftime(filename)
 
-VERSION = "1.0.4"
+VERSION = "1.0.7"
 
 log = logging.getLogger(__name__)
 
@@ -410,7 +410,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         stop_iso_yr, stop_iso_wk, _ = stop_dt.isocalendar()
 
         current_live_url = f"{base_path}index.html"
-        current_day_url = f"{base_path}archive/{stop_yr:04d}/days/day-{stop_yr:04d}-{stop_mo:02d}-{stop_day:02d}.html"
+        current_day_url = f"{base_path}index.html"
         current_week_url = f"{base_path}archive/{stop_yr:04d}/weeks/week-{stop_yr:04d}-{stop_iso_wk:02d}.html"
         current_month_url = f"{base_path}archive/{stop_yr:04d}/months/month-{stop_yr:04d}-{stop_mo:02d}.html"
         current_year_url = f"{base_path}archive/{stop_yr:04d}/year-{stop_yr:04d}.html"
@@ -423,18 +423,23 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             target_wk = stop_iso_wk if is_current_year else 1
             context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{target_wk:02d}.html"
             target_day_str = f"{stop_yr:04d}-{stop_mo:02d}-{stop_day:02d}" if is_current_year else f"{yr:04d}-01-01"
-            context_day_link = f"{base_path}archive/{context_year_str}/days/day-{target_day_str}.html"
+            context_day_link = f"{base_path}index.html" if is_current_year else f"{base_path}archive/{context_year_str}/days/day-{target_day_str}.html"
         elif summarize_by == 'SummaryByMonth':
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
             first_day_mo = datetime.date(yr, mo, 1)
             mo_wk = first_day_mo.isocalendar()[1]
             context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{mo_wk:02d}.html"
             target_day = stop_day if is_current_month else 1
-            context_day_link = f"{base_path}archive/{context_year_str}/days/day-{context_year_str}-{context_month_str}-{target_day:02d}.html"
+            context_day_link = f"{base_path}index.html" if is_current_month else f"{base_path}archive/{context_year_str}/days/day-{context_year_str}-{context_month_str}-{target_day:02d}.html"
+        elif summarize_by == 'SummaryByWeek':
+            context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
+            context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{context_week_str}.html"
+            context_day_link = f"{base_path}index.html" if is_current_week else f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
         else:
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
             context_week_link = f"{base_path}archive/{context_year_str}/weeks/week-{context_year_str}-{context_week_str}.html"
-            context_day_link = f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
+            today_iso = stop_dt.strftime('%Y-%m-%d')
+            context_day_link = f"{base_path}index.html" if (is_current_day or context_day_str == today_iso) else f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
 
         # Fallback card_datetime if accessed before inc/card_datetime.inc
         card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
@@ -482,7 +487,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             'has_prev_day': has_prev_day,
             'has_next_day': has_next_day,
             'prev_day_url': f"{base_path}archive/{prev_day_dt.year}/days/day-{prev_day_dt.strftime('%Y-%m-%d')}.html" if has_prev_day else '#',
-            'next_day_url': f"{base_path}archive/{next_day_dt.year}/days/day-{next_day_dt.strftime('%Y-%m-%d')}.html" if has_next_day else '#',
+            'next_day_url': (f"{base_path}index.html" if next_day_dt.date() >= stop_dt.date() else f"{base_path}archive/{next_day_dt.year}/days/day-{next_day_dt.strftime('%Y-%m-%d')}.html") if has_next_day else '#',
 
             'has_prev_week': has_prev_week,
             'has_next_week': has_next_week,
