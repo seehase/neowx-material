@@ -12,11 +12,12 @@ Ensure users cannot navigate outside valid historical data ranges in NeoWX Mater
 
 ### Phase 1: WeeWX Data Source & Template Bounds
 - **Backend / Python (`bin/user/neowx_archive.py`)**:
-  - Bump `VERSION` from `1.0.4` to `1.0.7`.
+  - Bump `VERSION` to `1.0.8`.
   - In `NeowxArchiveGenerator.generate()` and `_build_nav_context()`:
     - Ensure `archive_start_date` defaults to the database's `firstGoodStamp()` if `archive_start_date` in `skin.conf` is unset, default (`1970-01-01`), or earlier than the actual first record.
     - Set `current_day_url = f"{base_path}index.html"`.
     - If `next_day_dt.date() >= stop_dt.date()`, route `next_day_url` directly to `f"{base_path}index.html"`.
+    - Week Stepper Bounds: Compare the previous week's end date (Sunday: `prev_wk_monday + 6 days`) to `start_dt.date()`. If the previous week contains records (e.g. data starts mid-week on Tuesday Jan 3, 2017), CW 01 is recognized as having data, allowing navigation back from CW 02 to CW 01.
     - Scale Switcher Day link: When viewing current year (`is_current_year`), current month (`is_current_month`), or current week (`is_current_week`), route `context_day_link` directly to `f"{base_path}index.html"`.
     - Expose `archive_start_date`, `archive_stop_date`, `archive_start_year`, `archive_stop_year`, `archive_years_reversed`.
 - **Templates (`skins/neowx-material/inc/header.inc`)**:

@@ -49,7 +49,7 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
         return dt.strftime(filename)
 
-VERSION = "1.0.7"
+VERSION = "1.0.8"
 
 log = logging.getLogger(__name__)
 
@@ -373,10 +373,15 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         has_next_day = next_day_dt.date() <= stop_dt.date()
 
         # Week navigation
-        prev_wk_dt = ref_dt - datetime.timedelta(days=7)
-        next_wk_dt = ref_dt + datetime.timedelta(days=7)
-        has_prev_week = prev_wk_dt.date() >= start_dt.date()
-        has_next_week = next_wk_dt.date() <= stop_dt.date()
+        ref_monday = ref_dt.date() - datetime.timedelta(days=ref_dt.weekday())
+        prev_wk_monday = ref_monday - datetime.timedelta(days=7)
+        prev_wk_sunday = prev_wk_monday + datetime.timedelta(days=6)
+        next_wk_monday = ref_monday + datetime.timedelta(days=7)
+
+        prev_wk_dt = datetime.datetime.combine(prev_wk_monday, datetime.time.min)
+        next_wk_dt = datetime.datetime.combine(next_wk_monday, datetime.time.min)
+        has_prev_week = prev_wk_sunday >= start_dt.date()
+        has_next_week = next_wk_monday <= stop_dt.date()
 
         # Month navigation
         prev_mo_yr = yr if mo > 1 else yr - 1
@@ -491,8 +496,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
             'has_prev_week': has_prev_week,
             'has_next_week': has_next_week,
-            'prev_week_url': f"{base_path}archive/{prev_wk_dt.year}/weeks/week-{prev_wk_dt.year}-{prev_wk_dt.isocalendar()[1]:02d}.html" if has_prev_week else '#',
-            'next_week_url': f"{base_path}archive/{next_wk_dt.year}/weeks/week-{next_wk_dt.year}-{next_wk_dt.isocalendar()[1]:02d}.html" if has_next_week else '#',
+            'prev_week_url': f"{base_path}archive/{prev_wk_dt.strftime('%Y')}/weeks/week-{prev_wk_dt.strftime('%Y-%V')}.html" if has_prev_week else '#',
+            'next_week_url': f"{base_path}archive/{next_wk_dt.strftime('%Y')}/weeks/week-{next_wk_dt.strftime('%Y-%V')}.html" if has_next_week else '#',
 
             'has_prev_month': has_prev_month,
             'has_next_month': has_next_month,
