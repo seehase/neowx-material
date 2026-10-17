@@ -130,7 +130,11 @@
         $(document).on('click', '.nwm-stepper-group a[href], .nwm-picker-dropdown a[href]', function (e) {
             var $link = $(this);
             var href = $link.attr('href');
-            if (!href || href === '#' || href.indexOf('javascript:') === 0) return;
+            var normalizedHref = (href || '').trim().toLowerCase();
+            if (!href || href === '#' ||
+                normalizedHref.indexOf('javascript:') === 0 ||
+                normalizedHref.indexOf('data:') === 0 ||
+                normalizedHref.indexOf('vbscript:') === 0) return;
             if ($link.hasClass('disabled') || $link.is(':disabled')) {
                 e.preventDefault();
                 return;
@@ -189,7 +193,11 @@
     // PROACTIVE 404 AVAILABILITY CHECK & NAVIGATION
     // -------------------------------------------------------------------------
     DateNavController.prototype.navigateWithCheck = function (url) {
-        if (!url || url === '#' || url.indexOf('javascript:') === 0) return;
+        var normalizedUrl = (url || '').trim().toLowerCase();
+        if (!url || url === '#' ||
+            normalizedUrl.indexOf('javascript:') === 0 ||
+            normalizedUrl.indexOf('data:') === 0 ||
+            normalizedUrl.indexOf('vbscript:') === 0) return;
         var self = this;
 
         // If navigating to the current date's day page, always route to index.html
