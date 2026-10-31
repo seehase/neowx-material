@@ -5,17 +5,19 @@
 #
 
 """Provides advanced archive generation with ISO week spans, nested directory routing,
-cutoff limits (archive_start_date), and contextual navigation variables for NeoWX Material.
+cutoff limits (archive_start_date), granularity controls (archive_history), two-pass
+live-first incremental backfill, and contextual navigation variables for NeoWX Material.
 
 To use, configure [Generators] in skin.conf:
 
 [Generators]
-    generator_list = user.neowx_archive.NeowxArchiveGenerator, weewx.reportengine.CopyGenerator
+    generator_list = weewx.reportengine.CopyGenerator, user.neowx_archive.NeowxArchiveGenerator
 """
 
 import datetime
 import logging
 import os
+import re
 import time
 
 try:
@@ -37,8 +39,13 @@ except ImportError:
     class _DummyModule:
         CheetahGenerator = _DummyBase
         ReportGenerator = _DummyBase
+    class TimeSpan:
+        def __init__(self, start, stop):
+            self.start = start
+            self.stop = stop
+        def includesArchiveTime(self, ts):
+            return self.start < ts <= self.stop
     weewx = type('weewx', (), {'cheetahgenerator': _DummyModule, 'reportengine': _DummyModule})()
-    TimeSpan = lambda s, e: (s, e)
     to_bool = lambda v: str(v).lower() in ('true', 'yes', '1')
     to_int = lambda v: int(v) if v is not None else None
     timestamp_to_string = lambda ts: str(ts)
@@ -49,7 +56,7 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
         return dt.strftime(filename)
 
-VERSION = "1.0.8"
+VERSION = "1.1.0"
 
 log = logging.getLogger(__name__)
 
@@ -105,13 +112,122 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
     format_dict = dict(weewx.cheetahgenerator.CheetahGenerator.format_dict)
     format_dict['SummaryByWeek'] = "%Y-%V"
 
+    # Priority ordering for SummaryBy* sections (coarse-to-fine)
+    SUMMARY_PRIORITY = ('SummaryByYear', 'SummaryByMonth', 'SummaryByWeek', 'SummaryByDay')
+
     def __init__(self, config_dict, skin_dict, *args, **kwargs):
         super(NeowxArchiveGenerator, self).__init__(config_dict, skin_dict, *args, **kwargs)
         log.info("NeowxArchiveGenerator version %s", VERSION)
+        self._run_start_time = None
+        self._backfill_count = 0
+        self._backfill_limit_logged = False
         # Ensure outputted_dict tracks all generator keys
         for k in self.generator_dict:
             if k not in self.outputted_dict:
                 self.outputted_dict[k] = []
+
+    @staticmethod
+    def _resolve_archive_start_date(raw_val, first_good_ts, stop_ts):
+        """Resolves archive_start_date (YYYY-MM-DD or keyword: all, current_year,
+        current_month, current/today/none) into (start_ts, cutoff_ts).
+        """
+        raw_str = str(raw_val if raw_val is not None else '1970-01-01').strip()
+        raw_lower = raw_str.lower()
+        stop_dt = datetime.datetime.fromtimestamp(stop_ts)
+        cutoff_ts = 0
+
+        if raw_lower in ('', 'all', '1970-01-01'):
+            cutoff_ts = 0
+        elif raw_lower == 'current_year':
+            cutoff_ts = int(time.mktime((stop_dt.year, 1, 1, 0, 0, 0, 0, 0, -1)))
+        elif raw_lower == 'current_month':
+            cutoff_ts = int(time.mktime((stop_dt.year, stop_dt.month, 1, 0, 0, 0, 0, 0, -1)))
+        elif raw_lower in ('current', 'today', 'none'):
+            cutoff_ts = int(time.mktime((stop_dt.year, stop_dt.month, stop_dt.day, 0, 0, 0, 0, 0, -1)))
+        else:
+            try:
+                cutoff_tt = time.strptime(raw_str, "%Y-%m-%d")
+                cutoff_ts = int(time.mktime(cutoff_tt))
+            except (ValueError, TypeError):
+                cutoff_ts = 0
+
+        start_ts = max(first_good_ts, cutoff_ts) if cutoff_ts > 0 else first_good_ts
+        return (start_ts, cutoff_ts)
+
+    @classmethod
+    def _parse_archive_history(cls, raw_val, raw_start_date=''):
+        """Parses archive_history setting into a set of enabled SummaryBy* keys.
+        Supports presets ('all', 'months_years', 'years', 'none') or comma/underscore
+        lists of granularities ('years, months, weeks, days').
+        """
+        all_keys = set(cls.SUMMARY_PRIORITY)
+        start_lower = str(raw_start_date or '').strip().lower()
+        if start_lower in ('current', 'today', 'none'):
+            return set()
+
+        if raw_val is None:
+            return all_keys
+
+        if isinstance(raw_val, (list, tuple)):
+            raw_str = ','.join(str(x) for x in raw_val)
+        else:
+            raw_str = str(raw_val)
+
+        tokens = [t for t in re.split(r'[,\s_]+', raw_str.strip().lower()) if t]
+        if not tokens or 'all' in tokens or 'true' in tokens or 'yes' in tokens:
+            return all_keys
+        if any(t in ('none', 'current', 'current_only', 'false', 'no') for t in tokens):
+            return set()
+
+        mapping = {
+            'year': 'SummaryByYear',
+            'years': 'SummaryByYear',
+            'summarybyyear': 'SummaryByYear',
+            'month': 'SummaryByMonth',
+            'months': 'SummaryByMonth',
+            'summarybymonth': 'SummaryByMonth',
+            'week': 'SummaryByWeek',
+            'weeks': 'SummaryByWeek',
+            'summarybyweek': 'SummaryByWeek',
+            'day': 'SummaryByDay',
+            'days': 'SummaryByDay',
+            'summarybyday': 'SummaryByDay',
+        }
+        enabled = set()
+        for token in tokens:
+            if token in mapping:
+                enabled.add(mapping[token])
+        return enabled
+
+    def _order_subsections(self, section, _pass):
+        """Orders subsections so non-summary sections (LiveData, Global, ToDate) run
+        first in Pass 1 ('current'), followed by SummaryByYear -> Month -> Week -> Day.
+        In Pass 2 ('history'), only SummaryBy* sections are visited in coarse-to-fine order.
+        """
+        non_summary = []
+        summary_by_key = {k: [] for k in self.SUMMARY_PRIORITY}
+        other_summary = []
+
+        for sub in section.sections:
+            sub_sec = section[sub]
+            sum_by = sub_sec.get('summarize_by') or (sub if sub in self.generator_dict else None)
+            if sum_by in summary_by_key:
+                summary_by_key[sum_by].append(sub)
+            elif sum_by in self.generator_dict:
+                other_summary.append(sub)
+            else:
+                non_summary.append(sub)
+
+        ordered_summaries = []
+        for k in self.SUMMARY_PRIORITY:
+            ordered_summaries.extend(summary_by_key[k])
+        ordered_summaries.extend(other_summary)
+
+        if _pass == 'history':
+            # Include non_summary containers only if they themselves hold nested subsections
+            nested_containers = [s for s in non_summary if getattr(section[s], 'sections', None)]
+            return ordered_summaries + nested_containers
+        return non_summary + ordered_summaries
 
     @staticmethod
     def _getFileName(template, time_val):
@@ -174,21 +290,39 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         default_binding = report_dict['data_binding']
         return (template, destination_dir, encoding, default_binding)
 
-    def generate(self, section, section_name, gen_ts):
-        """Generate reports for the indicated section with archive_start_date bounds
-        and dynamic nested directory evaluation.
+    def generate(self, section, section_name, gen_ts, _pass=None):
+        """Generate reports for the indicated section in two passes:
+        Pass 1 ('current'): ToDate/LiveData/Global templates and the current active
+                            span of each SummaryBy* section (always generated immediately).
+        Pass 2 ('history'): Missing historical SummaryBy* spans in reverse chronological
+                            order (newest -> oldest), bounded by archive_history,
+                            archive_batch_size, and archive_max_run_time.
         """
+        if _pass is None:
+            self._run_start_time = time.time()
+            self._backfill_count = 0
+            self._backfill_limit_logged = False
+            ngen = self.generate(section, section_name, gen_ts, _pass='current')
+            ngen += self.generate(section, section_name, gen_ts, _pass='history')
+            return ngen
+
         ngen = 0
-        for subsection in section.sections:
+        for subsection in self._order_subsections(section, _pass):
             if 'summarize_by' not in section[subsection]:
                 if subsection in self.generator_dict:
                     section[subsection]['summarize_by'] = subsection
-            ngen += self.generate(section[subsection], subsection, gen_ts)
+            ngen += self.generate(section[subsection], subsection, gen_ts, _pass=_pass)
 
         if 'template' not in section:
             return ngen
 
         report_dict = weewx.cheetahgenerator.accumulateLeaves(section)
+        summarize_by = report_dict.get('summarize_by')
+        is_summary = summarize_by in self.generator_dict
+
+        # Non-summary templates (ToDate, Global, LiveData) only run in Pass 1 ('current')
+        if _pass == 'history' and not is_summary:
+            return ngen
 
         generate_once = to_bool(report_dict.get('generate_once', False))
         if generate_once and not self.first_run:
@@ -197,44 +331,62 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         (template, dest_dir_pattern, encoding, default_binding) = self._prepGen(report_dict)
 
         default_archive = self.db_binder.get_manager(default_binding)
-        start_ts = default_archive.firstGoodStamp()
-        if not start_ts:
-            log.info("Skipping template %s: cannot find start time", section['template'])
+        first_good_ts = default_archive.firstGoodStamp()
+        if not first_good_ts:
+            if _pass == 'current':
+                log.info("Skipping template %s: cannot find start time", section['template'])
             return ngen
-
-        # Apply archive_start_date cutoff (default: 1970-01-01)
-        archive_start_date_str = str(report_dict.get('archive_start_date', '1970-01-01')).strip()
-        cutoff_ts = 0
-        try:
-            cutoff_tt = time.strptime(archive_start_date_str, "%Y-%m-%d")
-            cutoff_ts = int(time.mktime(cutoff_tt))
-            start_ts = max(start_ts, cutoff_ts)
-        except (ValueError, TypeError):
-            pass
 
         if gen_ts:
             record = default_archive.getRecord(gen_ts, max_delta=to_int(report_dict.get('max_delta')))
             if record:
                 stop_ts = record['dateTime']
             else:
-                log.info("Skipping template %s: generate time %s not in database",
-                         section['template'], timestamp_to_string(gen_ts))
+                if _pass == 'current':
+                    log.info("Skipping template %s: generate time %s not in database",
+                             section['template'], timestamp_to_string(gen_ts))
                 return ngen
         else:
             stop_ts = default_archive.lastGoodStamp()
 
+        # Resolve archive_start_date (YYYY-MM-DD or keyword: all, current_year, current_month, current/today/none)
+        archive_start_date_raw = report_dict.get('archive_start_date', '1970-01-01')
+        archive_start_date_str = str(archive_start_date_raw).strip()
+        start_ts, cutoff_ts = self._resolve_archive_start_date(
+            archive_start_date_raw, first_good_ts, stop_ts
+        )
+
         if stop_ts < start_ts:
             return ngen
 
-        summarize_by = report_dict.get('summarize_by')
-        if summarize_by in self.generator_dict:
+        # Resolve enabled historical granularities (archive_history)
+        enabled_history = self._parse_archive_history(
+            report_dict.get('archive_history', 'all'), archive_start_date_raw
+        )
+
+        # In Pass 2 ('history'), skip this SummaryBy* section if its granularity is disabled
+        if _pass == 'history' and summarize_by not in enabled_history:
+            return ngen
+
+        if is_summary:
             _spangen = self.generator_dict[summarize_by]
+            all_spans = list(_spangen(start_ts, stop_ts))
+            if _pass == 'current':
+                spans_to_process = [ts for ts in all_spans if ts.includesArchiveTime(stop_ts)]
+                if not spans_to_process and all_spans:
+                    spans_to_process = [all_spans[-1]]
+            else:
+                # Pass 2 ('history'): reverse chronological (newest -> oldest)
+                spans_to_process = [ts for ts in reversed(all_spans) if not ts.includesArchiveTime(stop_ts)]
         else:
-            _spangen = lambda s_ts, e_ts: [TimeSpan(s_ts, e_ts)]
+            spans_to_process = [TimeSpan(start_ts, stop_ts)]
+
+        batch_size = to_int(report_dict.get('archive_batch_size', 30))
+        max_run_time = to_int(report_dict.get('archive_max_run_time', 180))
 
         html_root = os.path.join(self.config_dict['WEEWX_ROOT'], report_dict['HTML_ROOT'])
 
-        for timespan in _spangen(start_ts, stop_ts):
+        for timespan in spans_to_process:
             if hasattr(self, 'stop_event') and self.stop_event and self.stop_event.is_set():
                 log.debug("Stop event set. Stopping template '%s'", template)
                 return ngen
@@ -260,7 +412,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             _fullname = os.path.join(eval_dest_dir, _filename)
 
             # Skip summary files outside the active timespan that already exist on disk
-            if summarize_by in self.generator_dict \
+            if is_summary \
                     and os.path.exists(_fullname) \
                     and not timespan.includesArchiveTime(stop_ts):
                 continue
@@ -276,6 +428,22 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                 except os.error:
                     pass
 
+            # In Pass 2 ('history'), enforce per-cycle backfill batch size & time budget
+            if _pass == 'history':
+                elapsed = time.time() - (self._run_start_time or time.time())
+                batch_exceeded = batch_size is not None and batch_size > 0 and self._backfill_count >= batch_size
+                time_exceeded = max_run_time is not None and max_run_time > 0 and elapsed >= max_run_time
+                if batch_exceeded or time_exceeded:
+                    if not self._backfill_limit_logged:
+                        log.info(
+                            "NeowxArchiveGenerator: Backfill batch limit reached "
+                            "(generated %d historical files in %.1fs); "
+                            "remaining historical archives will continue on next cycle.",
+                            self._backfill_count, elapsed
+                        )
+                        self._backfill_limit_logged = True
+                    return ngen
+
             # Calculate relative base_path from destination to HTML_ROOT
             rel_dir = os.path.relpath(os.path.dirname(_fullname), html_root)
             if rel_dir == '.':
@@ -286,7 +454,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
             # Build navigation context
             nav_context = self._build_nav_context(
-                timespan, start_ts, stop_ts, cutoff_ts, base_path, archive_start_date_str, summarize_by
+                timespan, start_ts, stop_ts, cutoff_ts, base_path,
+                archive_start_date_str, summarize_by, enabled_history
             )
 
             # Ensure parent directories exist
@@ -343,6 +512,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                     fd.write(byte_string)
                 os.replace(tmpname, _fullname)
                 ngen += 1
+                if _pass == 'history':
+                    self._backfill_count += 1
             except Exception as e:
                 log.error("Failed writing output file %s: %s", _fullname, e)
                 try:
@@ -352,7 +523,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
         return ngen
 
-    def _build_nav_context(self, timespan, start_ts, stop_ts, cutoff_ts, base_path, archive_start_date_str, summarize_by):
+    def _build_nav_context(self, timespan, start_ts, stop_ts, cutoff_ts, base_path,
+                           archive_start_date_str, summarize_by, enabled_history=None):
         """Constructs rich navigation and URL helpers for templates."""
         if summarize_by in ('SummaryByDay', 'SummaryByWeek', 'SummaryByMonth', 'SummaryByYear'):
             ref_dt = datetime.datetime.fromtimestamp(timespan.start)
@@ -360,6 +532,11 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             ref_dt = datetime.datetime.fromtimestamp(stop_ts)
         start_dt = datetime.datetime.fromtimestamp(start_ts)
         stop_dt = datetime.datetime.fromtimestamp(stop_ts)
+
+        days_enabled = enabled_history is None or ('SummaryByDay' in enabled_history)
+        weeks_enabled = enabled_history is None or ('SummaryByWeek' in enabled_history)
+        months_enabled = enabled_history is None or ('SummaryByMonth' in enabled_history)
+        years_enabled = enabled_history is None or ('SummaryByYear' in enabled_history)
 
         yr = ref_dt.year
         mo = ref_dt.month
@@ -369,8 +546,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         # Day navigation
         prev_day_dt = ref_dt - datetime.timedelta(days=1)
         next_day_dt = ref_dt + datetime.timedelta(days=1)
-        has_prev_day = prev_day_dt.date() >= start_dt.date()
-        has_next_day = next_day_dt.date() <= stop_dt.date()
+        has_prev_day = days_enabled and (prev_day_dt.date() >= start_dt.date())
+        has_next_day = days_enabled and (next_day_dt.date() <= stop_dt.date())
 
         # Week navigation
         ref_monday = ref_dt.date() - datetime.timedelta(days=ref_dt.weekday())
@@ -380,20 +557,20 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
         prev_wk_dt = datetime.datetime.combine(prev_wk_monday, datetime.time.min)
         next_wk_dt = datetime.datetime.combine(next_wk_monday, datetime.time.min)
-        has_prev_week = prev_wk_sunday >= start_dt.date()
-        has_next_week = next_wk_monday <= stop_dt.date()
+        has_prev_week = weeks_enabled and (prev_wk_sunday >= start_dt.date())
+        has_next_week = weeks_enabled and (next_wk_monday <= stop_dt.date())
 
         # Month navigation
         prev_mo_yr = yr if mo > 1 else yr - 1
         prev_mo = mo - 1 if mo > 1 else 12
         next_mo_yr = yr if mo < 12 else yr + 1
         next_mo = mo + 1 if mo < 12 else 1
-        has_prev_month = datetime.date(prev_mo_yr, prev_mo, 1) >= datetime.date(start_dt.year, start_dt.month, 1)
-        has_next_month = datetime.date(next_mo_yr, next_mo, 1) <= datetime.date(stop_dt.year, stop_dt.month, 1)
+        has_prev_month = months_enabled and (datetime.date(prev_mo_yr, prev_mo, 1) >= datetime.date(start_dt.year, start_dt.month, 1))
+        has_next_month = months_enabled and (datetime.date(next_mo_yr, next_mo, 1) <= datetime.date(stop_dt.year, stop_dt.month, 1))
 
         # Year navigation
-        has_prev_year = (yr - 1) >= start_dt.year
-        has_next_year = (yr + 1) <= stop_dt.year
+        has_prev_year = years_enabled and ((yr - 1) >= start_dt.year)
+        has_next_year = years_enabled and ((yr + 1) <= stop_dt.year)
 
         # Check if viewing current day / week / month / year
         is_current_day = ref_dt.date() == stop_dt.date()
@@ -406,7 +583,20 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         context_week_str = f"{iso_wk:02d}"
         context_day_str = f"{yr:04d}-{mo:02d}-{day:02d}"
 
-        archive_years = [f"{y:04d}" for y in range(start_dt.year, stop_dt.year + 1)]
+        # Effective start date for the current page's header picker
+        if summarize_by == 'SummaryByYear' and not years_enabled:
+            picker_start_dt = stop_dt
+        elif summarize_by == 'SummaryByMonth' and not months_enabled:
+            picker_start_dt = datetime.datetime(stop_dt.year, stop_dt.month, 1)
+        elif summarize_by == 'SummaryByWeek' and not weeks_enabled:
+            curr_monday = stop_dt.date() - datetime.timedelta(days=stop_dt.weekday())
+            picker_start_dt = datetime.datetime.combine(curr_monday, datetime.time.min)
+        elif summarize_by not in ('SummaryByYear', 'SummaryByMonth', 'SummaryByWeek') and not days_enabled:
+            picker_start_dt = stop_dt
+        else:
+            picker_start_dt = start_dt
+
+        archive_years = [f"{y:04d}" for y in range(picker_start_dt.year, stop_dt.year + 1)]
 
         # Latest/current timestamps for direct navigation
         stop_yr = stop_dt.year
@@ -446,6 +636,15 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             today_iso = stop_dt.strftime('%Y-%m-%d')
             context_day_link = f"{base_path}index.html" if (is_current_day or context_day_str == today_iso) else f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
 
+        # If a historical granularity is disabled via archive_history, point navbar scale links to the current active page
+        if not days_enabled:
+            context_day_link = current_day_url
+        if not weeks_enabled:
+            context_week_link = current_week_url
+        if not months_enabled:
+            context_month_link = current_month_url
+        context_year_link = f"{base_path}archive/{context_year_str}/year-{context_year_str}.html" if years_enabled else current_year_url
+
         # Fallback card_datetime if accessed before inc/card_datetime.inc
         card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
         if summarize_by == 'SummaryByDay':
@@ -454,12 +653,12 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         return {
             'base_path': base_path,
             'card_datetime': card_dt_fallback,
-            'archive_start_date': start_dt.strftime('%Y-%m-%d'),
+            'archive_start_date': picker_start_dt.strftime('%Y-%m-%d'),
             'archive_stop_date': stop_dt.strftime('%Y-%m-%d'),
-            'archive_start_year': start_dt.year,
+            'archive_start_year': picker_start_dt.year,
             'archive_stop_year': stop_dt.year,
             'archive_years': archive_years,
-            'archive_years_reversed': [f"{y:04d}" for y in range(stop_dt.year, start_dt.year - 1, -1)],
+            'archive_years_reversed': [f"{y:04d}" for y in range(stop_dt.year, picker_start_dt.year - 1, -1)],
             'context_year': context_year_str,
             'context_month': context_month_str,
             'context_month_name': ref_dt.strftime("%B"),
@@ -479,7 +678,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             'context_day_url': context_day_link,
             'context_week_url': context_week_link,
             'context_month_url': context_month_link,
-            'context_year_url': f"{base_path}archive/{context_year_str}/year-{context_year_str}.html",
+            'context_year_url': context_year_link,
             'context_noaa_year_url': f"{base_path}archive/NOAA/NOAA-{context_year_str}.txt",
             'context_noaa_month_url': f"{base_path}archive/NOAA/NOAA-{context_year_str}-{context_month_str}.txt",
 

@@ -35,15 +35,20 @@
     #set $weewx_first_date = '1970-01-01'
 #end if
 
-#if not $varExists('archive_start_date') or $archive_start_date in ('1970-01-01', '')
-    #set $archive_start_date = $weewx_first_date
-#else
-    #if $weewx_first_date != '1970-01-01' and $weewx_first_date > $archive_start_date
-        #set $archive_start_date = $weewx_first_date
-    #end if
-#end if
 #if not $varExists('archive_stop_date') or $archive_stop_date == ''
     #set $archive_stop_date = $time.strftime('%Y-%m-%d')
+#end if
+#if not $varExists('archive_start_date') or str($archive_start_date).strip().lower() in ('1970-01-01', '', 'all')
+    #set $archive_start_date = $weewx_first_date
+#else if str($archive_start_date).strip().lower() == 'current_year'
+    #set $archive_start_date = $archive_stop_date[0:4] + '-01-01'
+#else if str($archive_start_date).strip().lower() == 'current_month'
+    #set $archive_start_date = $archive_stop_date[0:7] + '-01'
+#else if str($archive_start_date).strip().lower() in ('current', 'today', 'none')
+    #set $archive_start_date = $archive_stop_date
+#end if
+#if $weewx_first_date != '1970-01-01' and $weewx_first_date > $archive_start_date
+    #set $archive_start_date = $weewx_first_date
 #end if
 #set $archive_start_year = int($archive_start_date.split('-')[0])
 #set $archive_stop_year = int($archive_stop_date.split('-')[0])
