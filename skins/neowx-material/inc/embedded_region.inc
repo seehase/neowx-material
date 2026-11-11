@@ -60,12 +60,14 @@
     #set eq_faults = $getVar('Extras.Earthquakes.show_faults', "yes")
     <div class="col-12 col-md-6 col-xl-4 mb-4">
         <div class="card card-embedded overflow-hidden" data-name="$name" data-section="$section">
-            <div class="nwm-embed-toolbar">
-                <a href="${bp}earthquakes.html" class="nwm-embed-toolbar-icon"
-                   title="$gettext('earthquakes')" aria-label="$gettext('earthquakes')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                </a>
-            </div>
+            #if str($Extras.Appearance.get('enableEmbeddedPopup', 'true')).strip().lower() not in ('false', 'no', '0')
+                <div class="nwm-embed-toolbar">
+                    <button type="button" class="nwm-embed-toolbar-icon" data-nwm-earthquake-popup
+                            title="$gettext('expand')" aria-label="$gettext('expand')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+                    </button>
+                </div>
+            #end if
             <div class="card-body text-center d-flex flex-column px-0 pb-0 overflow-hidden">
                 #if eq_title != ""
                     <h5 class="h5-responsive $Extras.color-text">

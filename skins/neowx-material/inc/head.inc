@@ -109,7 +109,7 @@
 <link rel="stylesheet" href="${base_path}js/vendor/apexcharts/apexcharts.css">
 
 ## Regional Earthquakes stylesheet (Leaflet & theme)
-#if ($varExists('page') and $page == 'earthquakes') or $varExists('Extras.Embedded.earthquake_map') or $varExists('Extras.Embedded.earthquakes')
+#if $varExists('Extras.Embedded.earthquake_map') or $varExists('Extras.Embedded.earthquakes')
 <link rel="stylesheet" href="${base_path}css/vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="${base_path}css/earthquakes.css?v=$Extras.version">
 #end if
