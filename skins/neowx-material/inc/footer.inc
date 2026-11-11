@@ -65,6 +65,16 @@
                                 </span>
                             </div>
                         #end if
+                        #if $Extras.Footer.get("show_earthquakes", "no") == "yes" or $Extras.get("show_earthquakes", "no") == "yes"
+                            <div class="nwm-footer-meta-row">
+                                <span class="nwm-footer-meta-label">$gettext("earthquakes")</span>
+                                <span class="nwm-footer-meta-value">
+                                    <a href="${base_path}earthquakes.html" class="nwm-footer-btn-chip">
+                                        <i class="mdi mdi-map-marker-radius-outline mr-1"></i>$gettext("earthquakes")
+                                    </a>
+                                </span>
+                            </div>
+                        #end if
                         <div class="nwm-footer-meta-row">
                             <span class="nwm-footer-meta-label">$gettext("panels")</span>
                             <span class="nwm-footer-meta-value">

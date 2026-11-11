@@ -574,6 +574,12 @@
                         </li>
                     #end if
 
+                    #if $Extras.Header.get("earthquakes_nav_link", "no") == "yes" or $Extras.get("earthquakes_nav_link", "no") == "yes"
+                        <li class="nav-item#if $active_nav == 'earthquakes'# active#end if# px-1">
+                            <a class="nav-link" href="${base_path}earthquakes.html">$gettext("earthquakes")</a>
+                        </li>
+                    #end if
+
                     #if $Extras.Header.custom1_url != ""
                         <li class="nav-item px-1">
                             <a class="nav-link" href="$Extras.Header.custom1_url">$Extras.Header.custom1_label</a>
