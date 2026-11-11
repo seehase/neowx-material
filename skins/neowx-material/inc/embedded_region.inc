@@ -48,6 +48,48 @@
     #set global $base_path = ''
 #end if
 
+#def earthquakeCard($name, $section = "")
+    #set $bp = $getVar('base_path', '')
+    #set eq_title = $getVar('Extras.Embedded.' + name + '.title', $gettext("earthquakes"))
+    #set eq_aspect = $getVar('Extras.Embedded.' + name + '.aspect_ratio', "4/3")
+    #set eq_radius = $getVar('Extras.Earthquakes.radius_km', "300")
+    #set eq_min_mag = $getVar('Extras.Earthquakes.min_magnitude', "2.5")
+    #set eq_timespan = $getVar('Extras.Earthquakes.timespan_days', "7")
+    #set eq_basemap = $getVar('Extras.Earthquakes.basemap', "vector")
+    #set eq_tile_url = $getVar('Extras.Earthquakes.custom_tile_url', "")
+    #set eq_faults = $getVar('Extras.Earthquakes.show_faults', "yes")
+    <div class="col-12 col-md-6 col-xl-4 mb-4">
+        <div class="card card-embedded overflow-hidden" data-name="$name" data-section="$section">
+            <div class="nwm-embed-toolbar">
+                <a href="${bp}earthquakes.html" class="nwm-embed-toolbar-icon"
+                   title="$gettext('earthquakes')" aria-label="$gettext('earthquakes')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+            </div>
+            <div class="card-body text-center d-flex flex-column px-0 pb-0 overflow-hidden">
+                #if eq_title != ""
+                    <h5 class="h5-responsive $Extras.color-text">
+                        <i class="mdi mdi-map-marker-radius-outline mr-1"></i>$eq_title
+                    </h5>
+                #end if
+                <div id="earthquake-map" class="flex-grow-1 w-100 earthquake-embed-map" style="aspect-ratio: ${eq_aspect}; min-height: 240px;"
+                     data-lat="$station.latitude_f"
+                     data-lon="$station.longitude_f"
+                     data-station-name="$station.location"
+                     data-radius="$eq_radius"
+                     data-minmag="$eq_min_mag"
+                     data-timespan="$eq_timespan"
+                     data-basemap="$eq_basemap"
+                     data-tile-url="$eq_tile_url"
+                     data-show-faults="$eq_faults"
+                     data-theme-mode="${Extras.Appearance.mode}"
+                     data-theme-color="$Extras.color">
+                </div>
+            </div>
+        </div>
+    </div>
+#end def
+
 #def iframeCard($name, $section = "")
     #set $bp = $getVar('base_path', '')
     #set iframe_url = $getVar('Extras.Embedded.' + name + '.url', "")
@@ -165,12 +207,16 @@
 ## +-------------------------------------------------------------------------+
 
 #def renderEmbItem($x, $section = "")
-    #if $x.lower().startswith("iframe")
+    #if $x.lower().startswith("earthquake") or $x.lower() == "earthquakes"
+        $earthquakeCard($x, $section)
+    #else if $x.lower().startswith("iframe")
         $iframeCard($x, $section)
     #else if $x.lower().startswith("image")
         $imageCard($x, $section)
     #else if $varExists('Extras.Embedded.' + $x)
-        #if $getVar('Extras.Embedded.' + $x + '.link', '') != '' or $getVar('Extras.Embedded.' + $x + '.alt', '') != '' or $getVar('Extras.Embedded.' + $x + '.padding', '') != '' or str($getVar('Extras.Embedded.' + $x + '.url', '')).lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'))
+        #if $x.lower().startswith("earthquake") or $x.lower() == "earthquakes"
+            $earthquakeCard($x, $section)
+        #else if $getVar('Extras.Embedded.' + $x + '.link', '') != '' or $getVar('Extras.Embedded.' + $x + '.alt', '') != '' or $getVar('Extras.Embedded.' + $x + '.padding', '') != '' or str($getVar('Extras.Embedded.' + $x + '.url', '')).lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'))
             $imageCard($x, $section)
         #else
             $iframeCard($x, $section)

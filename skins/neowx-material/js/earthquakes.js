@@ -103,6 +103,18 @@
       map.invalidateSize();
     }, 150);
 
+    // Ensure map tiles redraw smoothly if resized or uncollapsed from a panel
+    window.addEventListener('resize', function () {
+      map.invalidateSize();
+    });
+    if (typeof jQuery !== 'undefined') {
+      jQuery('.nwm-expansion-panel').on('shown.bs.collapse', function () {
+        setTimeout(function () {
+          map.invalidateSize();
+        }, 100);
+      });
+    }
+
     if (showFaults) {
       loadFaultLines();
     }

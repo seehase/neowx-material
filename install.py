@@ -26,6 +26,7 @@ class BasicInstaller(ExtensionInstaller):
                         "skins/neowx-material/day-%Y-%m-%d.html.tmpl",
                         "skins/neowx-material/earthquakes.html.tmpl",
                         "skins/neowx-material/css/bootstrap.min.css",
+                        "skins/neowx-material/css/earthquakes.css",
                         "skins/neowx-material/css/style.min.css",
                         "skins/neowx-material/css/style.min.css.map",
                         "skins/neowx-material/css/vendor/leaflet/leaflet.css",
