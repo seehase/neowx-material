@@ -157,6 +157,7 @@
     var maxMag = 0;
     var latestTime = null;
     var markersMap = {};
+    var isEmbed = (map.getContainer().id === 'earthquake-map');
 
     if (features.length === 0) {
       if (listEl) {
@@ -166,6 +167,8 @@
       if (latestEl) latestEl.innerText = '-';
       return;
     }
+
+    var eventBounds = L.latLngBounds([[opts.stationLat, opts.stationLon]]);
 
     var html = '<div class="list-group list-group-flush">';
 
@@ -180,17 +183,21 @@
       if (magNum > maxMag) maxMag = magNum;
       if (!latestTime || props.time > latestTime) latestTime = props.time;
 
+      eventBounds.extend([qLat, qLon]);
+
       var distKm = calculateDistance(opts.stationLat, opts.stationLon, qLat, qLon);
       var distMiles = distKm * 0.621371;
       var color = getMagColor(magNum);
-      var radius = Math.max(5, Math.min(22, (magNum * 3.5)));
+      var radius = isEmbed
+        ? Math.max(3.5, Math.min(12, (magNum * 2.4)))
+        : Math.max(5, Math.min(18, (magNum * 3.2)));
       var dateStr = new Date(props.time).toLocaleString();
 
       var marker = L.circleMarker([qLat, qLon], {
         radius: radius,
         fillColor: color,
         color: '#ffffff',
-        weight: 1.5,
+        weight: isEmbed ? 1.0 : 1.5,
         opacity: 1,
         fillOpacity: 0.75
       }).addTo(map);
@@ -250,6 +257,12 @@
     if (latestEl && latestTime) {
       latestEl.innerText = new Date(latestTime).toLocaleDateString([], { month: 'short', day: 'numeric' });
     }
+
+    try {
+      if (features.length > 0) {
+        map.fitBounds(eventBounds, { padding: isEmbed ? [16, 16] : [28, 28], maxZoom: 8.5 });
+      }
+    } catch (e) {}
   }
 
   function openEarthquakePopup(button) {
@@ -311,9 +324,10 @@
 
       popupMap = L.map('earthquake-popup-map', {
         center: [cachedOptions.stationLat, cachedOptions.stationLon],
-        zoom: 6,
+        zoom: 7,
         minZoom: 3,
         maxZoom: 14,
+        zoomSnap: 0.5,
         scrollWheelZoom: true
       });
 
@@ -394,9 +408,10 @@
 
     var map = L.map('earthquake-map', {
       center: [stationLat, stationLon],
-      zoom: 6,
+      zoom: 7,
       minZoom: 3,
       maxZoom: 14,
+      zoomSnap: 0.5,
       scrollWheelZoom: false
     });
 
