@@ -20,15 +20,57 @@
     return '#388e3c';                // green
   }
 
+  function wrapLon(lon, refLon) {
+    var diff = lon - refLon;
+    while (diff > 180) { lon -= 360; diff -= 360; }
+    while (diff < -180) { lon += 360; diff += 360; }
+    return lon;
+  }
+
   function calculateDistance(lat1, lon1, lat2, lon2) {
     var R = 6371; // km
     var dLat = (lat2 - lat1) * Math.PI / 180;
-    var dLon = (lon2 - lon1) * Math.PI / 180;
+    var wLon2 = wrapLon(lon2, lon1);
+    var dLon = (wLon2 - lon1) * Math.PI / 180;
     var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
+  }
+
+  function cloneAndShiftGeoJson(geojson, offsetLon) {
+    if (!geojson || !geojson.features) return null;
+    function shiftCoords(coords) {
+      if (typeof coords[0] === 'number') {
+        return [coords[0] + offsetLon, coords[1]];
+      }
+      return coords.map(shiftCoords);
+    }
+    return {
+      type: 'FeatureCollection',
+      name: geojson.name,
+      crs: geojson.crs,
+      features: geojson.features.map(function (f) {
+        return {
+          type: 'Feature',
+          properties: f.properties,
+          geometry: {
+            type: f.geometry.type,
+            coordinates: shiftCoords(f.geometry.coordinates)
+          }
+        };
+      })
+    };
+  }
+
+  function wrapGeoJsonCoords(coords, refLon) {
+    if (typeof coords[0] === 'number') {
+      return [wrapLon(coords[0], refLon), coords[1]];
+    }
+    return coords.map(function (c) {
+      return wrapGeoJsonCoords(c, refLon);
+    });
   }
 
   function setupBasemap(map, opts) {
@@ -38,18 +80,33 @@
           map.createPane('basemapPane');
           map.getPane('basemapPane').style.zIndex = 200;
         }
+        var styleFn = function () {
+          return {
+            fillColor: opts.isDark ? '#2e3951' : '#e0e4eb',
+            fillOpacity: 1,
+            color: opts.isDark ? '#3f4f6e' : '#b0b8c5',
+            weight: 1.2
+          };
+        };
         L.geoJSON(window.NEOWX_WORLD_LAND, {
           pane: 'basemapPane',
           attribution: '&copy; <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a>',
-          style: function () {
-            return {
-              fillColor: opts.isDark ? '#2e3951' : '#e0e4eb',
-              fillOpacity: 1,
-              color: opts.isDark ? '#3f4f6e' : '#b0b8c5',
-              weight: 1.2
-            };
-          }
+          style: styleFn
         }).addTo(map);
+
+        // Seamless antimeridian wrap: replicate world land across the date line
+        if (opts.stationLon < 0) {
+          var shiftedWest = cloneAndShiftGeoJson(window.NEOWX_WORLD_LAND, -360);
+          if (shiftedWest) {
+            L.geoJSON(shiftedWest, { pane: 'basemapPane', style: styleFn }).addTo(map);
+          }
+        }
+        if (opts.stationLon >= 0 || opts.stationLon < -100) {
+          var shiftedEast = cloneAndShiftGeoJson(window.NEOWX_WORLD_LAND, 360);
+          if (shiftedEast) {
+            L.geoJSON(shiftedEast, { pane: 'basemapPane', style: styleFn }).addTo(map);
+          }
+        }
       }
     } else {
       var tileUrl = opts.customTileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -94,7 +151,19 @@
 
     var faultColor = opts.isDark ? '#ff7043' : '#d84315';
 
-    var faultsLayer = L.geoJSON(geoData, {
+    var normalizedFeatures = geoData.features.map(function (f) {
+      if (!f.geometry || !f.geometry.coordinates) return f;
+      return {
+        type: 'Feature',
+        properties: f.properties,
+        geometry: {
+          type: f.geometry.type,
+          coordinates: wrapGeoJsonCoords(f.geometry.coordinates, opts.stationLon)
+        }
+      };
+    });
+
+    var faultsLayer = L.geoJSON({ type: 'FeatureCollection', features: normalizedFeatures }, {
       pane: 'faultsPane',
       style: function (feature) {
         var linetype = (feature.properties && feature.properties.linetype) || '';
@@ -175,9 +244,10 @@
     features.forEach(function (feat, idx) {
       var props = feat.properties;
       var coords = feat.geometry.coordinates; // [lon, lat, depth]
-      var qLon = coords[0];
+      var rawLon = coords[0];
       var qLat = coords[1];
       var qDepth = coords[2];
+      var qLon = wrapLon(rawLon, opts.stationLon);
       var mag = props.mag !== null ? props.mag.toFixed(1) : '?';
       var magNum = props.mag || 0;
       if (magNum > maxMag) maxMag = magNum;
@@ -442,16 +512,28 @@
     }
 
     function loadFaultLines() {
-      var latDelta = (radiusKm / 111.0) * 1.15;
+      var faultRadiusKm = Math.max(radiusKm * 4, 2400); // 4x extension (~1500 mi)
+      var latDelta = (faultRadiusKm / 111.0);
       var cosLat = Math.cos(stationLat * Math.PI / 180);
-      var lonDelta = (radiusKm / (111.0 * Math.max(0.1, Math.abs(cosLat)))) * 1.15;
+      var lonDelta = (faultRadiusKm / (111.0 * Math.max(0.1, Math.abs(cosLat))));
 
-      var minLon = (stationLon - lonDelta).toFixed(4);
-      var maxLon = (stationLon + lonDelta).toFixed(4);
-      var minLat = (stationLat - latDelta).toFixed(4);
-      var maxLat = (stationLat + latDelta).toFixed(4);
+      var minLon = stationLon - lonDelta;
+      var maxLon = stationLon + lonDelta;
+      var minLat = Math.max(-90, stationLat - latDelta);
+      var maxLat = Math.min(90, stationLat + latDelta);
 
-      var faultsCacheKey = 'neowx_faults_cache_' + stationLat.toFixed(2) + '_' + stationLon.toFixed(2) + '_' + radiusKm;
+      var boxes = [];
+      if (minLon < -180) {
+        boxes.push([-180.0, minLat, maxLon, maxLat]);
+        boxes.push([minLon + 360.0, minLat, 180.0, maxLat]);
+      } else if (maxLon > 180) {
+        boxes.push([minLon, minLat, 180.0, maxLat]);
+        boxes.push([-180.0, minLat, maxLon - 360.0, maxLat]);
+      } else {
+        boxes.push([minLon, minLat, maxLon, maxLat]);
+      }
+
+      var faultsCacheKey = 'neowx_faults_cache_v2_' + stationLat.toFixed(2) + '_' + stationLon.toFixed(2) + '_' + faultRadiusKm;
       var cachedFaults = null;
       try {
         var item = localStorage.getItem(faultsCacheKey);
@@ -467,22 +549,31 @@
         cachedFaultsData = cachedFaults;
         renderFaultsOnMap(map, cachedFaults, cachedOptions);
       } else {
-        var faultsUrl = 'https://earthquake.usgs.gov/arcgis/rest/services/haz/Qfaults/MapServer/21/query?' +
-          'where=1%3D1' +
-          '&geometry=' + minLon + ',' + minLat + ',' + maxLon + ',' + maxLat +
-          '&geometryType=esriGeometryEnvelope' +
-          '&spatialRel=esriSpatialRelIntersects' +
-          '&inSR=4326&outSR=4326&f=geojson' +
-          '&outFields=fault_name,section_name,age,slip_rate,slip_sense,linetype' +
-          '&maxAllowableOffset=0.003';
-
-        fetch(faultsUrl)
-          .then(function (res) {
+        function fetchFaultBox(b) {
+          var url = 'https://earthquake.usgs.gov/arcgis/rest/services/haz/Qfaults/MapServer/21/query?' +
+            'where=1%3D1' +
+            '&geometry=' + b[0].toFixed(4) + ',' + b[1].toFixed(4) + ',' + b[2].toFixed(4) + ',' + b[3].toFixed(4) +
+            '&geometryType=esriGeometryEnvelope' +
+            '&spatialRel=esriSpatialRelIntersects' +
+            '&inSR=4326&outSR=4326&f=geojson' +
+            '&outFields=fault_name,section_name,age,slip_rate,slip_sense,linetype' +
+            '&maxAllowableOffset=0.005';
+          return fetch(url).then(function (res) {
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.json();
-          })
-          .then(function (data) {
-            if (data && data.features && data.features.length > 0) {
+          });
+        }
+
+        Promise.all(boxes.map(fetchFaultBox))
+          .then(function (results) {
+            var combinedFeatures = [];
+            results.forEach(function (res) {
+              if (res && res.features) {
+                combinedFeatures = combinedFeatures.concat(res.features);
+              }
+            });
+            if (combinedFeatures.length > 0) {
+              var data = { type: 'FeatureCollection', features: combinedFeatures };
               try {
                 localStorage.setItem(faultsCacheKey, JSON.stringify({
                   timestamp: Date.now(),
