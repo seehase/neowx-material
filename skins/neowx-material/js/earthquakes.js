@@ -264,15 +264,19 @@
     }
 
     var popupMap = null;
+    var modal = document.getElementById('neowx-popup');
+    if (modal) {
+      modal.classList.add('nwm-popup-earthquakes');
+    }
 
     neowxOpenPopup(title, function (mount) {
       mount.innerHTML = [
-        '<div class="row">',
-        '  <div class="col-12 col-lg-7 mb-3 mb-lg-0">',
-        '    <div id="earthquake-popup-map" class="earthquake-popup-map"></div>',
+        '<div class="row nwm-earthquake-modal-row h-100">',
+        '  <div class="col-12 col-lg-7 mb-3 mb-lg-0 d-flex flex-column nwm-eq-map-col">',
+        '    <div id="earthquake-popup-map" class="earthquake-popup-map flex-grow-1"></div>',
         '  </div>',
-        '  <div class="col-12 col-lg-5">',
-        '    <div class="card mb-3">',
+        '  <div class="col-12 col-lg-5 d-flex flex-column nwm-eq-list-col">',
+        '    <div class="card mb-3 flex-shrink-0">',
         '      <div class="card-body p-3 text-center">',
         '        <div class="row">',
         '          <div class="col-4 border-right">',
@@ -290,14 +294,14 @@
         '        </div>',
         '      </div>',
         '    </div>',
-        '    <div class="card">',
-        '      <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">',
+        '    <div class="card flex-grow-1 d-flex flex-column overflow-hidden nwm-eq-list-card">',
+        '      <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center flex-shrink-0">',
         '        <span class="font-weight-bold text-' + cachedOptions.themeColorName + '">',
         '          <i class="mdi mdi-format-list-bulleted mr-1"></i> Earthquakes (&ge; M' + cachedOptions.minMag + ')',
         '        </span>',
         '        <span class="badge badge-light font-small">' + cachedOptions.radiusKm + ' km radius</span>',
         '      </div>',
-        '      <div class="card-body p-0 earthquake-popup-scroll" id="earthquake-popup-list">',
+        '      <div class="card-body p-0 earthquake-popup-scroll flex-grow-1" id="earthquake-popup-list">',
         '        <div class="p-3 text-center text-muted font-small">Loading events...</div>',
         '      </div>',
         '    </div>',
@@ -336,6 +340,9 @@
         popupMap.invalidateSize();
       }, 150);
     }, function () {
+      if (modal) {
+        modal.classList.remove('nwm-popup-earthquakes');
+      }
       if (popupMap) {
         popupMap.remove();
         popupMap = null;

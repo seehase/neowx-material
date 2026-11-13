@@ -10,20 +10,87 @@
 .earthquake-embed-map {
   min-height: 240px;
 }
-#earthquake-popup-map,
+
+/* Earthquake Popup Modal Styling */
+#neowx-popup.nwm-popup-earthquakes .modal-dialog {
+  max-width: calc(100vw - 2rem);
+  margin: 1rem auto;
+}
+
+@media (min-width: 992px) {
+  #neowx-popup.nwm-popup-earthquakes .modal-dialog {
+    max-width: calc(100vw - 4rem);
+  }
+}
+
+#neowx-popup.nwm-popup-earthquakes .modal-body {
+  height: calc(100vh - 8rem);
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+#neowx-popup.nwm-popup-earthquakes #neowx-popup-mount {
+  height: 100%;
+}
+
 .earthquake-popup-map {
   width: 100%;
-  height: 60vh;
-  min-height: 440px;
   border-radius: 4px;
   z-index: 1;
   background: #d8e5f2;
 }
-.earthquake-popup-scroll {
-  max-height: calc(60vh - 110px);
-  min-height: 320px;
-  overflow-y: auto;
+
+/* Desktop layout: Side-by-side inside the 100% height modal container */
+@media (min-width: 992px) {
+  .nwm-earthquake-modal-row {
+    height: 100%;
+    min-height: 480px;
+  }
+  .nwm-eq-map-col {
+    height: 100%;
+  }
+  .earthquake-popup-map {
+    height: 100% !important;
+    min-height: 480px;
+  }
+  .nwm-eq-list-col {
+    height: 100%;
+  }
+  .nwm-eq-list-card {
+    min-height: 0;
+  }
+  .earthquake-popup-scroll {
+    overflow-y: auto;
+    max-height: calc(100vh - 20rem);
+    min-height: 200px;
+  }
 }
+
+/* Mobile & Narrow screen layout: Stacked */
+@media (max-width: 991.98px) {
+  #neowx-popup.nwm-popup-earthquakes .modal-body {
+    height: auto;
+    max-height: calc(100vh - 4rem);
+    padding: 0.75rem;
+  }
+  #neowx-popup.nwm-popup-earthquakes #neowx-popup-mount {
+    height: auto;
+  }
+  .nwm-earthquake-modal-row {
+    height: auto;
+  }
+  .earthquake-popup-map {
+    height: 320px !important;
+    min-height: 260px;
+  }
+  .earthquake-popup-scroll {
+    max-height: 360px;
+    overflow-y: auto;
+  }
+}
+
 .leaflet-control-layers-toggle {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23212121' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") !important;
   background-position: center !important;
@@ -40,11 +107,17 @@
 .quake-item {
   transition: background-color 0.15s ease-in-out;
 }
+.dark-theme .nwm-popup-earthquakes .card,
+.dark-theme .nwm-eq-list-card,
 .dark-theme .quake-item,
 .dark-theme .list-group-item {
   background-color: #444 !important;
   color: #ddd !important;
   border-color: #555 !important;
+}
+.dark-theme .nwm-eq-list-card .card-header {
+  background-color: #383838 !important;
+  border-bottom-color: #555 !important;
 }
 .dark-theme .quake-item:hover,
 .dark-theme .list-group-item:hover {
@@ -92,11 +165,17 @@
   color: #b0bec5 !important;
 }
 @media (prefers-color-scheme: dark) {
+  .auto-theme .nwm-popup-earthquakes .card,
+  .auto-theme .nwm-eq-list-card,
   .auto-theme .quake-item,
   .auto-theme .list-group-item {
     background-color: #444 !important;
     color: #ddd !important;
     border-color: #555 !important;
+  }
+  .auto-theme .nwm-eq-list-card .card-header {
+    background-color: #383838 !important;
+    border-bottom-color: #555 !important;
   }
   .auto-theme .quake-item:hover,
   .auto-theme .list-group-item:hover {
