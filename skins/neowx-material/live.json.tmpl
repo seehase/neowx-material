@@ -45,6 +45,9 @@
     "month": "$cur_month",
     "archive_start_date": "$start_date_val",
     "archive_stop_date": "$cur_day",
+#if $varExists('archive_available_json') and $archive_available_json
+    "archive_available": $archive_available_json,
+#end if
     "generated": "$time.strftime('%Y-%m-%dT%H:%M:%S')",
     "archive_urls": {
         "live": "$url_live",

@@ -315,7 +315,11 @@
                  data-start-date="${archive_start_date}"
                  data-stop-date="${archive_stop_date}"
                  data-start-year="${archive_start_year}"
-                 data-stop-year="${archive_stop_year}">
+                 data-stop-year="${archive_stop_year}"
+                 data-label-prev="$gettext('previous')"
+                 data-label-next="$gettext('next')"
+                 data-label-no-earlier="$gettext('no_earlier_data')"
+                 data-label-no-later="$gettext('no_later_data')">
 
                 <!-- Stepper Controls (Adaptive per page scale) -->
                 <div class="nwm-stepper-group">

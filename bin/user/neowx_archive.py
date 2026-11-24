@@ -15,6 +15,7 @@ To use, configure [Generators] in skin.conf:
 """
 
 import datetime
+import json
 import logging
 import os
 import re
@@ -56,7 +57,7 @@ except ImportError:
         filename = filename.replace('YYYY', '%Y').replace('MM', '%m').replace('DD', '%d').replace('WW', '%V')
         return dt.strftime(filename)
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 
 log = logging.getLogger(__name__)
 
@@ -132,6 +133,216 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         re.IGNORECASE
     )
 
+    _YEAR_DIR_RE = re.compile(r'^(\d{4})$')
+    _YEAR_FILE_RE = re.compile(r'^year-(\d{4})\.html$')
+    _MONTH_FILE_RE = re.compile(r'^month-(\d{4})-(\d{2})\.html$')
+    _WEEK_FILE_RE = re.compile(r'^week-(\d{4})-(\d{2})\.html$')
+    _DAY_FILE_RE = re.compile(r'^day-(\d{4})-(\d{2})-(\d{2})\.html$')
+
+    @classmethod
+    def _scan_existing_archives(cls, html_root, stop_dt):
+        """Scans HTML_ROOT/archive/ once to discover all actually existing HTML archive
+        pages per scale, always including the active current period for stop_dt.
+        """
+        years = set()
+        months = set()
+        weeks = set()
+        days = set()
+
+        stop_date = stop_dt.date()
+        stop_monday = stop_date - datetime.timedelta(days=stop_date.weekday())
+        stop_wk_yr = stop_monday.year
+        stop_wk_num = stop_monday.isocalendar()[1]
+
+        archive_dir = os.path.join(html_root, 'archive')
+        if os.path.isdir(archive_dir):
+            try:
+                year_entries = list(os.scandir(archive_dir))
+            except OSError:
+                year_entries = []
+
+            for yr_entry in year_entries:
+                m_dir = cls._YEAR_DIR_RE.match(yr_entry.name)
+                if not m_dir:
+                    continue
+                try:
+                    if not yr_entry.is_dir():
+                        continue
+                except OSError:
+                    continue
+
+                dir_yr = int(m_dir.group(1))
+                if dir_yr > stop_dt.year:
+                    continue
+
+                yr_path = yr_entry.path
+                yr_file = os.path.join(yr_path, f"year-{dir_yr:04d}.html")
+                if os.path.isfile(yr_file):
+                    years.add(dir_yr)
+
+                # Months: archive/<YYYY>/months/month-<YYYY>-<MM>.html
+                months_dir = os.path.join(yr_path, 'months')
+                if os.path.isdir(months_dir):
+                    try:
+                        for entry in os.scandir(months_dir):
+                            m = cls._MONTH_FILE_RE.match(entry.name)
+                            if not m:
+                                continue
+                            y, mo = int(m.group(1)), int(m.group(2))
+                            if y == dir_yr and 1 <= mo <= 12 and (y, mo) <= (stop_dt.year, stop_dt.month):
+                                months.add((y, mo))
+                    except OSError:
+                        pass
+
+                # Weeks: archive/<YYYY>/weeks/week-<YYYY>-<WW>.html
+                weeks_dir = os.path.join(yr_path, 'weeks')
+                if os.path.isdir(weeks_dir):
+                    try:
+                        for entry in os.scandir(weeks_dir):
+                            m = cls._WEEK_FILE_RE.match(entry.name)
+                            if not m:
+                                continue
+                            y, wk = int(m.group(1)), int(m.group(2))
+                            if y != dir_yr or not (1 <= wk <= 53):
+                                continue
+                            if y < stop_wk_yr:
+                                weeks.add((y, wk))
+                            elif y == stop_wk_yr:
+                                # Allow normal <= stop_wk_num; also allow year-end ISO week 01 if stop_monday is in Dec
+                                if wk <= stop_wk_num or (stop_monday.month == 12 and stop_wk_num == 1):
+                                    weeks.add((y, wk))
+                    except OSError:
+                        pass
+
+                # Days: archive/<YYYY>/days/day-<YYYY>-<MM>-<DD>.html
+                days_dir = os.path.join(yr_path, 'days')
+                if os.path.isdir(days_dir):
+                    try:
+                        for entry in os.scandir(days_dir):
+                            m = cls._DAY_FILE_RE.match(entry.name)
+                            if not m:
+                                continue
+                            y, mo, dd = int(m.group(1)), int(m.group(2)), int(m.group(3))
+                            if y != dir_yr:
+                                continue
+                            try:
+                                d = datetime.date(y, mo, dd)
+                            except ValueError:
+                                continue
+                            if d <= stop_date:
+                                days.add(d)
+                    except OSError:
+                        pass
+
+        # Current active period is always guaranteed by Pass 1 (index.html + current summaries)
+        years.add(stop_dt.year)
+        months.add((stop_dt.year, stop_dt.month))
+        weeks.add((stop_wk_yr, stop_wk_num))
+        days.add(stop_date)
+
+        return {
+            'years': years,
+            'months': months,
+            'weeks': weeks,
+            'days': days,
+        }
+
+    @staticmethod
+    def _compress_ranges(sorted_items, is_consecutive_fn, format_fn):
+        """Compresses sorted items into compact contiguous [start, end] string pairs."""
+        if not sorted_items:
+            return []
+        ranges = []
+        run_start = sorted_items[0]
+        run_prev = sorted_items[0]
+        for item in sorted_items[1:]:
+            if is_consecutive_fn(run_prev, item):
+                run_prev = item
+            else:
+                ranges.append([format_fn(run_start), format_fn(run_prev)])
+                run_start = item
+                run_prev = item
+        ranges.append([format_fn(run_start), format_fn(run_prev)])
+        return ranges
+
+    @classmethod
+    def _serialize_archive_available(cls, avail):
+        """Serializes the per-scale availability sets into a compact JSON string."""
+        if not avail:
+            return ''
+
+        year_ranges = cls._compress_ranges(
+            sorted(avail.get('years', ())),
+            lambda a, b: b == a + 1,
+            lambda y: f"{y:04d}"
+        )
+        month_ranges = cls._compress_ranges(
+            sorted(avail.get('months', ())),
+            lambda a, b: b == ((a[0], a[1] + 1) if a[1] < 12 else (a[0] + 1, 1)),
+            lambda ym: f"{ym[0]:04d}-{ym[1]:02d}"
+        )
+        # Compress week ranges only within the same calendar year so 52/53-week
+        # ISO boundaries never require cross-year arithmetic on the client.
+        week_ranges = cls._compress_ranges(
+            sorted(avail.get('weeks', ())),
+            lambda a, b: a[0] == b[0] and b[1] == a[1] + 1,
+            lambda yw: f"{yw[0]:04d}-{yw[1]:02d}"
+        )
+        day_ranges = cls._compress_ranges(
+            sorted(avail.get('days', ())),
+            lambda a, b: b == a + datetime.timedelta(days=1),
+            lambda d: d.strftime('%Y-%m-%d')
+        )
+
+        return json.dumps({
+            'years': year_ranges,
+            'months': month_ranges,
+            'weeks': week_ranges,
+            'days': day_ranges,
+        }, separators=(',', ':'))
+
+    def _record_generated_archive(self, summarize_by, ref_dt, fullname):
+        """Updates the in-memory availability sets when a summary HTML file is written."""
+        if self._available_archives is None or not fullname.lower().endswith('.html'):
+            return
+        added = False
+        if summarize_by == 'SummaryByYear':
+            key = ref_dt.year
+            if key not in self._available_archives['years']:
+                self._available_archives['years'].add(key)
+                added = True
+        elif summarize_by == 'SummaryByMonth':
+            key = (ref_dt.year, ref_dt.month)
+            if key not in self._available_archives['months']:
+                self._available_archives['months'].add(key)
+                added = True
+        elif summarize_by == 'SummaryByWeek':
+            key = (ref_dt.year, ref_dt.isocalendar()[1])
+            if key not in self._available_archives['weeks']:
+                self._available_archives['weeks'].add(key)
+                added = True
+        elif summarize_by == 'SummaryByDay':
+            key = ref_dt.date()
+            if key not in self._available_archives['days']:
+                self._available_archives['days'].add(key)
+                added = True
+        if added:
+            self._available_archives_changed = True
+
+    @staticmethod
+    def _needs_finalization(filepath, timespan, stop_ts):
+        """Returns True if an existing past summary file was last written before its
+        period ended (mtime < timespan.stop), meaning it needs one final rebuild
+        after midnight/week/month/year rollover.
+        """
+        if stop_ts <= timespan.stop:
+            return False
+        try:
+            mtime = os.path.getmtime(filepath)
+        except OSError:
+            return False
+        return mtime < timespan.stop
+
     @staticmethod
     def _parse_version_tuple(ver_str):
         """Parses a version string like '2.0.3' or 'v2.0.3' into a comparable int tuple (2, 0, 3)."""
@@ -200,6 +411,10 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         self._run_start_time = None
         self._backfill_count = 0
         self._backfill_limit_logged = False
+        self._available_archives = None
+        self._available_archives_changed = False
+        self._scan_html_root = None
+        self._live_data_targets = []
         # ISO-8601 week spans (genWeekSpans / %V) always start on Monday (0).
         # Ensure stn_info.week_start is 0 so WeeWX's TimeBinder ($week) queries
         # the exact same Monday-to-Monday span regardless of weewx.conf week_start.
@@ -406,8 +621,16 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             self._run_start_time = time.time()
             self._backfill_count = 0
             self._backfill_limit_logged = False
+            self._available_archives = None
+            self._available_archives_changed = False
+            self._scan_html_root = None
+            self._live_data_targets = []
             ngen = self.generate(section, section_name, gen_ts, _pass='current')
             ngen += self.generate(section, section_name, gen_ts, _pass='history')
+            if self._available_archives_changed and self._live_data_targets:
+                self._available_archives_changed = False
+                for live_sec, live_name in self._live_data_targets:
+                    ngen += self.generate(live_sec, live_name, gen_ts, _pass='refresh_live')
             return ngen
 
         ngen = 0
@@ -468,9 +691,11 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             report_dict.get('archive_history', 'all'), archive_start_date_raw
         )
 
-        # In Pass 2 ('history'), skip this SummaryBy* section if its granularity is disabled
-        if _pass == 'history' and summarize_by not in enabled_history:
-            return ngen
+        # In Pass 2 ('history'), disabled granularities do not backfill new historical
+        # files, but still check the immediately preceding span to finalize an
+        # already-existing file once after period rollover (e.g. yesterday's day page
+        # or last week's page whose mtime < timespan.stop).
+        finalize_only = (_pass == 'history' and summarize_by not in enabled_history)
 
         if is_summary:
             _spangen = self.generator_dict[summarize_by]
@@ -479,6 +704,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                 spans_to_process = [ts for ts in all_spans if ts.includesArchiveTime(stop_ts)]
                 if not spans_to_process and all_spans:
                     spans_to_process = [all_spans[-1]]
+            elif finalize_only:
+                spans_to_process = [ts for ts in reversed(all_spans) if not ts.includesArchiveTime(stop_ts)][:1]
             else:
                 # Pass 2 ('history'): reverse chronological (newest -> oldest)
                 spans_to_process = [ts for ts in reversed(all_spans) if not ts.includesArchiveTime(stop_ts)]
@@ -489,6 +716,15 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         max_run_time = to_int(report_dict.get('archive_max_run_time', 240))
 
         html_root = os.path.join(self.config_dict['WEEWX_ROOT'], report_dict['HTML_ROOT'])
+        stop_dt_for_scan = datetime.datetime.fromtimestamp(stop_ts)
+        if self._available_archives is None or self._scan_html_root != html_root:
+            self._available_archives = self._scan_existing_archives(html_root, stop_dt_for_scan)
+            self._scan_html_root = html_root
+
+        is_live_data = (not is_summary and os.path.basename(report_dict['template']) == 'live.json.tmpl')
+        if _pass == 'current' and is_live_data:
+            if not any(existing_sec is section for existing_sec, _ in self._live_data_targets):
+                self._live_data_targets.append((section, section_name))
 
         for timespan in spans_to_process:
             if hasattr(self, 'stop_event') and self.stop_event and self.stop_event.is_set():
@@ -501,7 +737,7 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
             if summarize_by in self.format_dict:
                 date_str = time.strftime(self.format_dict[summarize_by], start_tt)
-                if date_str not in self.outputted_dict[summarize_by]:
+                if not finalize_only and date_str not in self.outputted_dict[summarize_by]:
                     self.outputted_dict[summarize_by].append(date_str)
                 _filename = self._getFileName(template, timespan.start)
             else:
@@ -516,22 +752,35 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             _fullname = os.path.join(eval_dest_dir, _filename)
 
             # Skip summary files outside the active timespan that already exist on disk,
-            # unless their embedded skin version is older than the minimum required version.
+            # unless their embedded skin version is older than the minimum required version
+            # or they were last written before their period ended (rollover finalization).
             file_exists = os.path.exists(_fullname)
-            needs_refresh = (
+            needs_finalization = (
                 is_summary
                 and file_exists
-                and self._needs_version_refresh(_fullname, summarize_by, report_dict)
+                and not timespan.includesArchiveTime(stop_ts)
+                and self._needs_finalization(_fullname, timespan, stop_ts)
             )
+            if finalize_only:
+                if not (file_exists and needs_finalization):
+                    continue
+                needs_refresh = False
+            else:
+                needs_refresh = (
+                    is_summary
+                    and file_exists
+                    and self._needs_version_refresh(_fullname, summarize_by, report_dict)
+                )
             if is_summary \
                     and file_exists \
                     and not timespan.includesArchiveTime(stop_ts) \
-                    and not needs_refresh:
+                    and not needs_refresh \
+                    and not needs_finalization:
                 continue
 
-            # Staleness check (bypassed if file requires a version upgrade refresh)
+            # Staleness check (bypassed for version upgrade refresh, rollover finalization, or live refresh)
             stale = to_int(report_dict.get('stale_age'))
-            if stale is not None and not needs_refresh:
+            if stale is not None and not needs_refresh and not needs_finalization and _pass != 'refresh_live':
                 t_now = time.time()
                 try:
                     last_mod = os.path.getmtime(_fullname)
@@ -541,7 +790,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                     pass
 
             # In Pass 2 ('history'), enforce per-cycle backfill batch size & time budget
-            if _pass == 'history':
+            # (always allow finalizing a single rolled-over file)
+            if _pass == 'history' and not needs_finalization:
                 elapsed = time.time() - (self._run_start_time or time.time())
                 batch_exceeded = batch_size is not None and batch_size > 0 and self._backfill_count >= batch_size
                 time_exceeded = max_run_time is not None and max_run_time > 0 and elapsed >= max_run_time
@@ -567,7 +817,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             # Build navigation context
             nav_context = self._build_nav_context(
                 timespan, start_ts, stop_ts, cutoff_ts, base_path,
-                archive_start_date_str, summarize_by, enabled_history
+                archive_start_date_str, summarize_by, enabled_history,
+                is_live_data=is_live_data
             )
 
             # Ensure parent directories exist
@@ -624,7 +875,9 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                     fd.write(byte_string)
                 os.replace(tmpname, _fullname)
                 ngen += 1
-                if _pass == 'history':
+                if is_summary:
+                    self._record_generated_archive(summarize_by, ref_dt, _fullname)
+                if _pass == 'history' and not needs_finalization:
                     self._backfill_count += 1
             except Exception as e:
                 log.error("Failed writing output file %s: %s", _fullname, e)
@@ -636,7 +889,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         return ngen
 
     def _build_nav_context(self, timespan, start_ts, stop_ts, cutoff_ts, base_path,
-                           archive_start_date_str, summarize_by, enabled_history=None):
+                           archive_start_date_str, summarize_by, enabled_history=None,
+                           is_live_data=False):
         """Constructs rich navigation and URL helpers for templates."""
         if summarize_by in ('SummaryByDay', 'SummaryByWeek', 'SummaryByMonth', 'SummaryByYear'):
             ref_dt = datetime.datetime.fromtimestamp(timespan.start)
@@ -655,34 +909,73 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         day = ref_dt.day
         iso_yr, iso_wk, _ = ref_dt.isocalendar()
 
-        # Day navigation
+        # Latest/current timestamps for direct navigation
+        stop_yr = stop_dt.year
+        stop_mo = stop_dt.month
+        stop_day = stop_dt.day
+        stop_monday = stop_dt.date() - datetime.timedelta(days=stop_dt.weekday())
+        stop_wk_yr = stop_monday.year
+        stop_wk_num = stop_monday.isocalendar()[1]
+
+        avail = self._available_archives
+        avail_years = set(avail['years']) if avail else {stop_yr}
+        avail_months = set(avail['months']) if avail else {(stop_yr, stop_mo)}
+        avail_weeks = set(avail['weeks']) if avail else {(stop_wk_yr, stop_wk_num)}
+        avail_days = set(avail['days']) if avail else {stop_dt.date()}
+
+        # Day navigation (disk-aware even when days history backfill is disabled)
         prev_day_dt = ref_dt - datetime.timedelta(days=1)
         next_day_dt = ref_dt + datetime.timedelta(days=1)
-        has_prev_day = days_enabled and (prev_day_dt.date() >= start_dt.date())
-        has_next_day = days_enabled and (next_day_dt.date() <= stop_dt.date())
+        if days_enabled:
+            prev_day_date = prev_day_dt.date() if prev_day_dt.date() >= start_dt.date() else max((d for d in avail_days if d < ref_dt.date()), default=None)
+            next_day_date = next_day_dt.date() if next_day_dt.date() <= stop_dt.date() else None
+        else:
+            prev_day_date = max((d for d in avail_days if d < ref_dt.date()), default=None)
+            next_day_date = min((d for d in avail_days if d > ref_dt.date()), default=None)
+        has_prev_day = prev_day_date is not None
+        has_next_day = next_day_date is not None
 
-        # Week navigation
+        # Week navigation (disk-aware even when weeks history backfill is disabled)
         ref_monday = ref_dt.date() - datetime.timedelta(days=ref_dt.weekday())
+        cur_wk_key = (ref_monday.year, ref_monday.isocalendar()[1])
         prev_wk_monday = ref_monday - datetime.timedelta(days=7)
         prev_wk_sunday = prev_wk_monday + datetime.timedelta(days=6)
         next_wk_monday = ref_monday + datetime.timedelta(days=7)
+        if weeks_enabled:
+            prev_wk_key = (prev_wk_monday.year, prev_wk_monday.isocalendar()[1]) if prev_wk_sunday >= start_dt.date() else max((w for w in avail_weeks if w < cur_wk_key), default=None)
+            next_wk_key = (next_wk_monday.year, next_wk_monday.isocalendar()[1]) if next_wk_monday <= stop_dt.date() else None
+        else:
+            prev_wk_key = max((w for w in avail_weeks if w < cur_wk_key), default=None)
+            next_wk_key = min((w for w in avail_weeks if w > cur_wk_key), default=None)
+        has_prev_week = prev_wk_key is not None
+        has_next_week = next_wk_key is not None
 
-        prev_wk_dt = datetime.datetime.combine(prev_wk_monday, datetime.time.min)
-        next_wk_dt = datetime.datetime.combine(next_wk_monday, datetime.time.min)
-        has_prev_week = weeks_enabled and (prev_wk_sunday >= start_dt.date())
-        has_next_week = weeks_enabled and (next_wk_monday <= stop_dt.date())
-
-        # Month navigation
+        # Month navigation (disk-aware even when months history backfill is disabled)
+        cur_mo_key = (yr, mo)
         prev_mo_yr = yr if mo > 1 else yr - 1
         prev_mo = mo - 1 if mo > 1 else 12
         next_mo_yr = yr if mo < 12 else yr + 1
         next_mo = mo + 1 if mo < 12 else 1
-        has_prev_month = months_enabled and (datetime.date(prev_mo_yr, prev_mo, 1) >= datetime.date(start_dt.year, start_dt.month, 1))
-        has_next_month = months_enabled and (datetime.date(next_mo_yr, next_mo, 1) <= datetime.date(stop_dt.year, stop_dt.month, 1))
+        if months_enabled:
+            prev_mo_key = (prev_mo_yr, prev_mo) if datetime.date(prev_mo_yr, prev_mo, 1) >= datetime.date(start_dt.year, start_dt.month, 1) else max((m for m in avail_months if m < cur_mo_key), default=None)
+            next_mo_key = (next_mo_yr, next_mo) if datetime.date(next_mo_yr, next_mo, 1) <= datetime.date(stop_dt.year, stop_dt.month, 1) else None
+        else:
+            prev_mo_key = max((m for m in avail_months if m < cur_mo_key), default=None)
+            next_mo_key = min((m for m in avail_months if m > cur_mo_key), default=None)
+        has_prev_month = prev_mo_key is not None
+        has_next_month = next_mo_key is not None
 
-        # Year navigation
-        has_prev_year = years_enabled and ((yr - 1) >= start_dt.year)
-        has_next_year = years_enabled and ((yr + 1) <= stop_dt.year)
+        # Year navigation (disk-aware even when years history backfill is disabled)
+        if years_enabled:
+            year_list = sorted(avail_years | set(range(start_dt.year, stop_dt.year + 1)))
+            prev_yr_val = (yr - 1) if (yr - 1) >= start_dt.year else max((y for y in avail_years if y < yr), default=None)
+            next_yr_val = (yr + 1) if (yr + 1) <= stop_dt.year else None
+        else:
+            year_list = sorted(avail_years) if avail_years else [stop_yr]
+            prev_yr_val = max((y for y in avail_years if y < yr), default=None)
+            next_yr_val = min((y for y in avail_years if y > yr), default=None)
+        has_prev_year = prev_yr_val is not None
+        has_next_year = next_yr_val is not None
 
         # Check if viewing current day / week / month / year
         is_current_day = ref_dt.date() == stop_dt.date()
@@ -695,29 +988,34 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         context_week_str = f"{iso_wk:02d}"
         context_day_str = f"{yr:04d}-{mo:02d}-{day:02d}"
 
-        # Effective start date for the current page's header picker
-        if summarize_by == 'SummaryByYear' and not years_enabled:
-            picker_start_dt = stop_dt
-        elif summarize_by == 'SummaryByMonth' and not months_enabled:
-            picker_start_dt = datetime.datetime(stop_dt.year, stop_dt.month, 1)
-        elif summarize_by == 'SummaryByWeek' and not weeks_enabled:
-            curr_monday = stop_dt.date() - datetime.timedelta(days=stop_dt.weekday())
-            picker_start_dt = datetime.datetime.combine(curr_monday, datetime.time.min)
-        elif summarize_by not in ('SummaryByYear', 'SummaryByMonth', 'SummaryByWeek') and not days_enabled:
-            picker_start_dt = stop_dt
-        else:
+        # Effective start date for the current page's header picker (or global start for live.json)
+        if is_live_data:
             picker_start_dt = start_dt
+        elif summarize_by == 'SummaryByYear':
+            picker_start_dt = datetime.datetime(year_list[0], 1, 1)
+        elif summarize_by == 'SummaryByMonth':
+            min_mo = min(avail_months) if avail_months else (stop_yr, stop_mo)
+            if months_enabled:
+                min_mo = min(min_mo, (start_dt.year, start_dt.month))
+            picker_start_dt = datetime.datetime(min_mo[0], min_mo[1], 1)
+        elif summarize_by == 'SummaryByWeek':
+            if weeks_enabled:
+                picker_start_dt = start_dt
+            else:
+                min_wk = min(avail_weeks) if avail_weeks else (stop_wk_yr, stop_wk_num)
+                try:
+                    wk_mon = datetime.date.fromisocalendar(min_wk[0], min_wk[1], 1)
+                except ValueError:
+                    wk_mon = datetime.date(min_wk[0], 1, 1)
+                picker_start_dt = datetime.datetime.combine(wk_mon, datetime.time.min)
+        else:
+            min_day = min(avail_days) if avail_days else stop_dt.date()
+            if days_enabled:
+                min_day = min(min_day, start_dt.date())
+            picker_start_dt = datetime.datetime.combine(min_day, datetime.time.min)
 
-        archive_years = [f"{y:04d}" for y in range(picker_start_dt.year, stop_dt.year + 1)]
-
-        # Latest/current timestamps for direct navigation
-        stop_yr = stop_dt.year
-        stop_mo = stop_dt.month
-        stop_day = stop_dt.day
-        stop_iso_yr, stop_iso_wk, _ = stop_dt.isocalendar()
-        stop_monday = stop_dt.date() - datetime.timedelta(days=stop_dt.weekday())
-        stop_wk_yr = stop_monday.year
-        stop_wk_num = stop_monday.isocalendar()[1]
+        archive_years = [f"{y:04d}" for y in year_list]
+        archive_years_reversed = [f"{y:04d}" for y in reversed(year_list)]
 
         current_live_url = f"{base_path}index.html"
         current_day_url = f"{base_path}index.html"
@@ -728,9 +1026,11 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
         # Context-dependent URLs when viewing different scales
         if summarize_by == 'SummaryByYear':
             target_mo = stop_mo if is_current_year else 12
+            target_mo_key = (yr, target_mo)
             ctx_month_str = f"{target_mo:02d}"
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{ctx_month_str}.html"
             if is_current_year:
+                target_wk_key = (stop_wk_yr, stop_wk_num)
                 context_week_link = current_week_url
             else:
                 jan1 = datetime.date(yr, 1, 1)
@@ -739,12 +1039,16 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                     first_monday_yr = start_dt.date() - datetime.timedelta(days=start_dt.date().weekday())
                 yr_wk_yr = first_monday_yr.year
                 yr_wk_num = first_monday_yr.isocalendar()[1]
+                target_wk_key = (yr_wk_yr, yr_wk_num)
                 context_week_link = f"{base_path}archive/{yr_wk_yr:04d}/weeks/week-{yr_wk_yr:04d}-{yr_wk_num:02d}.html"
-            target_day_str = f"{stop_yr:04d}-{stop_mo:02d}-{stop_day:02d}" if is_current_year else f"{yr:04d}-01-01"
+            target_day_date = stop_dt.date() if is_current_year else datetime.date(yr, 1, 1)
+            target_day_str = target_day_date.strftime('%Y-%m-%d')
             context_day_link = f"{base_path}index.html" if is_current_year else f"{base_path}archive/{context_year_str}/days/day-{target_day_str}.html"
         elif summarize_by == 'SummaryByMonth':
+            target_mo_key = (yr, mo)
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
             if is_current_month:
+                target_wk_key = (stop_wk_yr, stop_wk_num)
                 context_week_link = current_week_url
             else:
                 first_day_mo = datetime.date(yr, mo, 1)
@@ -755,32 +1059,47 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
                     first_monday_mo = stop_monday
                 mo_wk_yr = first_monday_mo.year
                 mo_wk_num = first_monday_mo.isocalendar()[1]
+                target_wk_key = (mo_wk_yr, mo_wk_num)
                 context_week_link = f"{base_path}archive/{mo_wk_yr:04d}/weeks/week-{mo_wk_yr:04d}-{mo_wk_num:02d}.html"
             target_day = stop_day if is_current_month else 1
+            target_day_date = datetime.date(yr, mo, target_day)
             context_day_link = f"{base_path}index.html" if is_current_month else f"{base_path}archive/{context_year_str}/days/day-{context_year_str}-{context_month_str}-{target_day:02d}.html"
         elif summarize_by == 'SummaryByWeek':
+            target_mo_key = (yr, mo)
+            target_wk_key = cur_wk_key
+            target_day_date = stop_dt.date() if is_current_week else ref_dt.date()
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
             context_week_link = f"{base_path}archive/{ref_monday.year:04d}/weeks/week-{ref_monday.year:04d}-{ref_monday.isocalendar()[1]:02d}.html"
             context_day_link = f"{base_path}index.html" if is_current_week else f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
         else:
+            target_mo_key = (yr, mo)
+            target_wk_key = cur_wk_key
+            target_day_date = ref_dt.date()
             context_month_link = f"{base_path}archive/{context_year_str}/months/month-{context_year_str}-{context_month_str}.html"
             context_week_link = f"{base_path}archive/{ref_monday.year:04d}/weeks/week-{ref_monday.year:04d}-{ref_monday.isocalendar()[1]:02d}.html"
             today_iso = stop_dt.strftime('%Y-%m-%d')
             context_day_link = f"{base_path}index.html" if (is_current_day or context_day_str == today_iso) else f"{base_path}archive/{context_year_str}/days/day-{context_day_str}.html"
 
-        # If a historical granularity is disabled via archive_history, point navbar scale links to the current active page
-        if not days_enabled:
+        # If a historical granularity is disabled via archive_history and the target
+        # page does not exist on disk, point navbar scale links to the active page.
+        if not days_enabled and target_day_date not in avail_days:
             context_day_link = current_day_url
-        if not weeks_enabled:
+        if not weeks_enabled and target_wk_key not in avail_weeks:
             context_week_link = current_week_url
-        if not months_enabled:
+        if not months_enabled and target_mo_key not in avail_months:
             context_month_link = current_month_url
-        context_year_link = f"{base_path}archive/{context_year_str}/year-{context_year_str}.html" if years_enabled else current_year_url
+        context_year_link = (
+            f"{base_path}archive/{context_year_str}/year-{context_year_str}.html"
+            if (years_enabled or yr in avail_years)
+            else current_year_url
+        )
 
         # Fallback card_datetime if accessed before inc/card_datetime.inc
         card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime', '%Y-%m-%d %H:%M')
         if summarize_by == 'SummaryByDay':
             card_dt_fallback = self.skin_dict.get('Extras', {}).get('Formatting', {}).get('datetime_today', '%H:%M')
+
+        archive_available_json = self._serialize_archive_available(self._available_archives) if is_live_data else ''
 
         return {
             'base_path': base_path,
@@ -790,7 +1109,8 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
             'archive_start_year': picker_start_dt.year,
             'archive_stop_year': stop_dt.year,
             'archive_years': archive_years,
-            'archive_years_reversed': [f"{y:04d}" for y in range(stop_dt.year, picker_start_dt.year - 1, -1)],
+            'archive_years_reversed': archive_years_reversed,
+            'archive_available_json': archive_available_json,
             'context_year': context_year_str,
             'context_month': context_month_str,
             'context_month_name': ref_dt.strftime("%B"),
@@ -822,21 +1142,21 @@ class NeowxArchiveGenerator(weewx.cheetahgenerator.CheetahGenerator):
 
             'has_prev_day': has_prev_day,
             'has_next_day': has_next_day,
-            'prev_day_url': f"{base_path}archive/{prev_day_dt.year}/days/day-{prev_day_dt.strftime('%Y-%m-%d')}.html" if has_prev_day else '#',
-            'next_day_url': (f"{base_path}index.html" if next_day_dt.date() >= stop_dt.date() else f"{base_path}archive/{next_day_dt.year}/days/day-{next_day_dt.strftime('%Y-%m-%d')}.html") if has_next_day else '#',
+            'prev_day_url': f"{base_path}archive/{prev_day_date.year:04d}/days/day-{prev_day_date.strftime('%Y-%m-%d')}.html" if has_prev_day else '#',
+            'next_day_url': (f"{base_path}index.html" if next_day_date >= stop_dt.date() else f"{base_path}archive/{next_day_date.year:04d}/days/day-{next_day_date.strftime('%Y-%m-%d')}.html") if has_next_day else '#',
 
             'has_prev_week': has_prev_week,
             'has_next_week': has_next_week,
-            'prev_week_url': f"{base_path}archive/{prev_wk_dt.strftime('%Y')}/weeks/week-{prev_wk_dt.strftime('%Y-%V')}.html" if has_prev_week else '#',
-            'next_week_url': f"{base_path}archive/{next_wk_dt.strftime('%Y')}/weeks/week-{next_wk_dt.strftime('%Y-%V')}.html" if has_next_week else '#',
+            'prev_week_url': f"{base_path}archive/{prev_wk_key[0]:04d}/weeks/week-{prev_wk_key[0]:04d}-{prev_wk_key[1]:02d}.html" if has_prev_week else '#',
+            'next_week_url': f"{base_path}archive/{next_wk_key[0]:04d}/weeks/week-{next_wk_key[0]:04d}-{next_wk_key[1]:02d}.html" if has_next_week else '#',
 
             'has_prev_month': has_prev_month,
             'has_next_month': has_next_month,
-            'prev_month_url': f"{base_path}archive/{prev_mo_yr}/months/month-{prev_mo_yr}-{prev_mo:02d}.html" if has_prev_month else '#',
-            'next_month_url': f"{base_path}archive/{next_mo_yr}/months/month-{next_mo_yr}-{next_mo:02d}.html" if has_next_month else '#',
+            'prev_month_url': f"{base_path}archive/{prev_mo_key[0]:04d}/months/month-{prev_mo_key[0]:04d}-{prev_mo_key[1]:02d}.html" if has_prev_month else '#',
+            'next_month_url': f"{base_path}archive/{next_mo_key[0]:04d}/months/month-{next_mo_key[0]:04d}-{next_mo_key[1]:02d}.html" if has_next_month else '#',
 
             'has_prev_year': has_prev_year,
             'has_next_year': has_next_year,
-            'prev_year_url': f"{base_path}archive/{yr-1}/year-{yr-1}.html" if has_prev_year else '#',
-            'next_year_url': f"{base_path}archive/{yr+1}/year-{yr+1}.html" if has_next_year else '#',
+            'prev_year_url': f"{base_path}archive/{prev_yr_val:04d}/year-{prev_yr_val:04d}.html" if has_prev_year else '#',
+            'next_year_url': f"{base_path}archive/{next_yr_val:04d}/year-{next_yr_val:04d}.html" if has_next_year else '#',
         }
