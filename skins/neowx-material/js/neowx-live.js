@@ -23,9 +23,10 @@
     var isNonCurrent = !!document.getElementById('header-date');
     var hasUptime = !!document.getElementById('footer-station-uptime') ||
                     !!document.getElementById('footer-server-uptime');
+    var hasNavHub = !!document.getElementById('nwm-nav-hub');
 
-    if (!isNonCurrent && !hasUptime) {
-        return; // current page with uptime disabled — nothing to sync
+    if (!isNonCurrent && !hasUptime && !hasNavHub) {
+        return; // current page with uptime and navigation disabled — nothing to sync
     }
 
     var MOON_ICONS = [
@@ -124,7 +125,20 @@
 
     function apply(data) {
         applyUptime(data);
-        if (!isNonCurrent) { return; } // current page: uptime is all we sync
+
+        // Sync per-scale archive availability on ALL pages (including current/index.html)
+        // so day/week/month/year pickers and steppers reflect actual files on disk.
+        if (data.archive_available && typeof data.archive_available === 'object') {
+            window.NX_ARCHIVE_AVAILABLE = data.archive_available;
+            if (data.today) {
+                window.NX_STOP_DATE = data.today;
+            }
+            if (window.nxUpdateArchiveAvailability) {
+                window.nxUpdateArchiveAvailability(data.archive_available, data.today);
+            }
+        }
+
+        if (!isNonCurrent) { return; } // current page: uptime + archive availability are all we sync
 
         setText('header-date', data.date);
         setText('footer-year', data.year);
@@ -132,16 +146,19 @@
             setText('footer-weewx-version', data.versions.weewx);
             setText('footer-skin-version', data.versions.skin);
         }
-        if (data.today) {
-            window.NX_STOP_DATE = data.today;
-            if (window.nxUpdateStopDate) {
-                window.nxUpdateStopDate(data.today);
+        // Legacy fallback when live.json predates archive_available
+        if (!data.archive_available) {
+            if (data.today) {
+                window.NX_STOP_DATE = data.today;
+                if (window.nxUpdateStopDate) {
+                    window.nxUpdateStopDate(data.today);
+                }
             }
-        }
-        if (data.archive_start_date) {
-            window.NX_START_DATE = data.archive_start_date;
-            if (window.nxUpdateStartDate) {
-                window.nxUpdateStartDate(data.archive_start_date);
+            if (data.archive_start_date) {
+                window.NX_START_DATE = data.archive_start_date;
+                if (window.nxUpdateStartDate) {
+                    window.nxUpdateStartDate(data.archive_start_date);
+                }
             }
         }
         applyAlmanac(data.almanac);

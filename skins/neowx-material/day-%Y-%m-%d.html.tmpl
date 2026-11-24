@@ -414,8 +414,33 @@
         </title>
         #include "inc/head.inc"
         #if ($varExists('is_current_day') and $is_current_day) or $day.dateTime.format('%Y-%m-%d') == $archive_stop_date or $day.dateTime.format('%Y-%m-%d') == $time.strftime('%Y-%m-%d')
-            <script>window.location.replace('${base_path}index.html');</script>
-            <meta http-equiv="refresh" content="0; url=${base_path}index.html">
+            <script>
+            (function () {
+                var pageDay = '$day.dateTime.format("%Y-%m-%d")';
+                var target = '${base_path}index.html';
+                function checkRedirect(todayStr) {
+                    if (pageDay && todayStr && pageDay === todayStr) {
+                        window.location.replace(target);
+                    }
+                }
+                if (window.NX_LIVE_DATA && typeof window.NX_LIVE_DATA.then === 'function') {
+                    window.NX_LIVE_DATA.then(function (data) {
+                        if (data && data.today) {
+                            checkRedirect(data.today);
+                        } else {
+                            var d = new Date();
+                            checkRedirect(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+                        }
+                    }, function () {
+                        var d = new Date();
+                        checkRedirect(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+                    });
+                } else {
+                    var d = new Date();
+                    checkRedirect(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+                }
+            })();
+            </script>
         #end if
     </head>
     <body class="${Extras.Appearance.mode}-theme main-bg" ontouchstart="">
